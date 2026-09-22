@@ -83,6 +83,12 @@ node scripts/validate.mjs
 
 The custom validator checks the basic HTML structure, duplicate IDs, the single-main-landmark rule and required runtime file references.
 
+CI also opens the playground in headless Chrome and runs `scripts/layout-audit.html`. The audit covers the supported viewport presets, player counts, long names, Continue enabled/disabled, loading/error states, footer containment and TV focus clipping.
+
+## Typography
+
+The MVP intentionally uses a local system UI font stack so the playground remains reliable offline and on older TV browsers. The comparison with a dedicated display font and the reasons for deferring it are recorded in [docs/typography.md](docs/typography.md).
+
 ## GitHub Pages
 
 The site is deployed by `.github/workflows/pages.yml`.
