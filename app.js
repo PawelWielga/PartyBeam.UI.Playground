@@ -1052,6 +1052,12 @@
       if (["up", "down", "left", "right"].includes(command)) {
         event.preventDefault();
         moveBrowserFocus(command);
+        return;
+      }
+
+      if (command === "back" && state.screen === "catalog") {
+        event.preventDefault();
+        showLobby();
       }
       return;
     }
