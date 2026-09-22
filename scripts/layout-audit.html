@@ -356,6 +356,17 @@
         assert(Boolean(incompatible), viewport + " catalog has no incompatible placeholder at six players");
         assert(Boolean(compatible), viewport + " catalog has no compatible placeholder at six players");
 
+        await setPlayers(8);
+        const catalogPlayerRows = Array.from(doc.querySelectorAll("#catalogPlayersList .player-slot"));
+        assert(catalogPlayerRows.length === 9, viewport + " catalog player panel did not render 8 players plus Waiting");
+        catalogPlayerRows.forEach((row, index) => {
+          assert(
+            rectInside(row.getBoundingClientRect(), playersPanel.getBoundingClientRect()),
+            viewport + " catalog player row clipped",
+            "row=" + index
+          );
+        });
+
         const startScrollTop = scroll.scrollTop;
         for (let index = 0; index < 5; index += 1) {
           await dispatchKey("ArrowDown");
@@ -365,9 +376,19 @@
         await dispatchKey("Backspace");
         await waitFrames(2);
 
-        assert(!lobby.hidden, viewport + " Back did not return to lobby");
-        assert(catalog.hidden, viewport + " Back left catalog visible");
+        assert(!lobby.hidden, viewport + " remote Back did not return to lobby");
+        assert(catalog.hidden, viewport + " remote Back left catalog visible");
         assert(!footer.hidden, viewport + " lobby footer did not return");
+
+        await setPlayers(6);
+        await click("#continueButton");
+        const firstCoverForKeyboard = doc.querySelector(".game-cover");
+        firstCoverForKeyboard.focus();
+        await waitFrames(1);
+        const browserBackPrevented = await dispatchKey("Backspace");
+        assert(browserBackPrevented, viewport + " keyboard Back was not handled from focused cover");
+        assert(!lobby.hidden, viewport + " keyboard Back did not return to lobby");
+        assert(catalog.hidden, viewport + " keyboard Back left catalog visible");
       }
 
       function validateLayout(label) {
