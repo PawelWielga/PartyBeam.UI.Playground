@@ -2202,7 +2202,7 @@ button:disabled {
   padding: 12px 14px 28px;
   scrollbar-color: rgba(215, 204, 255, 0.42) rgba(255, 255, 255, 0.04);
   scrollbar-width: thin;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   overscroll-behavior: contain;
 }
 
