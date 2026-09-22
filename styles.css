@@ -134,7 +134,7 @@ button:disabled {
 }
 
 .viewport-button {
-  min-height: 38px;
+  min-height: 44px;
   padding: 0 12px;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
@@ -263,8 +263,8 @@ button:disabled {
 }
 
 .dev-close {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
@@ -307,7 +307,7 @@ button:disabled {
 }
 
 .segmented-control button {
-  min-height: 42px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-weight: 800;
@@ -1036,7 +1036,7 @@ button:disabled {
 
 .preview-canvas[data-device="tv720"] .eyebrow {
   margin-bottom: 6px;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="tv720"] .home-card-copy h1,
@@ -1046,7 +1046,7 @@ button:disabled {
 
 .preview-canvas[data-device="tv720"] .home-card-description {
   margin-top: 5px;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="tv720"] .qr-code {
@@ -1067,7 +1067,7 @@ button:disabled {
 .preview-canvas[data-device="tv720"] .game-code-label,
 .preview-canvas[data-device="tv720"] .game-code-hint,
 .preview-canvas[data-device="tv720"] .qr-caption {
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="tv720"] .game-code {
@@ -1083,7 +1083,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .players-summary {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="tv720"] .players-grid {
@@ -1098,7 +1098,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .player-name {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .preview-canvas[data-device="tv720"] .player-status {
@@ -1119,7 +1119,7 @@ button:disabled {
 
 .preview-canvas[data-device="tv720"] .app-version,
 .preview-canvas[data-device="tv720"] .partybeam-footer .screen-button--link {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="tv720"] .state-card {
@@ -1175,7 +1175,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .screen-button--ghost {
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 11px;
   border-radius: var(--radius-sm);
   font-size: 0;
@@ -1206,12 +1206,12 @@ button:disabled {
 
 .preview-canvas[data-device="phone"] .eyebrow {
   margin-bottom: 5px;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .preview-canvas[data-device="phone"] .home-card-copy h1,
 .preview-canvas[data-device="phone"] .home-card-copy h2 {
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .preview-canvas[data-device="phone"] .home-card-description {
@@ -1241,7 +1241,7 @@ button:disabled {
 .preview-canvas[data-device="phone"] .game-code-label,
 .preview-canvas[data-device="phone"] .game-code-hint,
 .preview-canvas[data-device="phone"] .qr-caption {
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .preview-canvas[data-device="phone"] .players-grid {
@@ -1257,7 +1257,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .player-name {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .preview-canvas[data-device="phone"] .player-status {
@@ -1270,15 +1270,15 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .players-summary {
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .preview-canvas[data-device="phone"] .screen-button--primary {
   min-width: min(220px, 80%);
-  min-height: 38px;
+  min-height: 44px;
   padding: 0 22px;
   border-radius: var(--radius-md);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .preview-canvas[data-device="phone"] .partybeam-footer {
@@ -1287,11 +1287,11 @@ button:disabled {
 
 .preview-canvas[data-device="phone"] .app-version,
 .preview-canvas[data-device="phone"] .partybeam-footer .screen-button--link {
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .preview-canvas[data-device="phone"] .screen-button--link {
-  min-height: 34px;
+  min-height: 44px;
   padding: 0 10px;
 }
 
@@ -1427,7 +1427,7 @@ button:disabled {
   }
 
   .tool-toggle {
-    min-height: 42px;
+    min-height: 44px;
     padding: 0 12px;
     font-size: 12px;
   }
