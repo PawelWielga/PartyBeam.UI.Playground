@@ -324,6 +324,16 @@
         const catalogRect = catalog.getBoundingClientRect();
         const playersRect = playersPanel.getBoundingClientRect();
         const libraryRect = library.getBoundingClientRect();
+        const brandRect = doc.querySelector(".partybeam-brand").getBoundingClientRect();
+        const settingsRect = doc.getElementById("settingsButton").getBoundingClientRect();
+        const codeRect = code.getBoundingClientRect();
+
+        const overlaps = (a, b) =>
+          a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+        assert(rectInside(codeRect, topbarRect), viewport + " catalog join code outside header");
+        assert(!overlaps(codeRect, brandRect), viewport + " catalog join code overlaps PartyBeam brand");
+        assert(!overlaps(codeRect, settingsRect), viewport + " catalog join code overlaps Settings");
 
         assert(rectInside(catalogRect, screenRect), viewport + " catalog outside screen");
         assert(topbarRect.bottom <= catalogRect.top + 1, viewport + " catalog overlaps header");
@@ -356,12 +366,28 @@
         assert(Boolean(incompatible), viewport + " catalog has no incompatible placeholder at six players");
         assert(Boolean(compatible), viewport + " catalog has no compatible placeholder at six players");
 
-        if (viewport === "tv720" && incompatible) {
+        if (incompatible) {
           incompatible.classList.add("remote-focused");
-          const warning = incompatible.querySelector(".game-cover-compatibility strong");
-          const detail = incompatible.querySelector(".game-cover-compatibility span");
-          assert(pxValue(warning, "fontSize") >= 12, "tv720 compatibility warning below 12px");
-          assert(pxValue(detail, "fontSize") >= 12, "tv720 compatibility detail below 12px");
+          const compatibility = incompatible.querySelector(".game-cover-compatibility");
+          const warning = compatibility.querySelector("strong");
+          const detail = compatibility.querySelector("span");
+          const compatibilityRect = compatibility.getBoundingClientRect();
+          const coverRect = incompatible.getBoundingClientRect();
+
+          assert(
+            frame.contentWindow.getComputedStyle(compatibility).display !== "none",
+            viewport + " compatibility overlay stayed hidden on focus"
+          );
+          assert(
+            rectInside(compatibilityRect, coverRect),
+            viewport + " compatibility overlay leaves game cover"
+          );
+
+          if (viewport === "tv720") {
+            assert(pxValue(warning, "fontSize") >= 12, "tv720 compatibility warning below 12px");
+            assert(pxValue(detail, "fontSize") >= 12, "tv720 compatibility detail below 12px");
+          }
+
           incompatible.classList.remove("remote-focused");
         }
 
