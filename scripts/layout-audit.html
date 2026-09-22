@@ -111,6 +111,65 @@
         }
       }
 
+      async function dispatchKey(key) {
+        const doc = frame.contentDocument;
+        const event = new frame.contentWindow.KeyboardEvent("keydown", {
+          key,
+          bubbles: true,
+          cancelable: true
+        });
+
+        doc.dispatchEvent(event);
+        await waitFrames(1);
+        return event.defaultPrevented;
+      }
+
+      async function validateKeyboardFocusHandoff(label, targetSelector) {
+        const doc = frame.contentDocument;
+        const target = doc.querySelector(targetSelector);
+
+        if (!target) {
+          fail(label + " keyboard target missing", targetSelector);
+          return;
+        }
+
+        target.focus();
+        await waitFrames(1);
+
+        assert(doc.activeElement === target, label + " browser focus did not reach target");
+        assert(
+          doc.querySelectorAll(".remote-focused").length === 0,
+          label + " remote ring remained visible during browser focus"
+        );
+
+        const enterPrevented = await dispatchKey("Enter");
+        assert(!enterPrevented, label + " Enter was intercepted by remote handling");
+
+        const beforeArrow = doc.activeElement;
+        const arrowKey = target.id === "settingsButton" ? "ArrowDown" : "ArrowUp";
+        const arrowPrevented = await dispatchKey(arrowKey);
+        const afterArrow = doc.activeElement;
+
+        assert(arrowPrevented, label + " spatial arrow was not handled");
+        assert(afterArrow !== beforeArrow, label + " spatial arrow did not move DOM focus");
+        assert(
+          doc.getElementById("partybeamScreen").contains(afterArrow),
+          label + " spatial arrow moved focus outside PartyBeam screen"
+        );
+        assert(
+          doc.querySelectorAll(".remote-focused").length === 0,
+          label + " remote ring reappeared while browser focus stayed inside screen"
+        );
+
+        afterArrow.blur();
+        await waitFrames(1);
+
+        assert(
+          doc.querySelectorAll(".remote-focused").length === 1,
+          label + " remote ring did not return after browser focus left screen"
+        );
+      }
+
       function validateLongName(label) {
         const doc = frame.contentDocument;
         const name = doc.querySelector(".player-name");
@@ -236,9 +295,11 @@
           const retry = frame.contentDocument.querySelector(".state-retry");
           assert(Boolean(retry), viewport + " error state missing Retry");
           validateFocusSafety(viewport + " / error");
+          await validateKeyboardFocusHandoff(viewport + " / Retry keyboard", ".state-retry");
 
           await setUiState("normal");
           validateFocusSafety(viewport + " / normal");
+          await validateKeyboardFocusHandoff(viewport + " / Settings keyboard", "#settingsButton");
         }
 
         if (failures.length === 0) {
