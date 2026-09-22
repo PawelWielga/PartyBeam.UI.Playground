@@ -46,6 +46,7 @@
 
   let toastTimer = null;
   let remoteFocusTarget = null;
+  let browserFocusInsideScreen = false;
 
   function getStageSpace() {
     const styles = getComputedStyle(elements.previewStage);
@@ -249,18 +250,21 @@
     return label.replace(/\s+/g, " ").trim();
   }
 
-  function setRemoteFocus(element) {
+  function renderRemoteFocusVisual() {
     document.querySelectorAll(".remote-focused").forEach((focused) => {
       focused.classList.remove("remote-focused");
     });
 
-    remoteFocusTarget = element || null;
-
-    if (remoteFocusTarget) {
+    if (remoteFocusTarget && !browserFocusInsideScreen) {
       remoteFocusTarget.classList.add("remote-focused");
     }
 
     elements.remoteFocusLabel.textContent = getRemoteLabel(remoteFocusTarget);
+  }
+
+  function setRemoteFocus(element) {
+    remoteFocusTarget = element || null;
+    renderRemoteFocusVisual();
   }
 
   function ensureRemoteFocus() {
@@ -287,22 +291,16 @@
     };
   }
 
-  function moveRemoteFocus(direction) {
+  function getDirectionalTarget(origin, direction) {
     const focusables = getTvFocusableElements();
 
-    if (focusables.length === 0) {
-      setRemoteFocus(null);
-      return;
+    if (!origin || !focusables.includes(origin)) {
+      return null;
     }
 
-    if (!remoteFocusTarget || !focusables.includes(remoteFocusTarget)) {
-      ensureRemoteFocus();
-      return;
-    }
-
-    const current = getCenter(remoteFocusTarget);
+    const current = getCenter(origin);
     const candidates = focusables
-      .filter((element) => element !== remoteFocusTarget)
+      .filter((element) => element !== origin)
       .map((element) => {
         const center = getCenter(element);
         const dx = center.x - current.x;
@@ -339,9 +337,43 @@
       .filter((candidate) => candidate.valid)
       .sort((a, b) => a.score - b.score);
 
-    if (candidates.length > 0) {
-      setRemoteFocus(candidates[0].element);
+    return candidates.length > 0 ? candidates[0].element : null;
+  }
+
+  function moveRemoteFocus(direction) {
+    const focusables = getTvFocusableElements();
+
+    if (focusables.length === 0) {
+      setRemoteFocus(null);
+      return;
     }
+
+    if (!remoteFocusTarget || !focusables.includes(remoteFocusTarget)) {
+      ensureRemoteFocus();
+      return;
+    }
+
+    const target = getDirectionalTarget(remoteFocusTarget, direction);
+    if (target) {
+      setRemoteFocus(target);
+    }
+  }
+
+  function moveBrowserFocus(direction) {
+    const activeElement = document.activeElement;
+    const focusables = getTvFocusableElements();
+
+    if (!focusables.includes(activeElement)) {
+      return;
+    }
+
+    const target = getDirectionalTarget(activeElement, direction);
+    if (!target) {
+      return;
+    }
+
+    setRemoteFocus(target);
+    target.focus({ preventScroll: true });
   }
 
   function activateRemoteFocus() {
@@ -559,6 +591,24 @@
     showToast("Manage games clicked · playground only");
   });
 
+  elements.partybeamScreen.addEventListener("focusin", (event) => {
+    const focusables = getTvFocusableElements();
+
+    if (!focusables.includes(event.target)) {
+      return;
+    }
+
+    browserFocusInsideScreen = true;
+    setRemoteFocus(event.target);
+  });
+
+  elements.partybeamScreen.addEventListener("focusout", () => {
+    window.setTimeout(() => {
+      browserFocusInsideScreen = elements.partybeamScreen.contains(document.activeElement);
+      renderRemoteFocusVisual();
+    }, 0);
+  });
+
   document.addEventListener("keydown", (event) => {
     const tagName = document.activeElement && document.activeElement.tagName;
     const typing = tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA";
@@ -583,10 +633,6 @@
     const screenHasFocus = activeElement && elements.partybeamScreen.contains(activeElement);
     const neutralFocus = !activeElement || activeElement === document.body;
 
-    if (!screenHasFocus && !neutralFocus) {
-      return;
-    }
-
     const commandByKey = {
       ArrowUp: "up",
       ArrowDown: "down",
@@ -598,7 +644,19 @@
     };
 
     const command = commandByKey[event.key];
-    if (command) {
+    if (!command) {
+      return;
+    }
+
+    if (screenHasFocus) {
+      if (["up", "down", "left", "right"].includes(command)) {
+        event.preventDefault();
+        moveBrowserFocus(command);
+      }
+      return;
+    }
+
+    if (neutralFocus) {
       event.preventDefault();
       handleRemoteCommand(command);
     }
