@@ -62,6 +62,19 @@ Current controls include:
 
 The default demo currently shows 6 connected players plus one waiting slot. Player tiles wrap to additional rows with a maximum of 4 tiles per row on TV previews.\n\nThese controls belong to the playground shell only and should not be copied into PartyBeam production UI.
 
+## TV remote simulator
+
+Open **TV remote** to test the screen with a remote-like directional pad.
+
+The simulator provides:
+
+- Up / Down / Left / Right directional navigation,
+- **OK** to activate the currently highlighted control,
+- **Back** and **Home** command simulation,
+- a visible label showing the currently focused TV control.
+
+The simulated TV focus is independent from the browser focus, so clicking the remote panel still highlights the target inside the TV preview. Arrow keys and Enter on a keyboard use the same navigation model when focus is not inside playground controls.
+
 ## GitHub Pages
 
 The site is deployed by `.github/workflows/pages.yml`.

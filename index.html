@@ -112,9 +112,48 @@
       </section>
     </main>
 
-    <button class="dev-toggle" id="devToggle" type="button" aria-controls="devPanel" aria-expanded="false">
-      Dev controls
-    </button>
+    <div class="playground-panel-toggles" aria-label="Playground tools">
+      <button class="tool-toggle" id="remoteToggle" type="button" aria-controls="remotePanel" aria-expanded="false">
+        TV remote
+      </button>
+      <button class="tool-toggle" id="devToggle" type="button" aria-controls="devPanel" aria-expanded="false">
+        Dev controls
+      </button>
+    </div>
+
+    <aside class="remote-panel" id="remotePanel" aria-label="TV remote simulator" hidden>
+      <div class="remote-panel-header">
+        <div>
+          <span class="dev-label">PLAYGROUND ONLY</span>
+          <h2>TV remote</h2>
+        </div>
+        <button class="dev-close" id="remoteClose" type="button" aria-label="Close TV remote">×</button>
+      </div>
+
+      <div class="remote-body">
+        <div class="remote-dpad" aria-label="Directional pad">
+          <button class="remote-key remote-key--up" type="button" data-remote-key="up" aria-label="Up">▲</button>
+          <button class="remote-key remote-key--left" type="button" data-remote-key="left" aria-label="Left">◀</button>
+          <button class="remote-key remote-key--ok" type="button" data-remote-key="ok" aria-label="OK">OK</button>
+          <button class="remote-key remote-key--right" type="button" data-remote-key="right" aria-label="Right">▶</button>
+          <button class="remote-key remote-key--down" type="button" data-remote-key="down" aria-label="Down">▼</button>
+        </div>
+
+        <div class="remote-secondary">
+          <button class="remote-key remote-key--secondary" type="button" data-remote-key="back">Back</button>
+          <button class="remote-key remote-key--secondary" type="button" data-remote-key="home">Home</button>
+        </div>
+
+        <div class="remote-status">
+          <span>Focused</span>
+          <strong id="remoteFocusLabel">Continue</strong>
+        </div>
+
+        <p class="remote-hint">
+          Arrow keys and Enter on your keyboard use the same navigation model.
+        </p>
+      </div>
+    </aside>
 
     <aside class="dev-panel" id="devPanel" aria-label="Developer controls" hidden>
       <div class="dev-panel-header">
