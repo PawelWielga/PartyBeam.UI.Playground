@@ -2474,7 +2474,7 @@ button:disabled {
 
 .preview-canvas[data-device="phone"] .catalog-join-code {
   left: auto;
-  right: 64px;
+  right: 88px;
   min-width: 0;
   transform: translateY(-50%);
 }
