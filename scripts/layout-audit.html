@@ -267,6 +267,52 @@
         );
       }
 
+      async function validateRemoteFocusAnimationLifecycle(label) {
+        const doc = frame.contentDocument;
+        const target = doc.getElementById("continueButton");
+
+        if (!target) {
+          fail(label + " target missing");
+          return;
+        }
+
+        target.blur();
+        await waitFrames(2);
+
+        const focused = doc.querySelector(".remote-focused");
+        assert(Boolean(focused), label + " remote focus missing");
+        if (!focused) {
+          return;
+        }
+
+        const firstAngle = focused.style.getPropertyValue("--remote-focus-angle");
+        await waitFrames(2);
+        const secondAngle = focused.style.getPropertyValue("--remote-focus-angle");
+        assert(
+          firstAngle !== secondAngle,
+          label + " remote focus angle did not advance while active",
+          firstAngle + " -> " + secondAngle
+        );
+
+        focused.focus();
+        await waitFrames(2);
+        const pausedAngle = focused.style.getPropertyValue("--remote-focus-angle");
+        await waitFrames(2);
+        assert(
+          focused.style.getPropertyValue("--remote-focus-angle") === pausedAngle,
+          label + " remote focus angle advanced while browser focus hid the ring"
+        );
+
+        focused.blur();
+        await waitFrames(2);
+        const resumedAngle = focused.style.getPropertyValue("--remote-focus-angle");
+        await waitFrames(2);
+        assert(
+          focused.style.getPropertyValue("--remote-focus-angle") !== resumedAngle,
+          label + " remote focus angle did not resume after browser focus left"
+        );
+      }
+
       function validateLongName(label) {
         const doc = frame.contentDocument;
         const name = doc.querySelector(".player-name");
@@ -398,6 +444,7 @@
           await setUiState("normal");
           validateFocusSafety(viewport + " / normal");
           await validateKeyboardFocusHandoff(viewport + " / Settings keyboard", "#settingsButton");
+          await validateRemoteFocusAnimationLifecycle(viewport + " / remote focus animation");
         }
 
         if (failures.length === 0) {
