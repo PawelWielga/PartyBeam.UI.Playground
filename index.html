@@ -43,31 +43,52 @@
               </header>
 
               <div class="partybeam-content">
-                <section class="join-section" aria-labelledby="joinTitle">
-                  <div class="join-heading">
-                    <p class="eyebrow">ROOM IS READY</p>
-                    <h1 id="joinTitle">LET'S PLAY TOGETHER</h1>
-                    <p>Scan the code or enter the game code on your phone.</p>
-                  </div>
-
-                  <div class="join-card">
-                    <div class="qr-panel" role="img" aria-label="QR code placeholder for joining game 8F4 K2P">
-                      <div class="qr-code" id="qrCode" aria-hidden="true"></div>
-                      <span class="qr-caption">Scan to join</span>
+                <section class="home-sections" aria-label="Ways to play">
+                  <article class="home-card home-card--download">
+                    <div class="home-card-copy">
+                      <p class="eyebrow">NEW TO PARTYBEAM?</p>
+                      <h1>LET'S PLAY TOGETHER</h1>
+                      <p class="home-card-description">
+                        Turn your phone into a controller. Download the PartyBeam app and join the room in seconds.
+                      </p>
                     </div>
 
-                    <div class="game-code-panel">
-                      <span class="game-code-label">Game code</span>
-                      <strong class="game-code" aria-label="Game code 8 F 4 K 2 P">8F4 K2P</strong>
-                      <span class="game-code-hint">partybeam.local/join</span>
+                    <div class="home-card-action">
+                      <div class="qr-panel" role="img" aria-label="QR code placeholder for downloading PartyBeam">
+                        <div class="qr-code qr-code--download" id="downloadQrCode" aria-hidden="true"></div>
+                        <span class="qr-caption">Scan to download the app</span>
+                      </div>
                     </div>
-                  </div>
+                  </article>
+
+                  <article class="home-card home-card--join">
+                    <div class="home-card-copy">
+                      <p class="eyebrow">ALREADY HAVE THE APP?</p>
+                      <h2>JOIN THIS GAME</h2>
+                      <p class="home-card-description">
+                        Scan the QR code or enter the game code in the PartyBeam app.
+                      </p>
+                    </div>
+
+                    <div class="join-actions">
+                      <div class="qr-panel" role="img" aria-label="QR code placeholder for joining game 8F4 K2P">
+                        <div class="qr-code qr-code--join" id="joinQrCode" aria-hidden="true"></div>
+                        <span class="qr-caption">Scan to join</span>
+                      </div>
+
+                      <div class="game-code-panel">
+                        <span class="game-code-label">Game code</span>
+                        <strong class="game-code" aria-label="Game code 8 F 4 K 2 P">8F4 K2P</strong>
+                        <span class="game-code-hint">partybeam.local/join</span>
+                      </div>
+                    </div>
+                  </article>
                 </section>
 
                 <section class="players-section" aria-labelledby="playersTitle">
                   <div class="section-heading">
                     <h2 id="playersTitle">Players</h2>
-                    <span class="players-summary" id="playersSummary">2 connected</span>
+                    <span class="players-summary" id="playersSummary">6 connected</span>
                   </div>
                   <div class="players-grid" id="playersGrid"></div>
                 </section>
@@ -106,11 +127,13 @@
 
       <fieldset class="dev-fieldset">
         <legend>Players</legend>
-        <div class="segmented-control" id="playerControls">
+        <div class="segmented-control segmented-control--players" id="playerControls">
           <button type="button" data-players="0">0</button>
           <button type="button" data-players="1">1</button>
-          <button type="button" data-players="2" class="is-active">2</button>
+          <button type="button" data-players="2">2</button>
           <button type="button" data-players="4">4</button>
+          <button type="button" data-players="6" class="is-active">6</button>
+          <button type="button" data-players="8">8</button>
         </div>
       </fieldset>
 
