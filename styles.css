@@ -1542,14 +1542,64 @@ input:focus-visible {
   line-height: 1.45;
 }
 
+@property --remote-focus-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
 .partybeam-screen .remote-focused {
   position: relative;
   z-index: 4;
-  outline: 6px solid var(--focus) !important;
-  outline-offset: 8px !important;
-  box-shadow:
-    0 0 0 12px rgba(124, 92, 255, 0.18),
-    0 0 34px rgba(124, 92, 255, 0.38) !important;
+  isolation: isolate;
+  outline: none !important;
+}
+
+.partybeam-screen .remote-focused::before,
+.partybeam-screen .remote-focused::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  inset: -8px;
+  z-index: -1;
+  padding: 4px;
+  border-radius: inherit;
+  background:
+    conic-gradient(
+      from var(--remote-focus-angle),
+      transparent 0deg 220deg,
+      rgba(124, 92, 255, 0.15) 240deg,
+      var(--primary-strong) 272deg,
+      var(--focus) 294deg,
+      var(--success) 314deg,
+      transparent 346deg 360deg
+    );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: remote-focus-spin 1.8s linear infinite;
+}
+
+.partybeam-screen .remote-focused::before {
+  inset: -12px;
+  padding: 7px;
+  opacity: 0.62;
+  filter: blur(9px);
+}
+
+.partybeam-screen .remote-focused::after {
+  filter: drop-shadow(0 0 7px rgba(124, 92, 255, 0.72));
+}
+
+@keyframes remote-focus-spin {
+  to {
+    --remote-focus-angle: 360deg;
+  }
 }
 
 @media (max-width: 860px) {
@@ -1571,5 +1621,14 @@ input:focus-visible {
     width: min(320px, calc(100vw - 24px));
     max-height: calc(100vh - 90px);
     overflow: auto;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .partybeam-screen .remote-focused::before,
+  .partybeam-screen .remote-focused::after {
+    animation: none;
+    --remote-focus-angle: 292deg;
   }
 }
