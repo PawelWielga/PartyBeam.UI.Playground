@@ -87,6 +87,103 @@
         await waitFrames();
       }
 
+      function pxValue(element, property) {
+        return parseFloat(frame.contentWindow.getComputedStyle(element)[property]) || 0;
+      }
+
+      function validateCompactReadability(viewport) {
+        const doc = frame.contentDocument;
+
+        if (viewport === "tv720") {
+          [
+            ".eyebrow",
+            ".home-card-description",
+            ".game-code-label",
+            ".game-code-hint",
+            ".qr-caption",
+            ".players-summary",
+            ".app-version",
+            ".partybeam-footer .screen-button--link"
+          ].forEach((selector) => {
+            const element = doc.querySelector(selector);
+            assert(Boolean(element), "tv720 readability target missing", selector);
+            if (element) {
+              assert(
+                pxValue(element, "fontSize") >= 12,
+                "tv720 text below 12px",
+                selector + "=" + pxValue(element, "fontSize")
+              );
+            }
+          });
+        }
+
+        if (viewport === "phone") {
+          [
+            ".eyebrow",
+            ".game-code-label",
+            ".game-code-hint",
+            ".qr-caption",
+            ".players-summary",
+            ".app-version",
+            ".partybeam-footer .screen-button--link"
+          ].forEach((selector) => {
+            const element = doc.querySelector(selector);
+            assert(Boolean(element), "phone readability target missing", selector);
+            if (element) {
+              assert(
+                pxValue(element, "fontSize") >= 10,
+                "phone text below 10px",
+                selector + "=" + pxValue(element, "fontSize")
+              );
+            }
+          });
+
+          [
+            "#settingsButton",
+            "#continueButton",
+            "#manageGamesButton"
+          ].forEach((selector) => {
+            const element = doc.querySelector(selector);
+            assert(Boolean(element), "phone touch target missing", selector);
+            if (element) {
+              assert(
+                element.getBoundingClientRect().height >= 44,
+                "phone touch target below 44px",
+                selector + "=" + element.getBoundingClientRect().height
+              );
+            }
+          });
+
+          const shellChecks = [
+            [".viewport-button", "minHeight"],
+            [".tool-toggle", "minHeight"],
+            [".segmented-control button", "minHeight"]
+          ];
+
+          shellChecks.forEach(([selector, property]) => {
+            const element = doc.querySelector(selector);
+            assert(Boolean(element), "playground touch target missing", selector);
+            if (element) {
+              assert(
+                pxValue(element, property) >= 44,
+                "playground touch target below 44px",
+                selector + "=" + pxValue(element, property)
+              );
+            }
+          });
+
+          const closeButton = doc.querySelector(".dev-close");
+          assert(Boolean(closeButton), "playground close target missing");
+          if (closeButton) {
+            assert(
+              pxValue(closeButton, "width") >= 44 && pxValue(closeButton, "height") >= 44,
+              "playground close target below 44px",
+              pxValue(closeButton, "width") + "x" + pxValue(closeButton, "height")
+            );
+          }
+        }
+      }
+
       function validateFocusSafety(label) {
         const doc = frame.contentDocument;
         const screen = doc.getElementById("partybeamScreen");
@@ -271,6 +368,7 @@
           await setViewport(viewport);
           await setUiState("normal");
           await setContinueEnabled(true);
+          validateCompactReadability(viewport);
 
           for (const players of playerCounts) {
             await setPlayers(players);
