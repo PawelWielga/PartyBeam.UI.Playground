@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
   <div class="playground-shell">
@@ -39,6 +39,11 @@
                   </span>
                 </div>
 
+                <div class="catalog-join-code" id="catalogJoinCode" hidden aria-label="Game code 8 F 4 K 2 P">
+                  <span class="catalog-join-code__label">GAME CODE</span>
+                  <strong>8F4 K2P</strong>
+                </div>
+
                 <button class="screen-button screen-button--ghost" type="button" id="settingsButton">
                   <svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path d="M12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Z"></path>
@@ -48,7 +53,7 @@
                 </button>
               </header>
 
-              <section class="partybeam-body" aria-label="Lobby content">
+              <section class="partybeam-body" id="lobbyScreen" aria-label="Lobby content">
                 <section class="home-sections" aria-label="Ways to play">
                   <article class="home-card home-card--download">
                     <div class="home-card-copy">
@@ -123,6 +128,23 @@
                   <button class="screen-button screen-button--primary" type="button" id="continueButton">
                     CONTINUE
                   </button>
+                </section>
+              </section>
+
+              <section class="catalog-screen" id="catalogScreen" hidden aria-label="Game catalog">
+                <aside class="catalog-players-panel" aria-labelledby="catalogPlayersTitle">
+                  <div class="catalog-players-heading">
+                    <h2 id="catalogPlayersTitle">PLAYERS</h2>
+                    <span id="catalogPlayersSummary">6 connected</span>
+                  </div>
+                  <div class="catalog-players-list" id="catalogPlayersList"></div>
+                </aside>
+
+                <section class="catalog-library" aria-labelledby="catalogTitle">
+                  <h1 id="catalogTitle">CHOOSE A GAME</h1>
+                  <div class="catalog-scroll" id="catalogScroll">
+                    <div class="game-cover-grid" id="gameCoverGrid"></div>
+                  </div>
                 </section>
               </section>
 
