@@ -8,11 +8,11 @@
     full: { full: true, label: "Full screen" }
   };
 
-  const playerNames = ["Paweł", "Ewelinka", "Alex", "Marta"];
+  const playerNames = ["Paweł", "Ewelinka", "Alex", "Marta", "Kuba", "Ola", "Tomek", "Ania"];
 
   const state = {
     viewport: "tv1080",
-    players: 2,
+    players: 6,
     uiState: "normal",
     continueEnabled: true
   };
@@ -32,7 +32,8 @@
     devClose: document.getElementById("devClose"),
     uiState: document.getElementById("uiState"),
     continueEnabled: document.getElementById("continueEnabled"),
-    qrCode: document.getElementById("qrCode"),
+    downloadQrCode: document.getElementById("downloadQrCode"),
+    joinQrCode: document.getElementById("joinQrCode"),
     toast: document.getElementById("playgroundToast"),
     settingsButton: document.getElementById("settingsButton"),
     manageGamesButton: document.getElementById("manageGamesButton")
@@ -135,11 +136,14 @@
   function renderPlayers() {
     elements.playersGrid.replaceChildren();
 
-    for (let index = 0; index < 4; index += 1) {
+    for (let index = 0; index < state.players; index += 1) {
+      const fallbackName = "Player " + (index + 1);
       elements.playersGrid.appendChild(
-        createPlayerSlot(playerNames[index], index < state.players)
+        createPlayerSlot(playerNames[index] || fallbackName, true)
       );
     }
+
+    elements.playersGrid.appendChild(createPlayerSlot("", false));
 
     if (state.players === 0) {
       elements.playersSummary.textContent = "Waiting for players";
@@ -258,7 +262,7 @@
     return outer || center;
   }
 
-  function qrValue(row, column) {
+  function qrValue(row, column, seed) {
     const finders = [
       finderValue(row, column, 0, 0),
       finderValue(row, column, 0, 14),
@@ -275,22 +279,22 @@
       return (row + column) % 2 === 0;
     }
 
-    const hash = (row * 17 + column * 31 + row * column * 7 + 13) % 19;
+    const hash = (row * 17 + column * 31 + row * column * 7 + seed * 11 + 13) % 19;
     return hash < 9;
   }
 
-  function renderQrPlaceholder() {
+  function renderQrPlaceholder(target, seed) {
     const fragment = document.createDocumentFragment();
 
     for (let row = 0; row < 21; row += 1) {
       for (let column = 0; column < 21; column += 1) {
         const cell = document.createElement("span");
-        cell.className = "qr-cell" + (qrValue(row, column) ? " is-dark" : "");
+        cell.className = "qr-cell" + (qrValue(row, column, seed) ? " is-dark" : "");
         fragment.appendChild(cell);
       }
     }
 
-    elements.qrCode.replaceChildren(fragment);
+    target.replaceChildren(fragment);
   }
 
   document.querySelectorAll("[data-viewport]").forEach((button) => {
@@ -350,6 +354,7 @@
     window.addEventListener("resize", applyViewport);
   }
 
-  renderQrPlaceholder();
+  renderQrPlaceholder(elements.downloadQrCode, 3);
+  renderQrPlaceholder(elements.joinQrCode, 7);
   render();
 })();
