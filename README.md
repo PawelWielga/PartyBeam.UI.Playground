@@ -35,7 +35,7 @@ No build step is required.
 1. Clone or download the repository.
 2. Open `index.html` in a browser.
 
-The playground also works from a local `file://` URL because it does not fetch modules or backend data.
+The playground also works from a local `file://` URL because it does not fetch modules, fonts or backend data.
 
 ## Device preview
 
@@ -46,34 +46,42 @@ The toolbar above the preview can switch between:
 - **Phone** (390×844)
 - **Full screen**
 
-TV presets are rendered at their logical resolution and the whole preview is scaled proportionally when the browser is smaller than the target viewport. This makes it possible to inspect the complete 16:9 TV screen from a phone without enabling the browser's desktop-site mode.
-
-The **Phone** preset is a separate logical viewport for testing mobile UI behavior. **Full screen** uses the currently available playground area.
+TV presets are rendered at their logical resolution and scaled proportionally when the browser is smaller than the target viewport.
 
 ## Dev controls
 
-Open **Dev controls** in the bottom-right corner to simulate visual states without changing production-like markup.
-
-Current controls include:
+Open **Dev controls** to simulate:
 
 - 0, 1, 2, 4, 6 or 8 players,
 - normal, loading and error states,
 - Continue enabled or disabled.
 
-The default demo currently shows 6 connected players plus one waiting slot. Player tiles wrap to additional rows with a maximum of 4 tiles per row on TV previews.\n\nThese controls belong to the playground shell only and should not be copied into PartyBeam production UI.
+These controls belong to the playground shell only and should not be copied into PartyBeam production UI.
 
 ## TV remote simulator
 
-Open **TV remote** to test the screen with a remote-like directional pad.
+Open **TV remote** to test directional navigation, OK activation and Back/Home simulation. The animated PartyBeam focus ring is intentional. Browsers that do not support the modern CSS required by that ring receive a static high-contrast fallback, and `prefers-reduced-motion` disables continuous focus animation.
 
-The simulator provides:
+## Design tokens
 
-- Up / Down / Left / Right directional navigation,
-- **OK** to activate the currently highlighted control,
-- **Back** and **Home** command simulation,
-- a visible label showing the currently focused TV control.
+The screen uses a small shared radius scale:
 
-The simulated TV focus is independent from the browser focus, so clicking the remote panel still highlights the target inside the TV preview. Arrow keys and Enter on a keyboard use the same navigation model when focus is not inside playground controls.
+- `--radius-sm: 12px`
+- `--radius-md: 16px`
+- `--radius-lg: 24px`
+
+The primary action gradient is intentionally kept dark enough for white text to remain readable on the phone preset.
+
+## Validation
+
+The repository stays dependency-free. Before Pages deployment, GitHub Actions runs:
+
+```text
+node --check app.js
+node scripts/validate.mjs
+```
+
+The custom validator checks the basic HTML structure, duplicate IDs, the single-main-landmark rule and required runtime file references.
 
 ## GitHub Pages
 
@@ -81,13 +89,11 @@ The site is deployed by `.github/workflows/pages.yml`.
 
 The workflow:
 
-- runs on every push to `main`,
-- can be run manually with `workflow_dispatch`,
-- uploads the repository as a static Pages artifact,
-- deploys through the `github-pages` environment,
+- validates pushes and pull requests targeting `main`,
+- deploys only after validation succeeds,
+- packages only `index.html`, `styles.css` and `app.js`,
+- does not include `.agents` or other developer tooling in the Pages artifact,
 - does not create or use a `gh-pages` branch.
-
-For a new repository, GitHub Pages must have **GitHub Actions** selected as its publishing source in **Settings → Pages → Build and deployment → Source**. After that one-time setting, pushes to `main` publish automatically.
 
 Expected public URL:
 
@@ -101,6 +107,8 @@ Expected public URL:
 ├── styles.css
 ├── app.js
 ├── README.md
+├── scripts/
+│   └── validate.mjs
 └── .github/
     └── workflows/
         └── pages.yml
