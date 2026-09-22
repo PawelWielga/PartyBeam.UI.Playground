@@ -1548,11 +1548,26 @@ input:focus-visible {
   inherits: false;
 }
 
+.screen-button--ghost {
+  --remote-focus-radius: 18px;
+}
+
+.screen-button--primary {
+  --remote-focus-radius: 22px;
+}
+
+.screen-button--link {
+  --remote-focus-radius: 12px;
+}
+
+.state-retry {
+  --remote-focus-radius: 16px;
+}
+
 .partybeam-screen .remote-focused {
   position: relative;
   z-index: 4;
   isolation: isolate;
-  overflow: visible;
   outline: none !important;
 }
 
@@ -1561,31 +1576,41 @@ input:focus-visible {
   content: "";
   position: absolute;
   pointer-events: none;
-  inset: -7px;
+  inset: -8px;
   z-index: -1;
-  border-radius: inherit;
+  padding: 4px;
+  border-radius: calc(var(--remote-focus-radius, 12px) + 8px);
   background:
     conic-gradient(
       from var(--remote-focus-angle),
-      transparent 0 78%,
-      rgba(124, 92, 255, 0.18) 82%,
-      var(--primary-strong) 88%,
-      var(--focus) 92%,
-      var(--success) 95%,
-      transparent 100%
+      transparent 0deg 220deg,
+      rgba(124, 92, 255, 0.15) 240deg,
+      var(--primary-strong) 272deg,
+      var(--focus) 294deg,
+      var(--success) 314deg,
+      transparent 346deg 360deg
     );
-  animation: remote-focus-spin 1.65s linear infinite;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: remote-focus-spin 1.8s linear infinite;
 }
 
 .partybeam-screen .remote-focused::before {
-  inset: -11px;
-  z-index: -2;
-  opacity: 0.5;
-  filter: blur(11px);
+  inset: -12px;
+  padding: 7px;
+  border-radius: calc(var(--remote-focus-radius, 12px) + 12px);
+  opacity: 0.62;
+  filter: blur(9px);
 }
 
 .partybeam-screen .remote-focused::after {
-  box-shadow: 0 0 16px rgba(124, 92, 255, 0.18);
+  filter: drop-shadow(0 0 7px rgba(124, 92, 255, 0.72));
 }
 
 @keyframes remote-focus-spin {
@@ -1631,6 +1656,12 @@ input:focus-visible {
   position: absolute;
   right: 0;
   bottom: 34px;
+  width: max-content;
+  max-width: max-content;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
 }
 
 .preview-canvas[data-device="tv720"] .manage-games-button {
