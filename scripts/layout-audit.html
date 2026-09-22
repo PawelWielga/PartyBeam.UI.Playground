@@ -269,14 +269,17 @@
 
       async function validateRemoteFocusAnimationLifecycle(label) {
         const doc = frame.contentDocument;
-        const target = doc.getElementById("continueButton");
+        const remoteHome = doc.querySelector('[data-remote-key="home"]');
 
-        if (!target) {
-          fail(label + " target missing");
+        if (!remoteHome) {
+          fail(label + " remote Home key missing");
           return;
         }
 
-        target.blur();
+        if (doc.activeElement instanceof frame.contentWindow.HTMLElement) {
+          doc.activeElement.blur();
+        }
+        remoteHome.click();
         await waitFrames(2);
 
         const focused = doc.querySelector(".remote-focused");
