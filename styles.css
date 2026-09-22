@@ -1052,7 +1052,7 @@ button:disabled {
 .preview-canvas[data-device="tv720"] .qr-code {
   width: 118px;
   padding: 7px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
 }
 
 .preview-canvas[data-device="tv720"] .qr-panel {
@@ -1094,7 +1094,7 @@ button:disabled {
   min-height: 34px;
   gap: 8px;
   padding: 5px 9px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
 }
 
 .preview-canvas[data-device="tv720"] .player-name {
@@ -1221,7 +1221,7 @@ button:disabled {
 .preview-canvas[data-device="phone"] .qr-code {
   width: 80px;
   padding: 5px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
 }
 
 .preview-canvas[data-device="phone"] .join-actions {
@@ -1253,7 +1253,7 @@ button:disabled {
   min-height: 28px;
   gap: 5px;
   padding: 4px 6px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
 }
 
 .preview-canvas[data-device="phone"] .player-name {
