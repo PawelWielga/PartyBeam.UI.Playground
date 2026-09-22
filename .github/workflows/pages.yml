@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -12,11 +15,25 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Check JavaScript syntax
+        run: node --check app.js
+
+      - name: Validate static site
+        run: node scripts/validate.mjs
+
   deploy:
+    if: github.event_name != 'pull_request'
+    needs: validate
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -29,10 +46,15 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Prepare site artifact
+        run: |
+          mkdir -p _site
+          cp index.html styles.css app.js _site/
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
