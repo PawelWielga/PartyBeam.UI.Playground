@@ -48,6 +48,90 @@
   let remoteFocusTarget = null;
   let browserFocusInsideScreen = false;
 
+  const REMOTE_FOCUS_CYCLE_MS = 1800;
+  const REMOTE_FOCUS_PEAK_ANGLE_DEG = 294;
+  let remoteFocusAnimationStartedAt = null;
+  let remoteFocusAnimationFrame = null;
+
+  function normalizeDegrees(value) {
+    return ((value % 360) + 360) % 360;
+  }
+
+  function getRemoteFocusPerimeterAngle(width, height, distance) {
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+    const perimeter = 2 * (width + height);
+    let remaining = ((distance % perimeter) + perimeter) % perimeter;
+    let x = 0;
+    let y = -halfHeight;
+
+    if (remaining <= halfWidth) {
+      x = remaining;
+    } else {
+      remaining -= halfWidth;
+
+      if (remaining <= height) {
+        x = halfWidth;
+        y = -halfHeight + remaining;
+      } else {
+        remaining -= height;
+
+        if (remaining <= width) {
+          x = halfWidth - remaining;
+          y = halfHeight;
+        } else {
+          remaining -= width;
+
+          if (remaining <= height) {
+            x = -halfWidth;
+            y = halfHeight - remaining;
+          } else {
+            remaining -= height;
+            x = -halfWidth + remaining;
+          }
+        }
+      }
+    }
+
+    return normalizeDegrees(Math.atan2(x, -y) * 180 / Math.PI);
+  }
+
+  function animateRemoteFocus(timestamp) {
+    remoteFocusAnimationFrame = null;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const activeTarget = remoteFocusTarget && !browserFocusInsideScreen
+      ? remoteFocusTarget
+      : null;
+
+    if (!reduceMotion && activeTarget && activeTarget.classList.contains("remote-focused")) {
+      const width = activeTarget.offsetWidth;
+      const height = activeTarget.offsetHeight;
+
+      if (width > 0 && height > 0) {
+        if (remoteFocusAnimationStartedAt === null) {
+          remoteFocusAnimationStartedAt = timestamp;
+        }
+
+        const perimeter = 2 * (width + height);
+        const elapsed = (timestamp - remoteFocusAnimationStartedAt) % REMOTE_FOCUS_CYCLE_MS;
+        const distance = perimeter * (elapsed / REMOTE_FOCUS_CYCLE_MS);
+        const perimeterAngle = getRemoteFocusPerimeterAngle(width, height, distance);
+        const gradientAngle = normalizeDegrees(perimeterAngle - REMOTE_FOCUS_PEAK_ANGLE_DEG);
+
+        activeTarget.style.setProperty("--remote-focus-angle", `${gradientAngle}deg`);
+      }
+    }
+
+    remoteFocusAnimationFrame = window.requestAnimationFrame(animateRemoteFocus);
+  }
+
+  function ensureRemoteFocusAnimation() {
+    if (remoteFocusAnimationFrame === null) {
+      remoteFocusAnimationFrame = window.requestAnimationFrame(animateRemoteFocus);
+    }
+  }
+
   function getStageSpace() {
     const styles = getComputedStyle(elements.previewStage);
     const horizontalPadding = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
@@ -263,8 +347,18 @@
   }
 
   function setRemoteFocus(element) {
-    remoteFocusTarget = element || null;
+    const nextTarget = element || null;
+
+    if (remoteFocusTarget !== nextTarget) {
+      if (remoteFocusTarget) {
+        remoteFocusTarget.style.removeProperty("--remote-focus-angle");
+      }
+      remoteFocusAnimationStartedAt = null;
+    }
+
+    remoteFocusTarget = nextTarget;
     renderRemoteFocusVisual();
+    ensureRemoteFocusAnimation();
   }
 
   function ensureRemoteFocus() {
