@@ -2236,7 +2236,7 @@ button:disabled {
   width: 100%;
   aspect-ratio: 2 / 3;
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid rgba(225, 229, 255, 0.16);
   border-radius: 22px;
   background:
@@ -2254,14 +2254,14 @@ button:disabled {
   outline-offset: 7px;
 }
 
-.game-cover::before,
-.game-cover::after {
+.game-cover-art::before,
+.game-cover-art::after {
   content: "";
   position: absolute;
   pointer-events: none;
 }
 
-.game-cover::before {
+.game-cover-art::before {
   width: 78%;
   aspect-ratio: 1;
   left: -26%;
@@ -2271,7 +2271,7 @@ button:disabled {
   transform: rotate(28deg);
 }
 
-.game-cover::after {
+.game-cover-art::after {
   width: 68%;
   aspect-ratio: 1;
   right: -30%;
@@ -2317,6 +2317,8 @@ button:disabled {
   z-index: 1;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  border-radius: inherit;
   pointer-events: none;
 }
 
