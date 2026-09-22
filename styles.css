@@ -1313,6 +1313,8 @@ button:disabled {
 
 /* Remote focus: simple fallback first, animated progressive enhancement second. */
 .partybeam-screen .remote-focused {
+  --remote-focus-ring-inset: 8px;
+  --remote-focus-ring-thickness: 4px;
   position: relative;
   z-index: 4;
   isolation: isolate;
@@ -1339,10 +1341,10 @@ button:disabled {
     content: "";
     position: absolute;
     pointer-events: none;
-    inset: -8px;
+    inset: calc(-1 * var(--remote-focus-ring-inset));
     z-index: -1;
-    padding: 4px;
-    border-radius: calc(var(--remote-focus-radius, var(--radius-sm)) + 8px);
+    padding: var(--remote-focus-ring-thickness);
+    border-radius: calc(var(--remote-focus-radius, var(--radius-sm)) + var(--remote-focus-ring-inset));
     background:
       conic-gradient(
         from var(--remote-focus-angle),
