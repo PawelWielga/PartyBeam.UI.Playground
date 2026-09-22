@@ -53,6 +53,7 @@
   const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   let remoteFocusAnimationStartedAt = null;
   let remoteFocusAnimationFrame = null;
+  let remoteFocusGeometry = null;
 
   function normalizeDegrees(value) {
     return ((value % 360) + 360) % 360;
@@ -60,19 +61,25 @@
 
   function getRemoteFocusGeometry(element) {
     const styles = getComputedStyle(element);
+    const ringStyles = getComputedStyle(element, "::after");
     const ringInset = parseFloat(styles.getPropertyValue("--remote-focus-ring-inset")) || 0;
     const ringThickness = parseFloat(styles.getPropertyValue("--remote-focus-ring-thickness")) || 0;
     const centerlineOffset = Math.max(0, ringInset - ringThickness / 2);
     const width = element.offsetWidth + centerlineOffset * 2;
     const height = element.offsetHeight + centerlineOffset * 2;
-    const elementRadius = parseFloat(styles.borderTopLeftRadius) || 0;
+    const outerRadius = parseFloat(ringStyles.borderTopLeftRadius) || 0;
     const radius = Math.min(
-      elementRadius + centerlineOffset,
+      Math.max(0, outerRadius - ringThickness / 2),
       width / 2,
       height / 2
     );
 
     return { width, height, radius };
+  }
+
+  function invalidateRemoteFocusGeometry() {
+    remoteFocusGeometry = null;
+    remoteFocusAnimationStartedAt = null;
   }
 
   function getRoundedPerimeterLength(width, height, radius) {
@@ -193,6 +200,7 @@
       remoteFocusAnimationFrame = null;
     }
     remoteFocusAnimationStartedAt = null;
+    remoteFocusGeometry = null;
   }
 
   function animateRemoteFocus(timestamp) {
@@ -204,7 +212,8 @@
       return;
     }
 
-    const { width, height, radius } = getRemoteFocusGeometry(activeTarget);
+    const { width, height, radius } = remoteFocusGeometry
+      || (remoteFocusGeometry = getRemoteFocusGeometry(activeTarget));
     if (width <= 0 || height <= 0) {
       remoteFocusAnimationStartedAt = null;
       return;
@@ -305,6 +314,9 @@
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", String(active));
     });
+
+    invalidateRemoteFocusGeometry();
+    syncRemoteFocusAnimation();
   }
 
   function createPlayerSlot(name, connected) {
@@ -457,7 +469,7 @@
       if (remoteFocusTarget) {
         remoteFocusTarget.style.removeProperty("--remote-focus-angle");
       }
-      remoteFocusAnimationStartedAt = null;
+      invalidateRemoteFocusGeometry();
     }
 
     remoteFocusTarget = nextTarget;
