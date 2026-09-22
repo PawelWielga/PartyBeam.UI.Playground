@@ -11,7 +11,7 @@
 </head>
 <body>
   <iframe id="app" src="../index.html" title="PartyBeam test target"></iframe>
-  <pre id="result">LAYOUT_AUDIT_PENDING</pre>
+  <pre id="result" data-status="pending">LAYOUT_AUDIT_PENDING</pre>
 
   <script>
     (() => {
@@ -170,6 +170,7 @@
         assert(noHorizontalOverflow(screen), label + " screen horizontal overflow");
         assert(noVerticalOverflow(screen), label + " screen vertical overflow");
         assert(noHorizontalOverflow(content), label + " body content horizontal overflow");
+        assert(noVerticalOverflow(content), label + " body content vertical overflow");
         assert(noHorizontalOverflow(homes), label + " cards horizontal overflow");
         assert(noHorizontalOverflow(footer), label + " footer horizontal overflow");
 
@@ -247,6 +248,7 @@
         }
 
         if (failures.length === 0) {
+          result.dataset.status = "pass";
           result.textContent = "LAYOUT_AUDIT_PASS cases=" + cases;
           document.title = "LAYOUT_AUDIT_PASS";
         } else {
