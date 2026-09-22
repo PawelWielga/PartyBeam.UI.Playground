@@ -30,6 +30,10 @@
     devToggle: document.getElementById("devToggle"),
     devPanel: document.getElementById("devPanel"),
     devClose: document.getElementById("devClose"),
+    remoteToggle: document.getElementById("remoteToggle"),
+    remotePanel: document.getElementById("remotePanel"),
+    remoteClose: document.getElementById("remoteClose"),
+    remoteFocusLabel: document.getElementById("remoteFocusLabel"),
     uiState: document.getElementById("uiState"),
     continueEnabled: document.getElementById("continueEnabled"),
     downloadQrCode: document.getElementById("downloadQrCode"),
@@ -40,6 +44,7 @@
   };
 
   let toastTimer = null;
+  let remoteFocusTarget = null;
 
   function getStageSpace() {
     const styles = getComputedStyle(elements.previewStage);
@@ -216,16 +221,185 @@
       "aria-disabled",
       String(elements.continueButton.disabled)
     );
+
+    window.requestAnimationFrame(ensureRemoteFocus);
+  }
+
+
+  function getTvFocusableElements() {
+    const focusables = [];
+
+    if (!elements.settingsButton.disabled) {
+      focusables.push(elements.settingsButton);
+    }
+
+    if (!elements.stateOverlay.hidden) {
+      const retryButton = elements.stateCard.querySelector(".state-retry:not(:disabled)");
+      if (retryButton) {
+        focusables.push(retryButton);
+      }
+      return focusables;
+    }
+
+    [elements.continueButton, elements.manageGamesButton].forEach((element) => {
+      if (element && !element.disabled) {
+        focusables.push(element);
+      }
+    });
+
+    return focusables;
+  }
+
+  function getRemoteLabel(element) {
+    if (!element) {
+      return "None";
+    }
+
+    const label = element.getAttribute("aria-label") || element.textContent || element.id;
+    return label.replace(/\s+/g, " ").trim();
+  }
+
+  function setRemoteFocus(element) {
+    document.querySelectorAll(".remote-focused").forEach((focused) => {
+      focused.classList.remove("remote-focused");
+    });
+
+    remoteFocusTarget = element || null;
+
+    if (remoteFocusTarget) {
+      remoteFocusTarget.classList.add("remote-focused");
+    }
+
+    elements.remoteFocusLabel.textContent = getRemoteLabel(remoteFocusTarget);
+  }
+
+  function ensureRemoteFocus() {
+    const focusables = getTvFocusableElements();
+
+    if (remoteFocusTarget && focusables.includes(remoteFocusTarget)) {
+      setRemoteFocus(remoteFocusTarget);
+      return;
+    }
+
+    const preferred = focusables.find((element) => element === elements.continueButton)
+      || focusables[0]
+      || null;
+
+    setRemoteFocus(preferred);
+  }
+
+  function getCenter(element) {
+    const rect = element.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    };
+  }
+
+  function moveRemoteFocus(direction) {
+    const focusables = getTvFocusableElements();
+
+    if (focusables.length === 0) {
+      setRemoteFocus(null);
+      return;
+    }
+
+    if (!remoteFocusTarget || !focusables.includes(remoteFocusTarget)) {
+      ensureRemoteFocus();
+      return;
+    }
+
+    const current = getCenter(remoteFocusTarget);
+    const candidates = focusables
+      .filter((element) => element !== remoteFocusTarget)
+      .map((element) => {
+        const center = getCenter(element);
+        const dx = center.x - current.x;
+        const dy = center.y - current.y;
+
+        let primary;
+        let secondary;
+        let valid = false;
+
+        if (direction === "up") {
+          valid = dy < -1;
+          primary = -dy;
+          secondary = Math.abs(dx);
+        } else if (direction === "down") {
+          valid = dy > 1;
+          primary = dy;
+          secondary = Math.abs(dx);
+        } else if (direction === "left") {
+          valid = dx < -1;
+          primary = -dx;
+          secondary = Math.abs(dy);
+        } else {
+          valid = dx > 1;
+          primary = dx;
+          secondary = Math.abs(dy);
+        }
+
+        return {
+          element,
+          valid,
+          score: primary + secondary * 2.25
+        };
+      })
+      .filter((candidate) => candidate.valid)
+      .sort((a, b) => a.score - b.score);
+
+    if (candidates.length > 0) {
+      setRemoteFocus(candidates[0].element);
+    }
+  }
+
+  function activateRemoteFocus() {
+    ensureRemoteFocus();
+
+    if (remoteFocusTarget && !remoteFocusTarget.disabled) {
+      remoteFocusTarget.click();
+    }
+  }
+
+  function handleRemoteCommand(command) {
+    if (["up", "down", "left", "right"].includes(command)) {
+      moveRemoteFocus(command);
+      return;
+    }
+
+    if (command === "ok") {
+      activateRemoteFocus();
+      return;
+    }
+
+    if (command === "home") {
+      const focusables = getTvFocusableElements();
+      const homeTarget = focusables.find((element) => element === elements.continueButton)
+        || focusables[0]
+        || null;
+      setRemoteFocus(homeTarget);
+      showToast("Home pressed · playground only");
+      return;
+    }
+
+    if (command === "back") {
+      showToast("Back pressed · playground only");
+    }
   }
 
   function render() {
     renderPlayers();
     renderState();
     applyViewport();
+    ensureRemoteFocus();
   }
 
   function setDevPanel(open) {
     const focusWasInside = elements.devPanel.contains(document.activeElement);
+
+    if (open) {
+      setRemotePanel(false);
+    }
 
     elements.devPanel.hidden = !open;
     elements.devToggle.setAttribute("aria-expanded", String(open));
@@ -234,6 +408,24 @@
       elements.devClose.focus();
     } else if (focusWasInside) {
       elements.devToggle.focus();
+    }
+  }
+
+  function setRemotePanel(open) {
+    const focusWasInside = elements.remotePanel.contains(document.activeElement);
+
+    if (open) {
+      elements.devPanel.hidden = true;
+      elements.devToggle.setAttribute("aria-expanded", "false");
+    }
+
+    elements.remotePanel.hidden = !open;
+    elements.remoteToggle.setAttribute("aria-expanded", String(open));
+
+    if (open) {
+      ensureRemoteFocus();
+    } else if (focusWasInside) {
+      elements.remoteToggle.focus();
     }
   }
 
@@ -329,6 +521,20 @@
     setDevPanel(false);
   });
 
+  elements.remoteToggle.addEventListener("click", () => {
+    setRemotePanel(elements.remotePanel.hidden);
+  });
+
+  elements.remoteClose.addEventListener("click", () => {
+    setRemotePanel(false);
+  });
+
+  document.querySelectorAll("[data-remote-key]").forEach((button) => {
+    button.addEventListener("click", () => {
+      handleRemoteCommand(button.dataset.remoteKey);
+    });
+  });
+
   elements.continueButton.addEventListener("click", () => {
     showToast("Continue clicked · playground only");
   });
@@ -342,8 +548,39 @@
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !elements.devPanel.hidden) {
-      setDevPanel(false);
+    const tagName = document.activeElement && document.activeElement.tagName;
+    const typing = tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA";
+
+    if (event.key === "Escape") {
+      if (!elements.devPanel.hidden) {
+        setDevPanel(false);
+        return;
+      }
+
+      if (!elements.remotePanel.hidden) {
+        setRemotePanel(false);
+        return;
+      }
+    }
+
+    if (typing) {
+      return;
+    }
+
+    const commandByKey = {
+      ArrowUp: "up",
+      ArrowDown: "down",
+      ArrowLeft: "left",
+      ArrowRight: "right",
+      Enter: "ok",
+      Backspace: "back",
+      Home: "home"
+    };
+
+    const command = commandByKey[event.key];
+    if (command) {
+      event.preventDefault();
+      handleRemoteCommand(command);
     }
   });
 
