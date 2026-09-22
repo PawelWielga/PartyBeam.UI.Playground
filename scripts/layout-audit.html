@@ -287,6 +287,89 @@
         assert(style.whiteSpace === "nowrap", label + " long name wrapping changed");
       }
 
+      async function validateCatalog(viewport) {
+        const doc = frame.contentDocument;
+
+        await setPlayers(6);
+        await setUiState("normal");
+        await setContinueEnabled(true);
+        await click("#continueButton");
+
+        const screen = doc.getElementById("partybeamScreen");
+        const topbar = doc.querySelector(".partybeam-topbar");
+        const lobby = doc.getElementById("lobbyScreen");
+        const catalog = doc.getElementById("catalogScreen");
+        const code = doc.getElementById("catalogJoinCode");
+        const footer = doc.querySelector(".partybeam-footer");
+        const playersPanel = doc.querySelector(".catalog-players-panel");
+        const library = doc.querySelector(".catalog-library");
+        const scroll = doc.getElementById("catalogScroll");
+        const grid = doc.getElementById("gameCoverGrid");
+        const covers = Array.from(doc.querySelectorAll(".game-cover"));
+
+        cases += 1;
+
+        assert(lobby.hidden, viewport + " catalog did not hide lobby");
+        assert(!catalog.hidden, viewport + " catalog screen stayed hidden");
+        assert(!code.hidden, viewport + " catalog join code stayed hidden");
+        assert(code.textContent.replace(/\s+/g, "").includes("8F4K2P"), viewport + " catalog join code changed");
+        assert(footer.hidden, viewport + " catalog footer stayed visible");
+        assert(covers.length >= 20, viewport + " catalog does not contain enough placeholder covers");
+        assert(noHorizontalOverflow(catalog), viewport + " catalog horizontal overflow");
+        assert(noHorizontalOverflow(library), viewport + " catalog library horizontal overflow");
+        assert(scroll.scrollHeight > scroll.clientHeight + 1, viewport + " catalog does not vertically scroll");
+
+        const screenRect = screen.getBoundingClientRect();
+        const topbarRect = topbar.getBoundingClientRect();
+        const catalogRect = catalog.getBoundingClientRect();
+        const playersRect = playersPanel.getBoundingClientRect();
+        const libraryRect = library.getBoundingClientRect();
+
+        assert(rectInside(catalogRect, screenRect), viewport + " catalog outside screen");
+        assert(topbarRect.bottom <= catalogRect.top + 1, viewport + " catalog overlaps header");
+        assert(playersRect.right <= libraryRect.left + 1, viewport + " player panel overlaps game library");
+
+        const panelRatio = playersRect.width / catalogRect.width;
+        if (viewport === "tv1080" || viewport === "tv720" || viewport === "full") {
+          assert(panelRatio >= 0.225 && panelRatio <= 0.25, viewport + " player panel is not about 24%", String(panelRatio));
+        }
+
+        if (covers.length >= 6) {
+          const firstRect = covers[0].getBoundingClientRect();
+          const fifthRect = covers[4].getBoundingClientRect();
+          const sixthRect = covers[5].getBoundingClientRect();
+          const ratio = firstRect.height / Math.max(firstRect.width, 1);
+
+          assert(Math.abs(ratio - 1.5) <= 0.04, viewport + " game cover is not 2:3", String(ratio));
+
+          if (viewport === "tv1080" || viewport === "tv720" || viewport === "full") {
+            assert(Math.abs(firstRect.top - fifthRect.top) <= 1, viewport + " first row is not five covers");
+            assert(sixthRect.top > firstRect.top + 1, viewport + " sixth cover did not start a new row");
+          }
+        }
+
+        const focused = doc.querySelector(".game-cover.remote-focused");
+        assert(focused === covers[0], viewport + " first cover did not receive initial remote focus");
+
+        const incompatible = covers.find((cover) => cover.classList.contains("game-cover--incompatible"));
+        const compatible = covers.find((cover) => !cover.classList.contains("game-cover--incompatible"));
+        assert(Boolean(incompatible), viewport + " catalog has no incompatible placeholder at six players");
+        assert(Boolean(compatible), viewport + " catalog has no compatible placeholder at six players");
+
+        const startScrollTop = scroll.scrollTop;
+        for (let index = 0; index < 5; index += 1) {
+          await dispatchKey("ArrowDown");
+        }
+        assert(scroll.scrollTop > startScrollTop, viewport + " remote navigation did not scroll catalog");
+
+        await dispatchKey("Backspace");
+        await waitFrames(2);
+
+        assert(!lobby.hidden, viewport + " Back did not return to lobby");
+        assert(catalog.hidden, viewport + " Back left catalog visible");
+        assert(!footer.hidden, viewport + " lobby footer did not return");
+      }
+
       function validateLayout(label) {
         cases += 1;
 
@@ -398,6 +481,7 @@
           await setUiState("normal");
           validateFocusSafety(viewport + " / normal");
           await validateKeyboardFocusHandoff(viewport + " / Settings keyboard", "#settingsButton");
+          await validateCatalog(viewport);
         }
 
         if (failures.length === 0) {
