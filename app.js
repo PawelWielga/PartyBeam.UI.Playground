@@ -283,6 +283,7 @@
     }
 
     const preferred = focusables.find((element) => element === elements.continueButton)
+      || focusables.find((element) => element.classList.contains("state-retry"))
       || focusables[0]
       || null;
 
@@ -376,6 +377,7 @@
     if (command === "home") {
       const focusables = getTvFocusableElements();
       const homeTarget = focusables.find((element) => element === elements.continueButton)
+        || focusables.find((element) => element.classList.contains("state-retry"))
         || focusables[0]
         || null;
       setRemoteFocus(homeTarget);
