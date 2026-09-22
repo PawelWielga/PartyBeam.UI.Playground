@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
-  <link rel="stylesheet" href="styles.css?v=13">
+  <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
   <div class="playground-shell">
@@ -33,7 +33,10 @@
               <header class="partybeam-topbar">
                 <div class="partybeam-brand" aria-label="PartyBeam home">
                   <span class="brand-mark" aria-hidden="true">P</span>
-                  <span>PARTYBEAM</span>
+                  <span class="brand-copy">
+                    <span class="brand-name">PARTYBEAM</span>
+                    <span class="brand-tagline">GAMES ARE BETTER TOGETHER</span>
+                  </span>
                 </div>
 
                 <button class="screen-button screen-button--ghost" type="button" id="settingsButton">
@@ -60,6 +63,19 @@
                         <span class="qr-caption">Scan to download</span>
                       </div>
                     </div>
+
+                    <svg class="card-illustration card-illustration--gamepad" viewBox="0 0 240 180" aria-hidden="true" focusable="false">
+                      <g class="card-art-stroke">
+                        <path d="M59 68c-13 0-24 9-27 22l-11 45c-3 13 12 22 22 13l27-24h100l27 24c10 9 25 0 22-13l-11-45c-3-13-14-22-27-22H59Z"></path>
+                        <path d="M67 87v24M55 99h24"></path>
+                        <circle cx="172" cy="92" r="7"></circle>
+                        <circle cx="190" cy="108" r="7"></circle>
+                      </g>
+                      <g class="card-art-accent">
+                        <circle cx="26" cy="52" r="5"></circle>
+                        <path d="M218 42l8-15M226 58l14-5M204 30l-5-15"></path>
+                      </g>
+                    </svg>
                   </article>
 
                   <article class="home-card home-card--join">
@@ -81,6 +97,17 @@
                         <span class="game-code-hint">partybeam.local/join</span>
                       </div>
                     </div>
+
+                    <svg class="card-illustration card-illustration--phone" viewBox="0 0 210 190" aria-hidden="true" focusable="false">
+                      <g class="card-art-stroke">
+                        <rect x="76" y="30" width="68" height="124" rx="14" transform="rotate(10 110 92)"></rect>
+                        <path d="M98 43l29 5M103 137h13"></path>
+                      </g>
+                      <g class="card-art-accent">
+                        <path d="M34 48l12-15M47 64l17-7M160 52l9-18M172 72l18-1M160 138l16 9"></path>
+                        <circle cx="42" cy="119" r="5"></circle>
+                      </g>
+                    </svg>
                   </article>
                 </section>
 
