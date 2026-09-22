@@ -104,6 +104,7 @@
     elements.previewCanvas.style.height = logicalHeight + "px";
     elements.previewCanvas.style.transform = "scale(" + scale + ")";
     elements.previewCanvas.dataset.device = resolveDevice(logicalWidth);
+    updatePlayerGridColumns();
 
     elements.previewViewport.style.width = displayWidth + "px";
     elements.previewViewport.style.height = displayHeight + "px";
@@ -136,8 +137,17 @@
     return slot;
   }
 
+  function updatePlayerGridColumns() {
+    const totalSlots = state.players + 1;
+    const minimumColumns = elements.previewCanvas.dataset.device === "phone" ? 2 : 4;
+    const columns = Math.max(minimumColumns, Math.ceil(totalSlots / 2));
+
+    elements.playersGrid.style.setProperty("--player-columns", String(columns));
+  }
+
   function renderPlayers() {
     elements.playersGrid.replaceChildren();
+    updatePlayerGridColumns();
 
     for (let index = 0; index < state.players; index += 1) {
       const fallbackName = "Player " + (index + 1);
