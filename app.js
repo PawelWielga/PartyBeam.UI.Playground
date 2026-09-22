@@ -50,6 +50,7 @@
 
   const REMOTE_FOCUS_CYCLE_MS = 1800;
   const REMOTE_FOCUS_PEAK_ANGLE_DEG = 294;
+  const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   let remoteFocusAnimationStartedAt = null;
   let remoteFocusAnimationFrame = null;
 
@@ -57,37 +58,115 @@
     return ((value % 360) + 360) % 360;
   }
 
-  function getRemoteFocusPerimeterAngle(width, height, distance) {
+  function getRemoteFocusGeometry(element) {
+    const styles = getComputedStyle(element);
+    const ringInset = parseFloat(styles.getPropertyValue("--remote-focus-ring-inset")) || 0;
+    const ringThickness = parseFloat(styles.getPropertyValue("--remote-focus-ring-thickness")) || 0;
+    const centerlineOffset = Math.max(0, ringInset - ringThickness / 2);
+    const width = element.offsetWidth + centerlineOffset * 2;
+    const height = element.offsetHeight + centerlineOffset * 2;
+    const elementRadius = parseFloat(styles.borderTopLeftRadius) || 0;
+    const radius = Math.min(
+      elementRadius + centerlineOffset,
+      width / 2,
+      height / 2
+    );
+
+    return { width, height, radius };
+  }
+
+  function getRoundedPerimeterLength(width, height, radius) {
+    return 2 * (width + height - 4 * radius) + 2 * Math.PI * radius;
+  }
+
+  function getRemoteFocusPerimeterAngle(width, height, radius, distance) {
     const halfWidth = width / 2;
     const halfHeight = height / 2;
-    const perimeter = 2 * (width + height);
+    const horizontal = Math.max(0, width - 2 * radius);
+    const vertical = Math.max(0, height - 2 * radius);
+    const halfHorizontal = horizontal / 2;
+    const quarterArc = Math.PI * radius / 2;
+    const perimeter = getRoundedPerimeterLength(width, height, radius);
     let remaining = ((distance % perimeter) + perimeter) % perimeter;
     let x = 0;
     let y = -halfHeight;
 
-    if (remaining <= halfWidth) {
+    function pointOnArc(centerX, centerY, startAngle, arcDistance) {
+      const angle = startAngle + arcDistance / Math.max(radius, Number.EPSILON);
+      return {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle)
+      };
+    }
+
+    if (remaining <= halfHorizontal) {
       x = remaining;
     } else {
-      remaining -= halfWidth;
+      remaining -= halfHorizontal;
 
-      if (remaining <= height) {
-        x = halfWidth;
-        y = -halfHeight + remaining;
+      if (radius > 0 && remaining <= quarterArc) {
+        ({ x, y } = pointOnArc(
+          halfWidth - radius,
+          -halfHeight + radius,
+          -Math.PI / 2,
+          remaining
+        ));
       } else {
-        remaining -= height;
+        remaining -= quarterArc;
 
-        if (remaining <= width) {
-          x = halfWidth - remaining;
-          y = halfHeight;
+        if (remaining <= vertical) {
+          x = halfWidth;
+          y = -halfHeight + radius + remaining;
         } else {
-          remaining -= width;
+          remaining -= vertical;
 
-          if (remaining <= height) {
-            x = -halfWidth;
-            y = halfHeight - remaining;
+          if (radius > 0 && remaining <= quarterArc) {
+            ({ x, y } = pointOnArc(
+              halfWidth - radius,
+              halfHeight - radius,
+              0,
+              remaining
+            ));
           } else {
-            remaining -= height;
-            x = -halfWidth + remaining;
+            remaining -= quarterArc;
+
+            if (remaining <= horizontal) {
+              x = halfWidth - radius - remaining;
+              y = halfHeight;
+            } else {
+              remaining -= horizontal;
+
+              if (radius > 0 && remaining <= quarterArc) {
+                ({ x, y } = pointOnArc(
+                  -halfWidth + radius,
+                  halfHeight - radius,
+                  Math.PI / 2,
+                  remaining
+                ));
+              } else {
+                remaining -= quarterArc;
+
+                if (remaining <= vertical) {
+                  x = -halfWidth;
+                  y = halfHeight - radius - remaining;
+                } else {
+                  remaining -= vertical;
+
+                  if (radius > 0 && remaining <= quarterArc) {
+                    ({ x, y } = pointOnArc(
+                      -halfWidth + radius,
+                      -halfHeight + radius,
+                      Math.PI,
+                      remaining
+                    ));
+                  } else {
+                    remaining -= quarterArc;
+                    x = -halfWidth + radius + remaining;
+                    y = -halfHeight;
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -96,37 +175,61 @@
     return normalizeDegrees(Math.atan2(x, -y) * 180 / Math.PI);
   }
 
+  function getAnimatedRemoteFocusTarget() {
+    if (reducedMotionQuery.matches || browserFocusInsideScreen) {
+      return null;
+    }
+
+    if (!remoteFocusTarget || !remoteFocusTarget.classList.contains("remote-focused")) {
+      return null;
+    }
+
+    return remoteFocusTarget;
+  }
+
+  function stopRemoteFocusAnimation() {
+    if (remoteFocusAnimationFrame !== null) {
+      window.cancelAnimationFrame(remoteFocusAnimationFrame);
+      remoteFocusAnimationFrame = null;
+    }
+    remoteFocusAnimationStartedAt = null;
+  }
+
   function animateRemoteFocus(timestamp) {
     remoteFocusAnimationFrame = null;
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const activeTarget = remoteFocusTarget && !browserFocusInsideScreen
-      ? remoteFocusTarget
-      : null;
-
-    if (!reduceMotion && activeTarget && activeTarget.classList.contains("remote-focused")) {
-      const width = activeTarget.offsetWidth;
-      const height = activeTarget.offsetHeight;
-
-      if (width > 0 && height > 0) {
-        if (remoteFocusAnimationStartedAt === null) {
-          remoteFocusAnimationStartedAt = timestamp;
-        }
-
-        const perimeter = 2 * (width + height);
-        const elapsed = (timestamp - remoteFocusAnimationStartedAt) % REMOTE_FOCUS_CYCLE_MS;
-        const distance = perimeter * (elapsed / REMOTE_FOCUS_CYCLE_MS);
-        const perimeterAngle = getRemoteFocusPerimeterAngle(width, height, distance);
-        const gradientAngle = normalizeDegrees(perimeterAngle - REMOTE_FOCUS_PEAK_ANGLE_DEG);
-
-        activeTarget.style.setProperty("--remote-focus-angle", `${gradientAngle}deg`);
-      }
+    const activeTarget = getAnimatedRemoteFocusTarget();
+    if (!activeTarget) {
+      remoteFocusAnimationStartedAt = null;
+      return;
     }
 
+    const { width, height, radius } = getRemoteFocusGeometry(activeTarget);
+    if (width <= 0 || height <= 0) {
+      remoteFocusAnimationStartedAt = null;
+      return;
+    }
+
+    if (remoteFocusAnimationStartedAt === null) {
+      remoteFocusAnimationStartedAt = timestamp;
+    }
+
+    const perimeter = getRoundedPerimeterLength(width, height, radius);
+    const elapsed = (timestamp - remoteFocusAnimationStartedAt) % REMOTE_FOCUS_CYCLE_MS;
+    const distance = perimeter * (elapsed / REMOTE_FOCUS_CYCLE_MS);
+    const perimeterAngle = getRemoteFocusPerimeterAngle(width, height, radius, distance);
+    const gradientAngle = normalizeDegrees(perimeterAngle - REMOTE_FOCUS_PEAK_ANGLE_DEG);
+
+    activeTarget.style.setProperty("--remote-focus-angle", `${gradientAngle}deg`);
     remoteFocusAnimationFrame = window.requestAnimationFrame(animateRemoteFocus);
   }
 
-  function ensureRemoteFocusAnimation() {
+  function syncRemoteFocusAnimation() {
+    if (!getAnimatedRemoteFocusTarget()) {
+      stopRemoteFocusAnimation();
+      return;
+    }
+
     if (remoteFocusAnimationFrame === null) {
       remoteFocusAnimationFrame = window.requestAnimationFrame(animateRemoteFocus);
     }
@@ -344,6 +447,7 @@
     }
 
     elements.remoteFocusLabel.textContent = getRemoteLabel(remoteFocusTarget);
+    syncRemoteFocusAnimation();
   }
 
   function setRemoteFocus(element) {
@@ -358,7 +462,6 @@
 
     remoteFocusTarget = nextTarget;
     renderRemoteFocusVisual();
-    ensureRemoteFocusAnimation();
   }
 
   function ensureRemoteFocus() {
@@ -755,6 +858,16 @@
       handleRemoteCommand(command);
     }
   });
+
+  const handleReducedMotionChange = () => {
+    renderRemoteFocusVisual();
+  };
+
+  if (typeof reducedMotionQuery.addEventListener === "function") {
+    reducedMotionQuery.addEventListener("change", handleReducedMotionChange);
+  } else if (typeof reducedMotionQuery.addListener === "function") {
+    reducedMotionQuery.addListener(handleReducedMotionChange);
+  }
 
   if ("ResizeObserver" in window) {
     const resizeObserver = new ResizeObserver(() => applyViewport());
