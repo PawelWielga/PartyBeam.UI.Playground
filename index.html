@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
   <div class="playground-shell">
@@ -42,7 +42,7 @@
                 </button>
               </header>
 
-              <div class="partybeam-content">
+              <main class="partybeam-body">
                 <section class="home-sections" aria-label="Ways to play">
                   <article class="home-card home-card--download">
                     <div class="home-card-copy">
@@ -98,11 +98,14 @@
                     CONTINUE
                   </button>
                 </section>
+              </main>
 
+              <footer class="partybeam-footer">
+                <span class="app-version">App version: dev</span>
                 <button class="screen-button screen-button--link manage-games-button" type="button" id="manageGamesButton">
                   Manage games
                 </button>
-              </div>
+              </footer>
 
               <div class="state-overlay" id="stateOverlay" hidden aria-live="assertive">
                 <div class="state-card" id="stateCard"></div>
