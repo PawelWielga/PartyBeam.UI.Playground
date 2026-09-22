@@ -2008,3 +2008,44 @@ body {
 .preview-canvas[data-device="phone"] .partybeam-footer .screen-button--link {
   font-size: 9px;
 }
+
+
+/* Keep footer actions isolated so hover/focus only covers the control itself. */
+.partybeam-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.partybeam-footer-slot {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.partybeam-footer-slot--left {
+  justify-content: flex-start;
+}
+
+.partybeam-footer-slot--right {
+  justify-content: flex-end;
+}
+
+.partybeam-footer .manage-games-button {
+  position: static;
+  inset: auto;
+  display: inline-flex;
+  width: fit-content;
+  inline-size: fit-content;
+  min-width: 0;
+  max-width: none;
+  flex: 0 0 auto;
+  align-self: center;
+  justify-self: auto;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.partybeam-footer .manage-games-button:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
