@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
   <div class="playground-shell">
@@ -37,26 +37,27 @@
                 </div>
 
                 <button class="screen-button screen-button--ghost" type="button" id="settingsButton">
-                  <span aria-hidden="true">⚙</span>
+                  <svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Z"></path>
+                    <path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.08-.98l2.03-1.58-1.92-3.32-2.39.96a7.58 7.58 0 0 0-1.69-.98L15.1 3.55h-3.84l-.36 2.55c-.6.25-1.17.58-1.69.98l-2.39-.96L4.9 9.44l2.03 1.58a7.17 7.17 0 0 0 0 1.96L4.9 14.56l1.92 3.32 2.39-.96c.52.4 1.08.73 1.69.98l.36 2.55h3.84l.36-2.55c.6-.25 1.17-.58 1.69-.98l2.39.96 1.92-3.32-2.03-1.58Z"></path>
+                  </svg>
                   <span>Settings</span>
                 </button>
               </header>
 
-              <main class="partybeam-body">
+              <section class="partybeam-body" aria-label="Lobby content">
                 <section class="home-sections" aria-label="Ways to play">
                   <article class="home-card home-card--download">
                     <div class="home-card-copy">
                       <p class="eyebrow">NEW TO PARTYBEAM?</p>
                       <h1>LET'S PLAY TOGETHER</h1>
-                      <p class="home-card-description">
-                        Turn your phone into a controller. Download the PartyBeam app and join the room in seconds.
-                      </p>
+                      <p class="home-card-description">Download the app and use your phone as a controller.</p>
                     </div>
 
                     <div class="home-card-action">
                       <div class="qr-panel" role="img" aria-label="QR code placeholder for downloading PartyBeam">
                         <div class="qr-code qr-code--download" id="downloadQrCode" aria-hidden="true"></div>
-                        <span class="qr-caption">Scan to download the app</span>
+                        <span class="qr-caption">Scan to download</span>
                       </div>
                     </div>
                   </article>
@@ -65,9 +66,7 @@
                     <div class="home-card-copy">
                       <p class="eyebrow">ALREADY HAVE THE APP?</p>
                       <h2>JOIN THIS GAME</h2>
-                      <p class="home-card-description">
-                        Scan the QR code or enter the game code in the PartyBeam app.
-                      </p>
+                      <p class="home-card-description">Scan or enter the game code in the app.</p>
                     </div>
 
                     <div class="join-actions">
@@ -98,7 +97,7 @@
                     CONTINUE
                   </button>
                 </section>
-              </main>
+              </section>
 
               <footer class="partybeam-footer">
                 <div class="partybeam-footer-slot partybeam-footer-slot--left">
@@ -121,16 +120,12 @@
     </main>
 
     <div class="playground-panel-toggles" aria-label="Playground tools">
-      <button class="tool-toggle" id="remoteToggle" type="button" aria-controls="remotePanel" aria-expanded="false">
-        TV remote
-      </button>
-      <button class="tool-toggle" id="devToggle" type="button" aria-controls="devPanel" aria-expanded="false">
-        Dev controls
-      </button>
+      <button class="tool-toggle" id="remoteToggle" type="button" aria-controls="remotePanel" aria-expanded="false">TV remote</button>
+      <button class="tool-toggle" id="devToggle" type="button" aria-controls="devPanel" aria-expanded="false">Dev controls</button>
     </div>
 
     <aside class="remote-panel" id="remotePanel" aria-label="TV remote simulator" hidden>
-      <div class="remote-panel-header">
+      <div class="panel-header">
         <div>
           <span class="dev-label">PLAYGROUND ONLY</span>
           <h2>TV remote</h2>
@@ -157,14 +152,12 @@
           <strong id="remoteFocusLabel">Continue</strong>
         </div>
 
-        <p class="remote-hint">
-          Arrow keys and Enter on your keyboard use the same navigation model.
-        </p>
+        <p class="remote-hint">Arrow keys and Enter on your keyboard use the same navigation model.</p>
       </div>
     </aside>
 
     <aside class="dev-panel" id="devPanel" aria-label="Developer controls" hidden>
-      <div class="dev-panel-header">
+      <div class="panel-header">
         <div>
           <span class="dev-label">PLAYGROUND ONLY</span>
           <h2>Dev controls</h2>
@@ -198,9 +191,7 @@
         <span>Continue enabled</span>
       </label>
 
-      <div class="dev-note">
-        These controls simulate visual states only. They are not part of the production UI.
-      </div>
+      <div class="dev-note">These controls simulate visual states only. They are not part of the production UI.</div>
     </aside>
 
     <div class="playground-toast" id="playgroundToast" role="status" aria-live="polite" hidden></div>

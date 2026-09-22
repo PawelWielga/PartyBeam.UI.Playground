@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>PartyBeam layout audit</title>
+  <style>
+    body { margin: 0; background: #111; color: #fff; font-family: sans-serif; }
+    iframe { display: block; width: 2200px; height: 1400px; border: 0; }
+    pre { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <iframe id="app" src="../index.html" title="PartyBeam test target"></iframe>
+  <pre id="result" data-status="pending">LAYOUT_AUDIT_PENDING</pre>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const frame = document.getElementById("app");
+      const result = document.getElementById("result");
+      const failures = [];
+      let cases = 0;
+
+      const waitFrames = (count = 3) => new Promise((resolve) => {
+        window.setTimeout(resolve, Math.max(1, count) * 25);
+      });
+
+      function fail(label, details) {
+        failures.push(label + (details ? " :: " + details : ""));
+      }
+
+      function assert(condition, label, details = "") {
+        if (!condition) {
+          fail(label, details);
+        }
+      }
+
+      function rectInside(inner, outer, margin = 0) {
+        return inner.left - margin >= outer.left - 1
+          && inner.top - margin >= outer.top - 1
+          && inner.right + margin <= outer.right + 1
+          && inner.bottom + margin <= outer.bottom + 1;
+      }
+
+      function noHorizontalOverflow(element) {
+        return element.scrollWidth <= element.clientWidth + 1;
+      }
+
+      function noVerticalOverflow(element) {
+        return element.scrollHeight <= element.clientHeight + 1;
+      }
+
+      async function click(selector) {
+        const doc = frame.contentDocument;
+        const element = doc.querySelector(selector);
+        if (!element) {
+          fail("Missing control", selector);
+          return;
+        }
+
+        element.click();
+        await waitFrames();
+      }
+
+      async function setViewport(name) {
+        await click('[data-viewport="' + name + '"]');
+      }
+
+      async function setPlayers(count) {
+        await click('[data-players="' + count + '"]');
+      }
+
+      async function setContinueEnabled(enabled) {
+        const doc = frame.contentDocument;
+        const input = doc.getElementById("continueEnabled");
+        input.checked = enabled;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        await waitFrames();
+      }
+
+      async function setUiState(value) {
+        const doc = frame.contentDocument;
+        const select = doc.getElementById("uiState");
+        select.value = value;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        await waitFrames();
+      }
+
+      function validateFocusSafety(label) {
+        const doc = frame.contentDocument;
+        const screen = doc.getElementById("partybeamScreen");
+        const screenRect = screen.getBoundingClientRect();
+        const targets = [
+          doc.getElementById("settingsButton"),
+          doc.getElementById("continueButton"),
+          doc.getElementById("manageGamesButton"),
+          doc.querySelector(".state-retry")
+        ].filter(Boolean);
+
+        for (const target of targets) {
+          doc.querySelectorAll(".remote-focused").forEach((item) => item.classList.remove("remote-focused"));
+          target.classList.add("remote-focused");
+
+          const rect = target.getBoundingClientRect();
+          assert(
+            rectInside(rect, screenRect, 13),
+            label + " remote focus clipped",
+            target.id || target.className
+          );
+        }
+      }
+
+      function validateLongName(label) {
+        const doc = frame.contentDocument;
+        const name = doc.querySelector(".player-name");
+        if (!name) {
+          fail(label + " long-name target missing");
+          return;
+        }
+
+        name.textContent = "Alexandria Supercalifragilisticexpialidocious Controller";
+        const slot = name.closest(".player-slot");
+        const nameRect = name.getBoundingClientRect();
+        const slotRect = slot.getBoundingClientRect();
+        const style = frame.contentWindow.getComputedStyle(name);
+
+        assert(rectInside(nameRect, slotRect), label + " long name leaves player tile");
+        assert(style.overflow === "hidden", label + " long name overflow is not hidden");
+        assert(style.textOverflow === "ellipsis", label + " long name has no ellipsis");
+        assert(style.whiteSpace === "nowrap", label + " long name wrapping changed");
+      }
+
+      function validateLayout(label) {
+        cases += 1;
+
+        const doc = frame.contentDocument;
+        const html = doc.documentElement;
+        const body = doc.body;
+        const screen = doc.getElementById("partybeamScreen");
+        const topbar = doc.querySelector(".partybeam-topbar");
+        const content = doc.querySelector(".partybeam-body");
+        const homes = doc.querySelector(".home-sections");
+        const players = doc.querySelector(".players-section");
+        const actions = doc.querySelector(".lobby-actions");
+        const footer = doc.querySelector(".partybeam-footer");
+        const manage = doc.getElementById("manageGamesButton");
+
+        const screenRect = screen.getBoundingClientRect();
+        const topbarRect = topbar.getBoundingClientRect();
+        const contentRect = content.getBoundingClientRect();
+        const homesRect = homes.getBoundingClientRect();
+        const playersRect = players.getBoundingClientRect();
+        const actionsRect = actions.getBoundingClientRect();
+        const footerRect = footer.getBoundingClientRect();
+        const manageRect = manage.getBoundingClientRect();
+
+        assert(noHorizontalOverflow(html), label + " document horizontal scroll");
+        assert(noHorizontalOverflow(body), label + " body horizontal scroll");
+        assert(noHorizontalOverflow(screen), label + " screen horizontal overflow");
+        assert(frame.contentWindow.getComputedStyle(screen).overflow === "hidden", label + " screen overflow guard changed");
+        assert(noHorizontalOverflow(content), label + " body content horizontal overflow");
+        assert(noVerticalOverflow(content), label + " body content vertical overflow");
+        assert(noHorizontalOverflow(homes), label + " cards horizontal overflow");
+        assert(noHorizontalOverflow(footer), label + " footer horizontal overflow");
+
+        assert(rectInside(topbarRect, screenRect), label + " header outside screen");
+        assert(rectInside(contentRect, screenRect), label + " lobby body outside screen");
+        assert(rectInside(footerRect, screenRect), label + " footer outside screen");
+        assert(rectInside(manageRect, footerRect), label + " Manage games outside footer");
+
+        assert(
+          homesRect.bottom <= playersRect.top + 1,
+          label + " players overlap main cards",
+          "cards.bottom=" + homesRect.bottom + ", players.top=" + playersRect.top
+        );
+        assert(
+          playersRect.bottom <= actionsRect.top + 1,
+          label + " Continue overlaps players",
+          "players.bottom=" + playersRect.bottom + ", actions.top=" + actionsRect.top
+        );
+        assert(
+          topbarRect.bottom <= contentRect.top + 1,
+          label + " content overlaps header"
+        );
+        assert(
+          contentRect.bottom <= footerRect.top + 1,
+          label + " content overlaps footer"
+        );
+
+        doc.querySelectorAll(".home-card, .player-slot, .screen-button, .state-card").forEach((element) => {
+          const rect = element.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) {
+            return;
+          }
+
+          assert(
+            rect.right <= screenRect.right + 1 && rect.left >= screenRect.left - 1,
+            label + " clipped control/card",
+            element.id || element.className
+          );
+        });
+      }
+
+      async function run() {
+        await waitFrames(5);
+
+        const viewports = ["tv1080", "tv720", "phone", "full"];
+        const playerCounts = [0, 1, 2, 4, 6, 8];
+
+        for (const viewport of viewports) {
+          await setViewport(viewport);
+          await setUiState("normal");
+          await setContinueEnabled(true);
+
+          for (const players of playerCounts) {
+            await setPlayers(players);
+            validateLayout(viewport + " / " + players + " players");
+          }
+
+          await setPlayers(8);
+          validateLongName(viewport);
+          validateLayout(viewport + " / long player name");
+
+          await setContinueEnabled(false);
+          validateLayout(viewport + " / Continue disabled");
+          const continueButton = frame.contentDocument.getElementById("continueButton");
+          assert(continueButton.disabled, viewport + " Continue did not become disabled");
+
+          await setContinueEnabled(true);
+          await setUiState("loading");
+          validateLayout(viewport + " / loading");
+
+          await setUiState("error");
+          validateLayout(viewport + " / error");
+          const retry = frame.contentDocument.querySelector(".state-retry");
+          assert(Boolean(retry), viewport + " error state missing Retry");
+          validateFocusSafety(viewport + " / error");
+
+          await setUiState("normal");
+          validateFocusSafety(viewport + " / normal");
+        }
+
+        if (failures.length === 0) {
+          result.dataset.status = "pass";
+          result.textContent = "LAYOUT_AUDIT_PASS cases=" + cases;
+          document.title = "LAYOUT_AUDIT_PASS";
+        } else {
+          result.dataset.status = "fail";
+          result.textContent = "LAYOUT_AUDIT_FAIL cases=" + cases + " | " + failures.join(" | ");
+          document.title = "LAYOUT_AUDIT_FAIL";
+        }
+      }
+
+      const startAudit = () => {
+        run().catch((error) => {
+          result.dataset.status = "fail";
+          result.textContent = "LAYOUT_AUDIT_FAIL | " + (error.stack || error.message || String(error)).replace(/\s+/g, " ");
+          document.title = "LAYOUT_AUDIT_FAIL";
+        });
+      };
+
+      if (frame.contentDocument && frame.contentDocument.readyState === "complete") {
+        startAudit();
+      } else {
+        frame.addEventListener("load", startAudit, { once: true });
+      }
+    })();
+  </script>
+</body>
+</html>
