@@ -1563,7 +1563,7 @@ input:focus-visible {
   pointer-events: none;
   inset: -7px;
   z-index: -1;
-  border-radius: calc(1em + 8px);
+  border-radius: inherit;
   background:
     conic-gradient(
       from var(--remote-focus-angle),
@@ -1622,5 +1622,25 @@ input:focus-visible {
   .partybeam-screen .remote-focused::after {
     animation: none;
     --remote-focus-angle: 292deg;
+  }
+}
+
+
+/* Keep the primary action centered while Manage games lives in the lower-right corner. */
+.manage-games-button {
+  position: absolute;
+  right: 0;
+  bottom: 34px;
+}
+
+.preview-canvas[data-device="tv720"] .manage-games-button {
+  bottom: 18px;
+}
+
+@media (max-width: 640px) {
+  .preview-canvas[data-device="phone"] .manage-games-button {
+    position: static;
+    justify-self: end;
+    margin-top: -8px;
   }
 }
