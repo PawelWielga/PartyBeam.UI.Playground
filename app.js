@@ -2,10 +2,10 @@
   "use strict";
 
   const viewportPresets = {
-    tv1080: { width: 1920, height: 1080, device: "tv", label: "TV 1920×1080" },
-    tv720: { width: 1280, height: 720, device: "tv", label: "TV 1280×720" },
-    phone: { width: 390, height: 844, device: "phone", label: "Phone" },
-    full: { full: true, device: "full", label: "Full screen" }
+    tv1080: { width: 1920, height: 1080, label: "TV 1920×1080" },
+    tv720: { width: 1280, height: 720, label: "TV 1280×720" },
+    phone: { width: 390, height: 844, label: "Phone" },
+    full: { full: true, label: "Full screen" }
   };
 
   const playerNames = ["Paweł", "Ewelinka", "Alex", "Marta"];
@@ -51,6 +51,26 @@
     };
   }
 
+  function resolveDevice(logicalWidth) {
+    if (state.viewport === "phone") {
+      return "phone";
+    }
+
+    if (state.viewport === "tv720") {
+      return "tv720";
+    }
+
+    if (state.viewport === "tv1080") {
+      return "tv";
+    }
+
+    if (logicalWidth < 640) {
+      return "phone";
+    }
+
+    return logicalWidth < 1500 ? "tv720" : "tv";
+  }
+
   function applyViewport() {
     const preset = viewportPresets[state.viewport];
     const available = getStageSpace();
@@ -79,7 +99,7 @@
     elements.previewCanvas.style.width = logicalWidth + "px";
     elements.previewCanvas.style.height = logicalHeight + "px";
     elements.previewCanvas.style.transform = "scale(" + scale + ")";
-    elements.previewCanvas.dataset.device = preset.device;
+    elements.previewCanvas.dataset.device = resolveDevice(logicalWidth);
 
     elements.previewViewport.style.width = displayWidth + "px";
     elements.previewViewport.style.height = displayHeight + "px";
@@ -170,7 +190,6 @@
       state.uiState = "normal";
       elements.uiState.value = "normal";
       renderState();
-      retry.blur();
     });
 
     elements.stateCard.replaceChildren(icon, heading, message, retry);
@@ -202,12 +221,14 @@
   }
 
   function setDevPanel(open) {
+    const focusWasInside = elements.devPanel.contains(document.activeElement);
+
     elements.devPanel.hidden = !open;
     elements.devToggle.setAttribute("aria-expanded", String(open));
 
     if (open) {
       elements.devClose.focus();
-    } else if (document.activeElement === elements.devClose) {
+    } else if (focusWasInside) {
       elements.devToggle.focus();
     }
   }
