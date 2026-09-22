@@ -56,11 +56,11 @@ Open **Dev controls** in the bottom-right corner to simulate visual states witho
 
 Current controls include:
 
-- 0, 1, 2 or 4 players,
+- 0, 1, 2, 4, 6 or 8 players,
 - normal, loading and error states,
 - Continue enabled or disabled.
 
-These controls belong to the playground shell only and should not be copied into PartyBeam production UI.
+The default demo currently shows 6 connected players plus one waiting slot. Player tiles wrap to additional rows with a maximum of 4 tiles per row on TV previews.\n\nThese controls belong to the playground shell only and should not be copied into PartyBeam production UI.
 
 ## GitHub Pages
 
