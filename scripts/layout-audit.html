@@ -23,17 +23,7 @@
       let cases = 0;
 
       const waitFrames = (count = 3) => new Promise((resolve) => {
-        const next = () => {
-          if (count <= 0) {
-            resolve();
-            return;
-          }
-
-          count -= 1;
-          frame.contentWindow.requestAnimationFrame(next);
-        };
-
-        frame.contentWindow.requestAnimationFrame(next);
+        window.setTimeout(resolve, Math.max(1, count) * 25);
       });
 
       function fail(label, details) {
