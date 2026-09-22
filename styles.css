@@ -613,6 +613,7 @@ button:disabled {
   min-height: 0;
   height: 100%;
   align-self: center;
+  justify-self: center;
   display: grid;
   grid-template-rows: auto auto auto;
   align-content: center;
