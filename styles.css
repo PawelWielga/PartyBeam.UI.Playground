@@ -985,7 +985,7 @@ button:disabled {
 /* TV 1280x720 */
 .preview-canvas[data-device="tv720"] .partybeam-screen {
   --screen-header-height: 82px;
-  --screen-footer-height: 52px;
+  --screen-footer-height: 70px;
 }
 
 .preview-canvas[data-device="tv720"] .partybeam-topbar {
@@ -1114,7 +1114,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .partybeam-footer {
-  padding: 6px 32px;
+  padding: 13px 32px;
 }
 
 .preview-canvas[data-device="tv720"] .app-version,
@@ -1155,7 +1155,7 @@ button:disabled {
 /* Phone preset */
 .preview-canvas[data-device="phone"] .partybeam-screen {
   --screen-header-height: 76px;
-  --screen-footer-height: 54px;
+  --screen-footer-height: 70px;
 }
 
 .preview-canvas[data-device="phone"] .partybeam-topbar {
@@ -1282,7 +1282,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .partybeam-footer {
-  padding: 6px 12px;
+  padding: 13px 12px;
 }
 
 .preview-canvas[data-device="phone"] .app-version,
