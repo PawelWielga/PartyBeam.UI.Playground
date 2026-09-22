@@ -1,6 +1,8 @@
 import { access, readFile } from "node:fs/promises";
 
 const html = await readFile("index.html", "utf8");
+const app = await readFile("app.js", "utf8");
+const styles = await readFile("styles.css", "utf8");
 const voidTags = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
 const stack = [];
 const ids = new Set();
@@ -60,6 +62,36 @@ if (!/href=["']styles\.css(?:\?[^"']*)?["']/i.test(html)) {
 
 if (!/src=["']app\.js(?:\?[^"']*)?["']/i.test(html)) {
   fail("index.html does not reference app.js.");
+}
+
+const reducedMotionMatches = app.match(/matchMedia\("\(prefers-reduced-motion: reduce\)"\)/g) || [];
+if (reducedMotionMatches.length !== 1) {
+  fail("Remote focus should create exactly one reduced-motion MediaQueryList; found " + reducedMotionMatches.length + ".");
+}
+
+const animationStart = app.indexOf("function animateRemoteFocus(timestamp)");
+const inactiveGuard = app.indexOf("if (!activeTarget)", animationStart);
+const nextFrameSchedule = app.indexOf(
+  "remoteFocusAnimationFrame = window.requestAnimationFrame(animateRemoteFocus);",
+  inactiveGuard
+);
+
+if (animationStart < 0 || inactiveGuard < 0 || nextFrameSchedule < 0 || inactiveGuard > nextFrameSchedule) {
+  fail("Remote focus animation must guard inactive focus before scheduling the next frame.");
+}
+
+if (!app.includes("remoteFocusGeometry = getRemoteFocusGeometry(activeTarget)")) {
+  fail("Remote focus geometry must be cached instead of recalculated every animation frame.");
+}
+
+if (!app.includes('getComputedStyle(element, "::after")')) {
+  fail("Remote focus geometry must use the rendered ::after ring radius.");
+}
+
+for (const token of ["--remote-focus-ring-inset", "--remote-focus-ring-thickness"]) {
+  if (!app.includes(token) || !styles.includes(token)) {
+    fail("Remote focus geometry token is not shared by JS and CSS: " + token);
+  }
 }
 
 if (!process.exitCode) {
