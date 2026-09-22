@@ -2465,11 +2465,11 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .game-cover-compatibility strong {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="tv720"] .game-cover-compatibility span {
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="phone"] .catalog-join-code {
