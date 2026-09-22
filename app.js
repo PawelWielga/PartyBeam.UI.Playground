@@ -21,6 +21,7 @@
     previewStage: document.getElementById("previewStage"),
     previewViewport: document.getElementById("previewViewport"),
     previewCanvas: document.getElementById("previewCanvas"),
+    partybeamScreen: document.getElementById("partybeamScreen"),
     viewportMeta: document.getElementById("viewportMeta"),
     playersGrid: document.getElementById("playersGrid"),
     playersSummary: document.getElementById("playersSummary"),
@@ -424,6 +425,9 @@
 
     if (open) {
       ensureRemoteFocus();
+      if (document.activeElement === elements.remoteToggle) {
+        elements.remoteToggle.blur();
+      }
     } else if (focusWasInside) {
       elements.remoteToggle.focus();
     }
@@ -532,6 +536,7 @@
   document.querySelectorAll("[data-remote-key]").forEach((button) => {
     button.addEventListener("click", () => {
       handleRemoteCommand(button.dataset.remoteKey);
+      button.blur();
     });
   });
 
@@ -564,6 +569,14 @@
     }
 
     if (typing) {
+      return;
+    }
+
+    const activeElement = document.activeElement;
+    const screenHasFocus = activeElement && elements.partybeamScreen.contains(activeElement);
+    const neutralFocus = !activeElement || activeElement === document.body;
+
+    if (!screenHasFocus && !neutralFocus) {
       return;
     }
 
