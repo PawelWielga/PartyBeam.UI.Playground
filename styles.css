@@ -1552,6 +1552,7 @@ input:focus-visible {
   position: relative;
   z-index: 4;
   isolation: isolate;
+  overflow: visible;
   outline: none !important;
 }
 
@@ -1560,40 +1561,31 @@ input:focus-visible {
   content: "";
   position: absolute;
   pointer-events: none;
-  inset: -8px;
+  inset: -7px;
   z-index: -1;
-  padding: 4px;
-  border-radius: inherit;
+  border-radius: calc(1em + 8px);
   background:
     conic-gradient(
       from var(--remote-focus-angle),
-      transparent 0deg 220deg,
-      rgba(124, 92, 255, 0.15) 240deg,
-      var(--primary-strong) 272deg,
-      var(--focus) 294deg,
-      var(--success) 314deg,
-      transparent 346deg 360deg
+      transparent 0 78%,
+      rgba(124, 92, 255, 0.18) 82%,
+      var(--primary-strong) 88%,
+      var(--focus) 92%,
+      var(--success) 95%,
+      transparent 100%
     );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  animation: remote-focus-spin 1.8s linear infinite;
+  animation: remote-focus-spin 1.65s linear infinite;
 }
 
 .partybeam-screen .remote-focused::before {
-  inset: -12px;
-  padding: 7px;
-  opacity: 0.62;
-  filter: blur(9px);
+  inset: -11px;
+  z-index: -2;
+  opacity: 0.5;
+  filter: blur(11px);
 }
 
 .partybeam-screen .remote-focused::after {
-  filter: drop-shadow(0 0 7px rgba(124, 92, 255, 0.72));
+  box-shadow: 0 0 16px rgba(124, 92, 255, 0.18);
 }
 
 @keyframes remote-focus-spin {
