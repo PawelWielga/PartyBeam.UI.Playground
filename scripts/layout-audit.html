@@ -252,17 +252,25 @@
           result.textContent = "LAYOUT_AUDIT_PASS cases=" + cases;
           document.title = "LAYOUT_AUDIT_PASS";
         } else {
+          result.dataset.status = "fail";
           result.textContent = "LAYOUT_AUDIT_FAIL cases=" + cases + "\n" + failures.join("\n");
           document.title = "LAYOUT_AUDIT_FAIL";
         }
       }
 
-      frame.addEventListener("load", () => {
+      const startAudit = () => {
         run().catch((error) => {
+          result.dataset.status = "fail";
           result.textContent = "LAYOUT_AUDIT_FAIL\n" + (error.stack || error.message || String(error));
           document.title = "LAYOUT_AUDIT_FAIL";
         });
-      });
+      };
+
+      if (frame.contentDocument && frame.contentDocument.readyState === "complete") {
+        startAudit();
+      } else {
+        frame.addEventListener("load", startAudit, { once: true });
+      }
     })();
   </script>
 </body>
