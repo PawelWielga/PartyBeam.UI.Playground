@@ -783,7 +783,7 @@ button:disabled {
 
 .players-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--player-columns, 4), minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -814,6 +814,8 @@ button:disabled {
 }
 
 .player-name {
+  min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
   font-size: 18px;
   font-weight: 800;
@@ -1246,7 +1248,6 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .players-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 5px;
 }
 
