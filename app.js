@@ -9,12 +9,20 @@
   };
 
   const playerNames = ["Paweł", "Ewelinka", "Alex", "Marta", "Kuba", "Ola", "Tomek", "Ania"];
+  const placeholderGameMaxPlayers = [
+    8, 4, 6, 3, 8,
+    2, 6, 4, 8, 5,
+    4, 8, 3, 6, 2,
+    8, 4, 5, 6, 3,
+    8, 2, 4, 6, 8
+  ];
 
   const state = {
     viewport: "tv1080",
     players: 6,
     uiState: "normal",
-    continueEnabled: true
+    continueEnabled: true,
+    screen: "lobby"
   };
 
   const elements = {
@@ -23,6 +31,14 @@
     previewCanvas: document.getElementById("previewCanvas"),
     partybeamScreen: document.getElementById("partybeamScreen"),
     viewportMeta: document.getElementById("viewportMeta"),
+    lobbyScreen: document.getElementById("lobbyScreen"),
+    catalogScreen: document.getElementById("catalogScreen"),
+    catalogJoinCode: document.getElementById("catalogJoinCode"),
+    catalogPlayersList: document.getElementById("catalogPlayersList"),
+    catalogPlayersSummary: document.getElementById("catalogPlayersSummary"),
+    catalogScroll: document.getElementById("catalogScroll"),
+    gameCoverGrid: document.getElementById("gameCoverGrid"),
+    footer: document.querySelector(".partybeam-footer"),
     playersGrid: document.getElementById("playersGrid"),
     playersSummary: document.getElementById("playersSummary"),
     continueButton: document.getElementById("continueButton"),
@@ -344,6 +360,96 @@
     elements.playersGrid.style.setProperty("--player-columns", String(columns));
   }
 
+  function getConnectedSummary() {
+    if (state.players === 0) {
+      return "Waiting for players";
+    }
+
+    if (state.players === 1) {
+      return "1 connected";
+    }
+
+    return state.players + " connected";
+  }
+
+  function renderCatalogPlayers() {
+    elements.catalogPlayersList.replaceChildren();
+
+    for (let index = 0; index < state.players; index += 1) {
+      const fallbackName = "Player " + (index + 1);
+      elements.catalogPlayersList.appendChild(createPlayerSlot(playerNames[index] || fallbackName, true));
+    }
+
+    elements.catalogPlayersList.appendChild(createPlayerSlot("", false));
+    elements.catalogPlayersSummary.textContent = getConnectedSummary();
+  }
+
+  function updateGameCompatibility() {
+    elements.gameCoverGrid.querySelectorAll(".game-cover").forEach((cover) => {
+      const maximumPlayers = Number(cover.dataset.maxPlayers);
+      const incompatible = state.players > maximumPlayers;
+      cover.classList.toggle("game-cover--incompatible", incompatible);
+
+      const compatibility = cover.querySelector(".game-cover-compatibility");
+      if (compatibility) {
+        compatibility.hidden = !incompatible;
+      }
+
+      const number = cover.dataset.gameNumber;
+      cover.setAttribute(
+        "aria-label",
+        incompatible
+          ? "Placeholder game " + number + ". Not everyone can play. Supports up to " + maximumPlayers + " players."
+          : "Placeholder game " + number + ". Compatible with the current party."
+      );
+    });
+  }
+
+  function renderGameCovers() {
+    elements.gameCoverGrid.replaceChildren();
+
+    placeholderGameMaxPlayers.forEach((maximumPlayers, index) => {
+      const gameNumber = String(index + 1).padStart(2, "0");
+      const cover = document.createElement("button");
+      cover.type = "button";
+      cover.className = "game-cover game-cover--variant-" + (index % 6);
+      cover.dataset.maxPlayers = String(maximumPlayers);
+      cover.dataset.gameNumber = gameNumber;
+
+      const art = document.createElement("span");
+      art.className = "game-cover-art";
+
+      const number = document.createElement("span");
+      number.className = "game-cover-number";
+      number.textContent = gameNumber;
+
+      const placeholder = document.createElement("span");
+      placeholder.className = "game-cover-placeholder-label";
+      placeholder.textContent = "PLACEHOLDER";
+
+      const compatibility = document.createElement("span");
+      compatibility.className = "game-cover-compatibility";
+      compatibility.hidden = true;
+
+      const warning = document.createElement("strong");
+      warning.textContent = "⚠ NOT EVERYONE CAN PLAY";
+
+      const detail = document.createElement("span");
+      detail.textContent = "Supports up to " + maximumPlayers + " players";
+
+      compatibility.append(warning, detail);
+      art.append(number, placeholder);
+      cover.append(art, compatibility);
+      cover.addEventListener("click", () => {
+        showToast("Game details screen · next step");
+      });
+
+      elements.gameCoverGrid.appendChild(cover);
+    });
+
+    updateGameCompatibility();
+  }
+
   function renderPlayers() {
     elements.playersGrid.replaceChildren();
     updatePlayerGridColumns();
@@ -354,14 +460,9 @@
     }
 
     elements.playersGrid.appendChild(createPlayerSlot("", false));
-
-    if (state.players === 0) {
-      elements.playersSummary.textContent = "Waiting for players";
-    } else if (state.players === 1) {
-      elements.playersSummary.textContent = "1 connected";
-    } else {
-      elements.playersSummary.textContent = state.players + " connected";
-    }
+    elements.playersSummary.textContent = getConnectedSummary();
+    renderCatalogPlayers();
+    updateGameCompatibility();
 
     document.querySelectorAll("[data-players]").forEach((button) => {
       const active = Number(button.dataset.players) === state.players;
@@ -441,6 +542,13 @@
       return focusables;
     }
 
+    if (state.screen === "catalog") {
+      elements.gameCoverGrid.querySelectorAll(".game-cover:not(:disabled)").forEach((cover) => {
+        focusables.push(cover);
+      });
+      return focusables;
+    }
+
     [elements.continueButton, elements.manageGamesButton].forEach((element) => {
       if (element && !element.disabled) {
         focusables.push(element);
@@ -472,6 +580,26 @@
     syncRemoteFocusAnimation();
   }
 
+  function ensureCatalogTargetVisible(element) {
+    if (
+      state.screen !== "catalog"
+      || !element
+      || !element.classList.contains("game-cover")
+    ) {
+      return;
+    }
+
+    const containerRect = elements.catalogScroll.getBoundingClientRect();
+    const targetRect = element.getBoundingClientRect();
+    const margin = 16;
+
+    if (targetRect.top < containerRect.top + margin) {
+      elements.catalogScroll.scrollTop -= containerRect.top + margin - targetRect.top;
+    } else if (targetRect.bottom > containerRect.bottom - margin) {
+      elements.catalogScroll.scrollTop += targetRect.bottom - (containerRect.bottom - margin);
+    }
+  }
+
   function setRemoteFocus(element) {
     const nextTarget = element || null;
 
@@ -483,6 +611,7 @@
     }
 
     remoteFocusTarget = nextTarget;
+    ensureCatalogTargetVisible(remoteFocusTarget);
     renderRemoteFocusVisual();
   }
 
@@ -494,10 +623,15 @@
       return;
     }
 
-    const preferred = focusables.find((element) => element === elements.continueButton)
-      || focusables.find((element) => element.classList.contains("state-retry"))
-      || focusables[0]
-      || null;
+    const preferred = state.screen === "catalog"
+      ? focusables.find((element) => element.classList.contains("game-cover"))
+        || focusables.find((element) => element.classList.contains("state-retry"))
+        || focusables[0]
+        || null
+      : focusables.find((element) => element === elements.continueButton)
+        || focusables.find((element) => element.classList.contains("state-retry"))
+        || focusables[0]
+        || null;
 
     setRemoteFocus(preferred);
   }
@@ -593,6 +727,7 @@
 
     setRemoteFocus(target);
     target.focus({ preventScroll: true });
+    ensureCatalogTargetVisible(target);
   }
 
   function activateRemoteFocus() {
@@ -616,21 +751,67 @@
 
     if (command === "home") {
       const focusables = getTvFocusableElements();
-      const homeTarget = focusables.find((element) => element === elements.continueButton)
-        || focusables.find((element) => element.classList.contains("state-retry"))
-        || focusables[0]
-        || null;
+      const homeTarget = state.screen === "catalog"
+        ? focusables.find((element) => element.classList.contains("game-cover")) || focusables[0] || null
+        : focusables.find((element) => element === elements.continueButton)
+          || focusables.find((element) => element.classList.contains("state-retry"))
+          || focusables[0]
+          || null;
       setRemoteFocus(homeTarget);
       showToast("Home pressed · playground only");
       return;
     }
 
     if (command === "back") {
+      if (state.screen === "catalog") {
+        showLobby();
+        return;
+      }
+
       showToast("Back pressed · playground only");
     }
   }
 
+  function showCatalog() {
+    const browserMode = elements.partybeamScreen.contains(document.activeElement);
+
+    state.screen = "catalog";
+    elements.lobbyScreen.hidden = true;
+    elements.catalogScreen.hidden = false;
+    elements.catalogJoinCode.hidden = false;
+    elements.footer.hidden = true;
+    elements.partybeamScreen.classList.add("is-catalog");
+    elements.partybeamScreen.setAttribute("aria-label", "PartyBeam game catalog");
+    elements.catalogScroll.scrollTop = 0;
+
+    const firstCover = elements.gameCoverGrid.querySelector(".game-cover");
+    setRemoteFocus(firstCover);
+
+    if (browserMode && firstCover) {
+      firstCover.focus({ preventScroll: true });
+    }
+  }
+
+  function showLobby() {
+    const browserMode = elements.partybeamScreen.contains(document.activeElement);
+
+    state.screen = "lobby";
+    elements.catalogScreen.hidden = true;
+    elements.lobbyScreen.hidden = false;
+    elements.catalogJoinCode.hidden = true;
+    elements.footer.hidden = false;
+    elements.partybeamScreen.classList.remove("is-catalog");
+    elements.partybeamScreen.setAttribute("aria-label", "PartyBeam lobby screen");
+
+    setRemoteFocus(elements.continueButton);
+
+    if (browserMode) {
+      elements.continueButton.focus({ preventScroll: true });
+    }
+  }
+
   function render() {
+    renderGameCovers();
     renderPlayers();
     renderState();
     applyViewport();
@@ -799,7 +980,7 @@
   });
 
   elements.continueButton.addEventListener("click", () => {
-    showToast("Continue clicked · playground only");
+    showCatalog();
   });
 
   elements.settingsButton.addEventListener("click", () => {
