@@ -243,7 +243,7 @@
           document.title = "LAYOUT_AUDIT_PASS";
         } else {
           result.dataset.status = "fail";
-          result.textContent = "LAYOUT_AUDIT_FAIL cases=" + cases + "\n" + failures.join("\n");
+          result.textContent = "LAYOUT_AUDIT_FAIL cases=" + cases + " | " + failures.join(" | ");
           document.title = "LAYOUT_AUDIT_FAIL";
         }
       }
@@ -251,7 +251,7 @@
       const startAudit = () => {
         run().catch((error) => {
           result.dataset.status = "fail";
-          result.textContent = "LAYOUT_AUDIT_FAIL\n" + (error.stack || error.message || String(error));
+          result.textContent = "LAYOUT_AUDIT_FAIL | " + (error.stack || error.message || String(error)).replace(/\s+/g, " ");
           document.title = "LAYOUT_AUDIT_FAIL";
         });
       };
