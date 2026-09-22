@@ -356,6 +356,15 @@
         assert(Boolean(incompatible), viewport + " catalog has no incompatible placeholder at six players");
         assert(Boolean(compatible), viewport + " catalog has no compatible placeholder at six players");
 
+        if (viewport === "tv720" && incompatible) {
+          incompatible.classList.add("remote-focused");
+          const warning = incompatible.querySelector(".game-cover-compatibility strong");
+          const detail = incompatible.querySelector(".game-cover-compatibility span");
+          assert(pxValue(warning, "fontSize") >= 12, "tv720 compatibility warning below 12px");
+          assert(pxValue(detail, "fontSize") >= 12, "tv720 compatibility detail below 12px");
+          incompatible.classList.remove("remote-focused");
+        }
+
         await setPlayers(8);
         const catalogPlayerRows = Array.from(doc.querySelectorAll("#catalogPlayersList .player-slot"));
         assert(catalogPlayerRows.length === 9, viewport + " catalog player panel did not render 8 players plus Waiting");
