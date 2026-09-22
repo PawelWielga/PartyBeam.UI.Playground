@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>PartyBeam UI Playground</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="playground-shell">
+    <header class="playground-toolbar">
+      <div class="playground-title">
+        <span class="playground-kicker">PartyBeam</span>
+        <strong>UI Playground</strong>
+      </div>
+
+      <div class="viewport-switcher" role="group" aria-label="Preview viewport">
+        <button class="viewport-button is-active" type="button" data-viewport="tv1080">TV 1920×1080</button>
+        <button class="viewport-button" type="button" data-viewport="tv720">TV 1280×720</button>
+        <button class="viewport-button" type="button" data-viewport="phone">Phone</button>
+        <button class="viewport-button" type="button" data-viewport="full">Full screen</button>
+      </div>
+
+      <div class="playground-meta" id="viewportMeta" aria-live="polite">1920 × 1080 · scaled</div>
+    </header>
+
+    <main class="playground-main">
+      <section class="preview-stage" id="previewStage" aria-label="PartyBeam preview">
+        <div class="preview-viewport" id="previewViewport">
+          <div class="preview-canvas" id="previewCanvas" data-device="tv">
+            <section class="partybeam-screen" id="partybeamScreen" aria-label="PartyBeam lobby screen">
+              <header class="partybeam-topbar">
+                <div class="partybeam-brand" aria-label="PartyBeam home">
+                  <span class="brand-mark" aria-hidden="true">P</span>
+                  <span>PARTYBEAM</span>
+                </div>
+
+                <button class="screen-button screen-button--ghost" type="button" id="settingsButton">
+                  <span aria-hidden="true">⚙</span>
+                  <span>Settings</span>
+                </button>
+              </header>
+
+              <div class="partybeam-content">
+                <section class="join-section" aria-labelledby="joinTitle">
+                  <div class="join-heading">
+                    <p class="eyebrow">ROOM IS READY</p>
+                    <h1 id="joinTitle">LET'S PLAY TOGETHER</h1>
+                    <p>Scan the code or enter the game code on your phone.</p>
+                  </div>
+
+                  <div class="join-card">
+                    <div class="qr-panel" aria-label="QR code placeholder">
+                      <div class="qr-code" id="qrCode" aria-hidden="true"></div>
+                      <span class="qr-caption">Scan to join</span>
+                    </div>
+
+                    <div class="game-code-panel">
+                      <span class="game-code-label">Game code</span>
+                      <strong class="game-code" aria-label="Game code 8 F 4 K 2 P">8F4 K2P</strong>
+                      <span class="game-code-hint">partybeam.local/join</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="players-section" aria-labelledby="playersTitle">
+                  <div class="section-heading">
+                    <h2 id="playersTitle">Players</h2>
+                    <span class="players-summary" id="playersSummary">2 connected</span>
+                  </div>
+                  <div class="players-grid" id="playersGrid"></div>
+                </section>
+
+                <section class="lobby-actions" aria-label="Lobby actions">
+                  <button class="screen-button screen-button--primary" type="button" id="continueButton">
+                    CONTINUE
+                  </button>
+                  <button class="screen-button screen-button--link" type="button" id="manageGamesButton">
+                    Manage games
+                  </button>
+                </section>
+              </div>
+
+              <div class="state-overlay" id="stateOverlay" hidden aria-live="assertive">
+                <div class="state-card" id="stateCard"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <button class="dev-toggle" id="devToggle" type="button" aria-controls="devPanel" aria-expanded="false">
+      Dev controls
+    </button>
+
+    <aside class="dev-panel" id="devPanel" aria-label="Developer controls" hidden>
+      <div class="dev-panel-header">
+        <div>
+          <span class="dev-label">PLAYGROUND ONLY</span>
+          <h2>Dev controls</h2>
+        </div>
+        <button class="dev-close" id="devClose" type="button" aria-label="Close developer controls">×</button>
+      </div>
+
+      <fieldset class="dev-fieldset">
+        <legend>Players</legend>
+        <div class="segmented-control" id="playerControls">
+          <button type="button" data-players="0">0</button>
+          <button type="button" data-players="1">1</button>
+          <button type="button" data-players="2" class="is-active">2</button>
+          <button type="button" data-players="4">4</button>
+        </div>
+      </fieldset>
+
+      <label class="dev-field">
+        <span>UI state</span>
+        <select id="uiState">
+          <option value="normal">Normal</option>
+          <option value="loading">Loading</option>
+          <option value="error">Error</option>
+        </select>
+      </label>
+
+      <label class="dev-checkbox">
+        <input type="checkbox" id="continueEnabled" checked>
+        <span>Continue enabled</span>
+      </label>
+
+      <div class="dev-note">
+        These controls simulate visual states only. They are not part of the production UI.
+      </div>
+    </aside>
+
+    <div class="playground-toast" id="playgroundToast" role="status" aria-live="polite" hidden></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
