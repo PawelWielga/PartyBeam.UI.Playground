@@ -2049,3 +2049,41 @@ body {
 .partybeam-footer .manage-games-button:hover {
   background: rgba(255, 255, 255, 0.045);
 }
+
+
+/* Fix footer remote focus anchoring and center the body content vertically. */
+.partybeam-footer .manage-games-button {
+  position: relative;
+}
+
+.partybeam-body {
+  grid-template-rows: auto auto auto;
+  align-content: center;
+}
+
+.partybeam-body .home-sections {
+  height: auto;
+  min-height: 430px;
+}
+
+.partybeam-body .home-card {
+  height: 100%;
+}
+
+.preview-canvas[data-device="tv720"] .partybeam-body {
+  grid-template-rows: auto auto auto;
+  align-content: center;
+}
+
+.preview-canvas[data-device="tv720"] .partybeam-body .home-sections {
+  min-height: 270px;
+}
+
+.preview-canvas[data-device="phone"] .partybeam-body {
+  grid-template-rows: auto auto auto;
+  align-content: center;
+}
+
+.preview-canvas[data-device="phone"] .partybeam-body .home-sections {
+  min-height: 260px;
+}
