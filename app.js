@@ -93,11 +93,7 @@
     } else {
       logicalWidth = preset.width;
       logicalHeight = preset.height;
-      scale = Math.min(
-        1,
-        available.width / logicalWidth,
-        available.height / logicalHeight
-      );
+      scale = Math.min(1, available.width / logicalWidth, available.height / logicalHeight);
     }
 
     const displayWidth = Math.max(1, Math.floor(logicalWidth * scale));
@@ -144,9 +140,7 @@
 
     for (let index = 0; index < state.players; index += 1) {
       const fallbackName = "Player " + (index + 1);
-      elements.playersGrid.appendChild(
-        createPlayerSlot(playerNames[index] || fallbackName, true)
-      );
+      elements.playersGrid.appendChild(createPlayerSlot(playerNames[index] || fallbackName, true));
     }
 
     elements.playersGrid.appendChild(createPlayerSlot("", false));
@@ -218,14 +212,9 @@
     }
 
     elements.continueButton.disabled = !state.continueEnabled || !normal;
-    elements.continueButton.setAttribute(
-      "aria-disabled",
-      String(elements.continueButton.disabled)
-    );
-
+    elements.continueButton.setAttribute("aria-disabled", String(elements.continueButton.disabled));
     window.requestAnimationFrame(ensureRemoteFocus);
   }
-
 
   function getTvFocusableElements() {
     const focusables = [];
@@ -482,17 +471,33 @@
   }
 
   function renderQrPlaceholder(target, seed) {
-    const fragment = document.createDocumentFragment();
+    const svgNamespace = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNamespace, "svg");
+    svg.setAttribute("viewBox", "0 0 21 21");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    svg.setAttribute("shape-rendering", "crispEdges");
+
+    const background = document.createElementNS(svgNamespace, "rect");
+    background.setAttribute("width", "21");
+    background.setAttribute("height", "21");
+    background.setAttribute("fill", "#fff");
+
+    const path = document.createElementNS(svgNamespace, "path");
+    const modules = [];
 
     for (let row = 0; row < 21; row += 1) {
       for (let column = 0; column < 21; column += 1) {
-        const cell = document.createElement("span");
-        cell.className = "qr-cell" + (qrValue(row, column, seed) ? " is-dark" : "");
-        fragment.appendChild(cell);
+        if (qrValue(row, column, seed)) {
+          modules.push("M" + column + " " + row + "h1v1h-1z");
+        }
       }
     }
 
-    target.replaceChildren(fragment);
+    path.setAttribute("d", modules.join(""));
+    path.setAttribute("fill", "#090b0e");
+    svg.append(background, path);
+    target.replaceChildren(svg);
   }
 
   document.querySelectorAll("[data-viewport]").forEach((button) => {
