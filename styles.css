@@ -1934,7 +1934,7 @@ button:disabled {
 
 .preview-canvas[data-device="tv720"] .eyebrow {
   margin-bottom: 4px;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="tv720"] .home-card-copy h1,
@@ -1944,7 +1944,7 @@ button:disabled {
 
 .preview-canvas[data-device="tv720"] .home-card-description {
   margin-top: 5px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="tv720"] .qr-code {
@@ -1956,7 +1956,7 @@ button:disabled {
 .preview-canvas[data-device="tv720"] .qr-caption,
 .preview-canvas[data-device="tv720"] .game-code-label,
 .preview-canvas[data-device="tv720"] .game-code-hint {
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="tv720"] .join-actions {
@@ -1995,7 +1995,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .players-summary {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .preview-canvas[data-device="tv720"] .screen-button--primary {
