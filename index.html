@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
-  <link rel="stylesheet" href="styles.css?v=28">
+  <link rel="stylesheet" href="styles.css?v=29">
 </head>
 <body>
   <div class="playground-shell">
@@ -163,6 +163,14 @@
                     <div class="game-cover-grid" id="gameCoverGrid"></div>
                   </div>
                 </section>
+              </section>
+
+              <section class="game-launch-screen" id="gameLaunchScreen" hidden aria-hidden="true" aria-label="Loading selected game">
+                <img class="game-launch-image" src="assets/loading.png" alt="Good luck, have fun">
+                <div class="game-launch-spinner-wrap" aria-hidden="true">
+                  <div class="loading-spinner game-launch-spinner"></div>
+                </div>
+                <span class="sr-only" role="status">Loading game</span>
               </section>
 
               <footer class="partybeam-footer">
@@ -544,6 +552,6 @@
     <div class="playground-toast" id="playgroundToast" role="status" aria-live="polite" hidden></div>
   </div>
 
-  <script src="app.js?v=22"></script>
+  <script src="app.js?v=23"></script>
 </body>
 </html>
