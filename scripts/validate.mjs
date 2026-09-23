@@ -52,6 +52,27 @@ if (stack.length > 0) {
   fail("Unclosed tags: " + stack.join(", "));
 }
 
+
+for (const fullPreviewBehavior of [
+  "const logicalPreset = preset.full",
+  "viewportPresets[state.previousViewport] || viewportPresets.tv1080",
+  "scale = Math.min(1, available.width / logicalWidth, available.height / logicalHeight)"
+]) {
+  if (!app.includes(fullPreviewBehavior)) {
+    fail("Full preview must preserve a TV logical viewport and scale it to fit: " + fullPreviewBehavior);
+  }
+}
+
+for (const fullPreviewStyle of [
+  ".sr-only {",
+  ".playground-shell.is-full-preview .preview-stage",
+  ".playground-shell.is-full-preview .preview-viewport"
+]) {
+  if (!styles.includes(fullPreviewStyle)) {
+    fail("Full preview/accessibility style regression guard missing: " + fullPreviewStyle);
+  }
+}
+
 for (const path of ["styles.css", "app.js"]) {
   try {
     await access(path);

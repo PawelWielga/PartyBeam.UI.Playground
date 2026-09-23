@@ -625,9 +625,10 @@
         assert(playersRect.right <= libraryRect.left + 1, viewport + " player panel overlaps game library");
         assert(pxValue(catalog, "paddingBottom") <= 1, viewport + " catalog screen keeps bottom padding");
 
-        const expectedCatalogBottomPadding = viewport === "tv720"
+        const catalogDevice = doc.getElementById("previewCanvas").dataset.device;
+        const expectedCatalogBottomPadding = catalogDevice === "tv720"
           ? 14
-          : viewport === "phone"
+          : catalogDevice === "phone"
             ? 10
             : 24;
         assert(
@@ -922,9 +923,40 @@
         });
       }
 
+      async function validateFullPreviewPreservesTvViewport() {
+        const doc = frame.contentDocument;
+
+        await setViewport("tv1080");
+        await waitFrames(2);
+
+        const canvas = doc.getElementById("previewCanvas");
+        const stage = doc.getElementById("previewStage");
+        const viewport = doc.getElementById("previewViewport");
+
+        await setViewport("full");
+        await waitFrames(2);
+
+        const logicalWidth = parseFloat(canvas.style.width);
+        const logicalHeight = parseFloat(canvas.style.height);
+        const stageRect = stage.getBoundingClientRect();
+        const viewportRect = viewport.getBoundingClientRect();
+
+        cases += 1;
+
+        assert(logicalWidth === 1920, "full preview changed TV logical width", String(logicalWidth));
+        assert(logicalHeight === 1080, "full preview changed TV logical height", String(logicalHeight));
+        assert(canvas.dataset.device === "tv", "full preview switched to phone layout", canvas.dataset.device);
+        assert(
+          viewportRect.width <= stageRect.width + 1 && viewportRect.height <= stageRect.height + 1,
+          "full preview does not fit inside available stage"
+        );
+      }
+
       async function run() {
         await waitFrames(5);
         await waitForControl("continueButton");
+
+        await validateFullPreviewPreservesTvViewport();
 
         const viewports = ["tv1080", "tv720", "full"];
         const playerCounts = [0, 1, 2, 4, 6, 8];

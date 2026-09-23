@@ -71,6 +71,19 @@ button:disabled {
   display: none !important;
 }
 
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 /* Playground shell */
 .playground-shell {
   width: 100%;
@@ -88,6 +101,16 @@ button:disabled {
 .playground-shell.is-full-preview .playground-toolbar,
 .playground-shell.is-full-preview .playground-panel-toggles {
   display: none;
+}
+
+.playground-shell.is-full-preview .preview-stage {
+  padding: 0;
+}
+
+.playground-shell.is-full-preview .preview-viewport {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .playground-toolbar {
