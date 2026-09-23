@@ -174,7 +174,11 @@ for (const catalogFilterStyle of [
   ".catalog-library-toolbar {",
   ".catalog-filter {",
   ".catalog-filter.is-active {",
-  '--remote-focus-radius: 999px;'
+  '--remote-focus-radius: 999px;',
+  "overflow: visible;",
+  "padding: 10px 12px 0 14px;",
+  "padding: 8px 8px 0 10px;",
+  "padding: 12px 4px 0;"
 ]) {
   if (!styles.includes(catalogFilterStyle)) {
     fail("Catalog filter visual regression guard missing: " + catalogFilterStyle);
