@@ -994,7 +994,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .partybeam-topbar {
-  padding: 16px 36px;
+  padding: 16px var(--screen-edge-inline);
 }
 
 .preview-canvas[data-device="tv720"] .partybeam-brand {
@@ -1023,7 +1023,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .partybeam-body {
-  width: calc(100% - 64px);
+  width: var(--screen-content-width);
   gap: 10px;
   padding: 12px 0 10px;
 }
@@ -1119,7 +1119,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .partybeam-footer {
-  padding: 13px 32px;
+  padding: 13px var(--screen-edge-inline);
 }
 
 .preview-canvas[data-device="tv720"] .app-version,
@@ -1166,7 +1166,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .partybeam-topbar {
-  padding: 14px 16px;
+  padding: 14px var(--screen-edge-inline);
 }
 
 .preview-canvas[data-device="phone"] .partybeam-brand {
@@ -1194,7 +1194,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .partybeam-body {
-  width: calc(100% - 24px);
+  width: var(--screen-content-width);
   gap: 10px;
   padding: 10px 0;
 }
@@ -1288,7 +1288,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .partybeam-footer {
-  padding: 13px 12px;
+  padding: 13px var(--screen-edge-inline);
 }
 
 .preview-canvas[data-device="phone"] .app-version,
