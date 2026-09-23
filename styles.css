@@ -2339,6 +2339,13 @@ button:disabled {
   background: rgba(25, 30, 55, 0.9);
 }
 
+.partybeam-screen .catalog-search__input.remote-focused {
+  box-shadow:
+    0 0 0 4px var(--focus),
+    0 0 0 8px rgba(111, 80, 223, 0.55),
+    0 0 22px rgba(111, 80, 223, 0.55);
+}
+
 .catalog-search__input:focus-visible:not(.remote-focused) {
   outline: 4px solid var(--focus);
   outline-offset: 5px;
@@ -2734,9 +2741,9 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .catalog-search__input {
-  min-height: 36px;
-  padding-left: 36px;
-  font-size: 11px;
+  min-height: 30px;
+  padding-left: 34px;
+  font-size: 9px;
 }
 
 .preview-canvas[data-device="tv720"] .catalog-search__icon {
