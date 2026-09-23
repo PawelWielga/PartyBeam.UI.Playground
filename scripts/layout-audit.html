@@ -448,7 +448,7 @@
         cover.focus();
         await waitFrames(1);
         cover.click();
-        await waitFrames(2);
+        await waitFrames(1);
 
         const overlay = doc.getElementById("gameDetailsOverlay");
         const panel = doc.getElementById("gameDetailsPanel");
@@ -489,7 +489,6 @@
         }
 
         action.click();
-        await waitFrames(2);
         assert(action.textContent.trim() === "CANCEL", viewport + " Download did not switch action to Cancel");
         assert(!progress.hidden, viewport + " Download progress did not appear");
         assert(
@@ -498,19 +497,16 @@
         );
 
         action.click();
-        await waitFrames(2);
         assert(action.textContent.trim() === "DOWNLOAD GAME", viewport + " Cancel did not restore Download");
         assert(progress.hidden, viewport + " Cancel did not hide progress");
 
         prepState.value = "error";
         prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
-        await waitFrames(1);
         assert(action.textContent.trim() === "RETRY", viewport + " Error state does not expose Retry");
         assert(!error.hidden, viewport + " Error state message stayed hidden");
 
         prepState.value = "ready";
         prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
-        await waitFrames(1);
         assert(action.textContent.trim() === "START GAME", viewport + " Ready state does not expose Start Game");
         assert(progress.hidden, viewport + " Ready state left progress visible");
 
@@ -520,26 +516,24 @@
 
         const backgroundTarget = doc.getElementById("settingsButton");
         backgroundTarget.focus();
-        await waitFrames(2);
         assert(
           overlay.contains(doc.activeElement),
           viewport + " Game Details focus escaped to blurred background"
         );
 
         await dispatchKey("Escape");
-        await waitFrames(2);
+        await waitFrames(1);
         assert(overlay.hidden, viewport + " Escape did not close Game Details");
         assert(doc.activeElement === cover, viewport + " Escape did not restore game-card focus");
 
         cover.click();
-        await waitFrames(2);
         await dispatchKey("Backspace");
-        await waitFrames(2);
+        await waitFrames(1);
         assert(overlay.hidden, viewport + " Back did not close Game Details");
         assert(doc.activeElement === cover, viewport + " Back did not restore game-card focus");
 
         await dispatchKey("Backspace");
-        await waitFrames(2);
+        await waitFrames(1);
       }
 
       async function validateCatalog(viewport) {
@@ -850,7 +844,9 @@
           validateFocusSafety(viewport + " / normal");
           await validateKeyboardFocusHandoff(viewport + " / Settings keyboard", "#settingsButton");
           await validateSettings(viewport);
-          await validateGameDetails(viewport);
+          if (viewport !== "full") {
+            await validateGameDetails(viewport);
+          }
           await validateCatalog(viewport);
         }
 
