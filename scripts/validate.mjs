@@ -179,6 +179,51 @@ for (const settingsStyle of [
   }
 }
 
+
+for (const gameDetailsId of [
+  "gameDetailsOverlay",
+  "gameDetailsPanel",
+  "gameDetailsCloseButton",
+  "gameDetailsActionButton",
+  "gameDownloadProgress",
+  "gameDownloadProgressTrack",
+  "gameDownloadError",
+  "gamePreparationState"
+]) {
+  if (!ids.has(gameDetailsId)) {
+    fail("Game Details prototype is missing required id: " + gameDetailsId);
+  }
+}
+
+for (const gameDetailsBehavior of [
+  "function openGameDetails(origin)",
+  "function closeGameDetails()",
+  "function getGameDetailsFocusableElements()",
+  "function startGameDownloadSimulation()",
+  "function setGamePreparationState(preparationState, progress)",
+  'state.gamePreparationState = "ready"',
+  'openGameDetails(cover)',
+  'state.gameDetailsOpen && event.key === "Tab"',
+  'elements.gameDetailsActionButton.addEventListener("click"'
+]) {
+  if (!app.includes(gameDetailsBehavior)) {
+    fail("Game Details behavior regression guard missing: " + gameDetailsBehavior);
+  }
+}
+
+for (const gameDetailsStyle of [
+  ".game-details-overlay {",
+  "backdrop-filter: blur(13px) saturate(82%);",
+  "grid-template-columns: minmax(0, 1fr) minmax(330px, 430px);",
+  '.preview-canvas[data-device="phone"] .game-details-main',
+  "flex-direction: column;",
+  ".game-download-progress-track {"
+]) {
+  if (!styles.includes(gameDetailsStyle)) {
+    fail("Game Details responsive/visual regression guard missing: " + gameDetailsStyle);
+  }
+}
+
 if (!process.exitCode) {
   console.log("Static site validation passed.");
 }
