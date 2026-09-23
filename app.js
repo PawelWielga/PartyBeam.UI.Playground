@@ -304,15 +304,13 @@
     let logicalHeight;
     let scale;
 
-    if (preset.full) {
-      logicalWidth = Math.max(280, Math.floor(available.width));
-      logicalHeight = Math.max(320, Math.floor(available.height));
-      scale = 1;
-    } else {
-      logicalWidth = preset.width;
-      logicalHeight = preset.height;
-      scale = Math.min(1, available.width / logicalWidth, available.height / logicalHeight);
-    }
+    const logicalPreset = preset.full
+      ? viewportPresets[state.previousViewport] || viewportPresets.tv1080
+      : preset;
+
+    logicalWidth = logicalPreset.width;
+    logicalHeight = logicalPreset.height;
+    scale = Math.min(1, available.width / logicalWidth, available.height / logicalHeight);
 
     const displayWidth = Math.max(1, Math.floor(logicalWidth * scale));
     const displayHeight = Math.max(1, Math.floor(logicalHeight * scale));
@@ -327,9 +325,7 @@
     elements.previewViewport.style.height = displayHeight + "px";
 
     const percentage = Math.round(scale * 100);
-    elements.viewportMeta.textContent = preset.full
-      ? logicalWidth + " × " + logicalHeight + " · live"
-      : logicalWidth + " × " + logicalHeight + " · " + percentage + "%";
+    elements.viewportMeta.textContent = logicalWidth + " × " + logicalHeight + " · " + percentage + "%";
 
     document.querySelectorAll("[data-viewport]").forEach((button) => {
       const active = button.dataset.viewport === state.viewport;
