@@ -232,6 +232,37 @@ for (const settingsStyle of [
 }
 
 
+for (const gameLaunchId of [
+  "gameLaunchScreen"
+]) {
+  if (!ids.has(gameLaunchId)) {
+    fail("Game launch loading screen is missing required id: " + gameLaunchId);
+  }
+}
+
+for (const gameLaunchBehavior of [
+  "const GAME_LAUNCH_MOCK_DURATION_MS = 5000;",
+  "function showGameLaunchScreen()",
+  "function hideGameLaunchScreen()",
+  'state.screen = "game-loading"',
+  "showGameLaunchScreen();"
+]) {
+  if (!app.includes(gameLaunchBehavior)) {
+    fail("Game launch loading behavior regression guard missing: " + gameLaunchBehavior);
+  }
+}
+
+for (const gameLaunchStyle of [
+  ".game-launch-screen {",
+  ".game-launch-image {",
+  "object-fit: cover;",
+  ".game-launch-spinner-wrap {"
+]) {
+  if (!styles.includes(gameLaunchStyle)) {
+    fail("Game launch loading style regression guard missing: " + gameLaunchStyle);
+  }
+}
+
 for (const gameDetailsId of [
   "gameDetailsOverlay",
   "gameDetailsPanel",
