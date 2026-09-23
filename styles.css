@@ -2203,7 +2203,7 @@ button:disabled {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 12px 14px 0;
+  padding: 12px 14px 24px;
   scrollbar-color: rgba(215, 204, 255, 0.42) rgba(255, 255, 255, 0.04);
   scrollbar-width: thin;
   scroll-behavior: auto;
@@ -2435,7 +2435,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .catalog-scroll {
-  padding: 10px 12px 0;
+  padding: 10px 12px 14px;
 }
 
 .preview-canvas[data-device="tv720"] .game-cover-grid {
@@ -2542,7 +2542,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .catalog-scroll {
-  padding: 9px 10px 0;
+  padding: 9px 10px 10px;
 }
 
 .preview-canvas[data-device="phone"] .game-cover-grid {
