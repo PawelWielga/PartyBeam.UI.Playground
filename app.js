@@ -45,7 +45,8 @@
       favorites: false,
       downloaded: false,
       compatible: false
-    }
+    },
+    catalogSearch: ""
   };
 
   const elements = {
@@ -63,6 +64,8 @@
     catalogScroll: document.getElementById("catalogScroll"),
     gameCoverGrid: document.getElementById("gameCoverGrid"),
     catalogFilterButtons: Array.from(document.querySelectorAll("[data-catalog-filter]")),
+    catalogSearchInput: document.getElementById("catalogSearchInput"),
+    catalogEmptyState: document.getElementById("catalogEmptyState"),
     footer: document.querySelector(".partybeam-footer"),
     playersGrid: document.getElementById("playersGrid"),
     playersSummary: document.getElementById("playersSummary"),
@@ -392,6 +395,13 @@
   }
 
   function matchesCatalogFilters(cover) {
+    const searchQuery = state.catalogSearch.trim().toLocaleLowerCase();
+    const gameTitle = (cover.dataset.gameTitle || "").toLocaleLowerCase();
+
+    if (searchQuery && !gameTitle.includes(searchQuery)) {
+      return false;
+    }
+
     if (state.catalogFilters.favorites && cover.dataset.favorite !== "true") {
       return false;
     }
@@ -424,6 +434,7 @@
     });
 
     const visibleCovers = covers.filter((cover) => !cover.hidden);
+    elements.catalogEmptyState.hidden = visibleCovers.length > 0;
     const activeElement = document.activeElement;
     const remoteCoverWasHidden = remoteFocusTarget
       && remoteFocusTarget.classList.contains("game-cover")
@@ -435,6 +446,7 @@
 
     if (remoteCoverWasHidden || browserCoverWasHidden) {
       const fallback = visibleCovers[0]
+        || elements.catalogSearchInput
         || elements.catalogFilterButtons.find((button) => button.classList.contains("is-active"))
         || elements.catalogFilterButtons[0]
         || elements.settingsButton;
@@ -662,6 +674,9 @@
           focusables.push(button);
         }
       });
+      if (elements.catalogSearchInput && !elements.catalogSearchInput.disabled) {
+        focusables.push(elements.catalogSearchInput);
+      }
       elements.gameCoverGrid.querySelectorAll(".game-cover:not(:disabled):not([hidden])").forEach((cover) => {
         focusables.push(cover);
       });
@@ -878,6 +893,11 @@
     ensureRemoteFocus();
 
     if (remoteFocusTarget && !remoteFocusTarget.disabled) {
+      if (remoteFocusTarget === elements.catalogSearchInput) {
+        remoteFocusTarget.focus({ preventScroll: true });
+        return;
+      }
+
       remoteFocusTarget.click();
     }
   }
@@ -1466,6 +1486,11 @@
     button.addEventListener("click", () => {
       toggleCatalogFilter(button.dataset.catalogFilter);
     });
+  });
+
+  elements.catalogSearchInput.addEventListener("input", (event) => {
+    state.catalogSearch = event.target.value;
+    applyCatalogFilters();
   });
 
   elements.uiState.addEventListener("change", (event) => {

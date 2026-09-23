@@ -151,6 +151,39 @@ for (const catalogTitleToken of [
   }
 }
 
+
+for (const catalogSearchToken of [
+  'id="catalogSearchInput"',
+  'class="catalog-search__input"',
+  'id="catalogEmptyState"'
+]) {
+  if (!html.includes(catalogSearchToken)) {
+    fail("Catalog search markup regression guard missing: " + catalogSearchToken);
+  }
+}
+
+for (const catalogSearchBehavior of [
+  "catalogSearch: \"\"",
+  "elements.catalogSearchInput.addEventListener(\"input\"",
+  "gameTitle.includes(searchQuery)",
+  "elements.catalogEmptyState.hidden = visibleCovers.length > 0"
+]) {
+  if (!app.includes(catalogSearchBehavior)) {
+    fail("Catalog search behavior regression guard missing: " + catalogSearchBehavior);
+  }
+}
+
+for (const catalogSearchStyle of [
+  ".catalog-search {",
+  ".catalog-search__input {",
+  ".catalog-search__icon {",
+  ".catalog-empty-state {"
+]) {
+  if (!styles.includes(catalogSearchStyle)) {
+    fail("Catalog search visual regression guard missing: " + catalogSearchStyle);
+  }
+}
+
 for (const catalogFilter of ["favorites", "downloaded", "compatible"]) {
   if (!html.includes('data-catalog-filter="' + catalogFilter + '"')) {
     fail("Catalog filter control is missing: " + catalogFilter);

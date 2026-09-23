@@ -157,11 +157,31 @@
                         <span class="catalog-filter__icon" aria-hidden="true">✓</span>
                         <span>ALL CAN PLAY</span>
                       </button>
+                      <label class="catalog-search" for="catalogSearchInput">
+                        <svg class="catalog-search__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <circle cx="11" cy="11" r="6"></circle>
+                          <path d="m16 16 4.25 4.25"></path>
+                        </svg>
+                        <span class="sr-only">Search games by name</span>
+                        <input
+                          class="catalog-search__input"
+                          id="catalogSearchInput"
+                          type="search"
+                          inputmode="search"
+                          autocomplete="off"
+                          spellcheck="false"
+                          placeholder="SEARCH GAMES"
+                          aria-label="Search games by name">
+                      </label>
                     </div>
                     <h1 id="catalogTitle">CHOOSE A GAME</h1>
                   </div>
                   <div class="catalog-scroll" id="catalogScroll">
                     <div class="game-cover-grid" id="gameCoverGrid"></div>
+                    <div class="catalog-empty-state" id="catalogEmptyState" hidden>
+                      <strong>NO GAMES FOUND</strong>
+                      <span>Try another name or change the filters.</span>
+                    </div>
                   </div>
                 </section>
               </section>
