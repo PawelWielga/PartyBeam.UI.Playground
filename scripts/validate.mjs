@@ -3,6 +3,8 @@ import { access, readFile } from "node:fs/promises";
 const html = await readFile("index.html", "utf8");
 const app = await readFile("app.js", "utf8");
 const styles = await readFile("styles.css", "utf8");
+const simplifiedFlow = await readFile("simplified-flow.js", "utf8");
+const simplifiedStyles = await readFile("simplified-flow.css", "utf8");
 const voidTags = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
 const stack = [];
 const ids = new Set();
@@ -88,6 +90,17 @@ for (const systemShellStyle of [
 ]) {
   if (!styles.includes(systemShellStyle)) {
     fail("Shared system-shell style regression: " + systemShellStyle);
+  }
+}
+
+for (const manageSystemStyle of [
+  '.pb-simple-flow[data-view="manage-games"]',
+  ".pb-manage-main {",
+  '.preview-canvas[data-device="tv"] .pb-manage-game',
+  '.preview-canvas[data-device="phone"] .pb-manage-game'
+]) {
+  if (!simplifiedStyles.includes(manageSystemStyle)) {
+    fail("Manage Games shared-shell style regression: " + manageSystemStyle);
   }
 }
 
