@@ -458,6 +458,47 @@
       }
 
 
+      async function validateManageGames(viewport) {
+        const doc = frame.contentDocument;
+
+        await setPlayers(6);
+        await setUiState("normal");
+        await setContinueEnabled(true);
+
+        const screen = doc.getElementById("partybeamScreen");
+        const manageButton = doc.getElementById("manageGamesButton");
+        manageButton.focus();
+        await waitFrames(1);
+        manageButton.click();
+        await waitFrames(2);
+
+        const overlay = doc.getElementById("pbSimpleFlow");
+        const panel = doc.getElementById("pbManagePanel");
+        const header = doc.getElementById("pbManageHeader");
+        const closeButton = doc.getElementById("pbManageCloseButton");
+        const footer = panel?.querySelector(".partybeam-system-footer");
+        const screenRect = screen.getBoundingClientRect();
+
+        cases += 1;
+
+        assert(!overlay.hidden, viewport + " Manage Games overlay stayed hidden");
+        assert(overlay.dataset.view === "manage-games", viewport + " Manage Games view marker missing");
+        assert(Boolean(panel), viewport + " Manage Games system panel missing");
+        assert(Boolean(header), viewport + " Manage Games system header missing");
+        assert(Boolean(closeButton), viewport + " Manage Games shared close control missing");
+        assert(Boolean(footer), viewport + " Manage Games system footer missing");
+        assert(panel.classList.contains("partybeam-system-panel"), viewport + " Manage Games does not use shared panel shell");
+        assert(header.classList.contains("partybeam-system-header"), viewport + " Manage Games does not use shared header shell");
+        assert(closeButton.classList.contains("partybeam-system-close"), viewport + " Manage Games does not use shared close shell");
+        assert(rectInside(panel.getBoundingClientRect(), screenRect, 1), viewport + " Manage Games panel leaves PartyBeam screen");
+        assert(noHorizontalOverflow(panel), viewport + " Manage Games panel horizontal overflow");
+
+        closeButton.click();
+        await waitFrames(2);
+        assert(overlay.hidden, viewport + " Manage Games close did not return to PartyBeam");
+      }
+
+
       async function validateGameDetails(viewport) {
         const doc = frame.contentDocument;
 
@@ -996,6 +1037,7 @@
           validateFocusSafety(viewport + " / normal");
           await validateKeyboardFocusHandoff(viewport + " / Settings keyboard", "#settingsButton");
           await validateSettings(viewport);
+          await validateManageGames(viewport);
           if (viewport !== "full") {
             await validateGameDetails(viewport);
           }
