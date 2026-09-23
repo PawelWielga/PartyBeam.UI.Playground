@@ -2480,13 +2480,13 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .catalog-players-panel {
-  gap: 8px;
-  padding: 10px 7px;
+  gap: 6px;
+  padding: 8px 5px;
   border-radius: var(--radius-sm);
 }
 
 .preview-canvas[data-device="phone"] .catalog-players-heading {
-  gap: 5px;
+  gap: 3px;
 }
 
 .preview-canvas[data-device="phone"] .catalog-players-heading__group,
@@ -2495,12 +2495,13 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .catalog-game-code > span {
-  font-size: 7px;
-  letter-spacing: 0.08em;
+  font-size: 6px;
+  letter-spacing: 0.06em;
 }
 
 .preview-canvas[data-device="phone"] .catalog-game-code strong {
-  font-size: 10px;
+  font-size: 9px;
+  letter-spacing: 0.04em;
 }
 
 .preview-canvas[data-device="phone"] .catalog-players-heading h2 {
@@ -2512,13 +2513,13 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .catalog-players-list {
-  gap: 5px;
+  gap: 3px;
 }
 
 .preview-canvas[data-device="phone"] .catalog-players-list .player-slot {
-  min-height: 30px;
-  gap: 5px;
-  padding: 4px 5px;
+  min-height: 26px;
+  gap: 4px;
+  padding: 3px 4px;
   border-radius: 8px;
 }
 
