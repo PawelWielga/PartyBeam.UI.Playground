@@ -304,7 +304,7 @@
         const topbar = doc.querySelector(".partybeam-topbar");
         const lobby = doc.getElementById("lobbyScreen");
         const catalog = doc.getElementById("catalogScreen");
-        const code = doc.getElementById("catalogJoinCode");
+        const code = doc.querySelector(".catalog-game-code");
         const footer = doc.querySelector(".partybeam-footer");
         const playersPanel = doc.querySelector(".catalog-players-panel");
         const library = doc.querySelector(".catalog-library");
@@ -316,8 +316,8 @@
 
         assert(lobby.hidden, viewport + " catalog did not hide lobby");
         assert(!catalog.hidden, viewport + " catalog screen stayed hidden");
-        assert(!code.hidden, viewport + " catalog join code stayed hidden");
-        assert(code.textContent.replace(/\s+/g, "").includes("8F4K2P"), viewport + " catalog join code changed");
+        assert(Boolean(code), viewport + " catalog game code missing from Players panel");
+        assert(code.textContent.replace(/\s+/g, "").includes("GAMECODE8F4K2P"), viewport + " catalog game code changed");
         assert(footer.hidden, viewport + " catalog footer stayed visible");
         assert(covers.length >= 20, viewport + " catalog does not contain enough placeholder covers");
         assert(pxValue(playersPanel, "borderTopWidth") === 4, viewport + " catalog players panel border is not 4px");
@@ -331,16 +331,15 @@
         const catalogRect = catalog.getBoundingClientRect();
         const playersRect = playersPanel.getBoundingClientRect();
         const libraryRect = library.getBoundingClientRect();
-        const brandRect = doc.querySelector(".partybeam-brand").getBoundingClientRect();
-        const settingsRect = doc.getElementById("settingsButton").getBoundingClientRect();
+        const headingRect = doc.querySelector(".catalog-players-heading").getBoundingClientRect();
         const codeRect = code.getBoundingClientRect();
+        const playersHeadingGroupRect = doc.querySelector(".catalog-players-heading__group").getBoundingClientRect();
 
-        const overlaps = (a, b) =>
-          a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-
-        assert(rectInside(codeRect, topbarRect), viewport + " catalog join code outside header");
-        assert(!overlaps(codeRect, brandRect), viewport + " catalog join code overlaps PartyBeam brand");
-        assert(!overlaps(codeRect, settingsRect), viewport + " catalog join code overlaps Settings");
+        assert(rectInside(codeRect, headingRect), viewport + " catalog game code outside Players heading row");
+        assert(
+          playersHeadingGroupRect.right <= codeRect.left + 1,
+          viewport + " Players summary overlaps game code"
+        );
 
         assert(rectInside(catalogRect, screenRect), viewport + " catalog outside screen");
         assert(topbarRect.bottom <= catalogRect.top + 1, viewport + " catalog overlaps header");
