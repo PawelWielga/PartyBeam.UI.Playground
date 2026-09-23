@@ -1579,10 +1579,10 @@ button:disabled {
 }
 
 .home-sections {
-  width: min(1640px, calc(100% - 120px));
+  width: 100%;
   height: 326px;
   min-height: 0;
-  justify-self: end;
+  justify-self: stretch;
   gap: 24px;
 }
 
@@ -1920,7 +1920,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .home-sections {
-  width: calc(100% - 78px);
+  width: 100%;
   height: 218px;
   gap: 14px;
 }
