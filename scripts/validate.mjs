@@ -98,7 +98,7 @@ if (!focusVisualBlock.includes('if (remoteFocusTarget)') || focusVisualBlock.inc
   fail("PartyBeam browser focus and remote focus must share the same remote-focused visual.");
 }
 
-if (css.includes(".settings-slider.remote-focused")) {
+if (styles.includes(".settings-slider.remote-focused")) {
   fail("Settings slider must not reintroduce a separate static focus style.");
 }
 
