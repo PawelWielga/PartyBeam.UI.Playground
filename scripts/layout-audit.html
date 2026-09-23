@@ -293,7 +293,12 @@
         await setPlayers(6);
         await setUiState("normal");
         await setContinueEnabled(true);
-        await click("#continueButton");
+
+        const continueButton = doc.getElementById("continueButton");
+        continueButton.focus();
+        await waitFrames(1);
+        continueButton.click();
+        await waitFrames(2);
 
         const screen = doc.getElementById("partybeamScreen");
         const topbar = doc.querySelector(".partybeam-topbar");
@@ -361,7 +366,11 @@
         }
 
         const focused = doc.querySelector(".game-cover.remote-focused");
-        assert(focused === covers[0], viewport + " first cover did not receive initial remote focus");
+        assert(focused === covers[0], viewport + " first cover did not receive visible initial remote focus");
+        assert(
+          doc.activeElement !== covers[0],
+          viewport + " catalog entry kept DOM focus on the first cover and suppressed TV focus"
+        );
 
         const incompatible = covers.find((cover) => cover.classList.contains("game-cover--incompatible"));
         const compatible = covers.find((cover) => !cover.classList.contains("game-cover--incompatible"));
