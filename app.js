@@ -715,8 +715,18 @@
     }
   }
 
+  function releaseBrowserFocusForScreenTransition() {
+    const activeElement = document.activeElement;
+
+    if (activeElement && elements.partybeamScreen.contains(activeElement)) {
+      activeElement.blur();
+    }
+
+    browserFocusInsideScreen = false;
+  }
+
   function showCatalog() {
-    const browserMode = elements.partybeamScreen.contains(document.activeElement);
+    releaseBrowserFocusForScreenTransition();
 
     state.screen = "catalog";
     elements.lobbyScreen.hidden = true;
@@ -729,14 +739,10 @@
 
     const firstCover = elements.gameCoverGrid.querySelector(".game-cover");
     setRemoteFocus(firstCover);
-
-    if (browserMode && firstCover) {
-      firstCover.focus({ preventScroll: true });
-    }
   }
 
   function showLobby() {
-    const browserMode = elements.partybeamScreen.contains(document.activeElement);
+    releaseBrowserFocusForScreenTransition();
 
     state.screen = "lobby";
     elements.catalogScreen.hidden = true;
@@ -747,10 +753,6 @@
     elements.partybeamScreen.setAttribute("aria-label", "PartyBeam lobby screen");
 
     setRemoteFocus(elements.continueButton);
-
-    if (browserMode) {
-      elements.continueButton.focus({ preventScroll: true });
-    }
   }
 
   function render() {
