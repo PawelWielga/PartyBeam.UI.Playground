@@ -307,6 +307,16 @@ for (const gameDetailsStyle of [
   }
 }
 
+for (const iconReference of [
+  'href="assets/icon.png"',
+  'class="brand-mark" src="assets/icon.png"',
+  'class="brand-mark settings-about-mark" src="assets/icon.png"'
+]) {
+  if (!html.includes(iconReference)) {
+    fail("PartyBeam icon reference missing: " + iconReference);
+  }
+}
+
 if (!process.exitCode) {
   console.log("Static site validation passed.");
 }

@@ -541,13 +541,11 @@ button:disabled {
 .brand-mark {
   width: 50px;
   aspect-ratio: 1;
-  display: grid;
-  place-items: center;
+  display: block;
+  object-fit: cover;
   border-radius: var(--radius-md);
-  background: linear-gradient(145deg, var(--primary-hover), var(--primary-deep));
+  background: transparent;
   box-shadow: 0 10px 30px rgba(111, 80, 223, 0.25);
-  font-size: 27px;
-  letter-spacing: 0;
 }
 
 .screen-button,
@@ -1542,11 +1540,8 @@ button:disabled {
 .brand-mark {
   width: 84px;
   border-radius: 24px;
-  background: linear-gradient(145deg, #8b52ff 0%, #673bf0 100%);
-  box-shadow:
-    0 10px 32px rgba(116, 72, 255, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  font-size: 46px;
+  background: transparent;
+  box-shadow: 0 10px 32px rgba(116, 72, 255, 0.34);
 }
 
 .brand-copy {
