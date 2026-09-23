@@ -887,6 +887,7 @@
 
       async function run() {
         await waitFrames(5);
+        await waitForControl("continueButton");
 
         const viewports = ["tv1080", "tv720", "full"];
         const playerCounts = [0, 1, 2, 4, 6, 8];
