@@ -17,6 +17,18 @@
     8, 2, 4, 6, 8
   ];
 
+  const realGameCovers = [
+    { title: "Grimcellar", image: "assets/covers/grimcellar.png" },
+    { title: "Reflex", image: "assets/covers/reflex.png" },
+    { title: "Quiz Blast", image: "assets/covers/quizblast.png" },
+    { title: "Kingdom Run", image: "assets/covers/kingdomrun.png" },
+    { title: "Turbo Orbit", image: "assets/covers/turboorbit.png" },
+    { title: "Midnight Files", image: "assets/covers/midnight.png" },
+    { title: "Panic Kitchen", image: "assets/covers/panickitchen.png" }
+  ];
+  const favoriteGameNumbers = new Set(["01", "03", "06", "08", "12", "17", "23"]);
+  const downloadedGameNumbers = new Set(["01", "02", "04", "07", "10", "14", "18", "21", "25"]);
+
   const state = {
     viewport: "tv1080",
     previousViewport: "tv1080",
@@ -28,7 +40,12 @@
     settingsCategory: "general",
     gameDetailsOpen: false,
     gamePreparationState: "not-downloaded",
-    gameDownloadProgress: 0
+    gameDownloadProgress: 0,
+    catalogFilters: {
+      favorites: false,
+      downloaded: false,
+      compatible: false
+    }
   };
 
   const elements = {
@@ -44,6 +61,7 @@
     catalogPlayersSummary: document.getElementById("catalogPlayersSummary"),
     catalogScroll: document.getElementById("catalogScroll"),
     gameCoverGrid: document.getElementById("gameCoverGrid"),
+    catalogFilterButtons: Array.from(document.querySelectorAll("[data-catalog-filter]")),
     footer: document.querySelector(".partybeam-footer"),
     playersGrid: document.getElementById("playersGrid"),
     playersSummary: document.getElementById("playersSummary"),
@@ -365,10 +383,85 @@
     elements.catalogPlayersSummary.textContent = getConnectedSummary();
   }
 
+  function isGameCompatible(cover) {
+    return state.players <= Number(cover.dataset.maxPlayers);
+  }
+
+  function matchesCatalogFilters(cover) {
+    if (state.catalogFilters.favorites && cover.dataset.favorite !== "true") {
+      return false;
+    }
+
+    if (state.catalogFilters.downloaded && cover.dataset.downloaded !== "true") {
+      return false;
+    }
+
+    if (state.catalogFilters.compatible && !isGameCompatible(cover)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  function syncCatalogFilterButtons() {
+    elements.catalogFilterButtons.forEach((button) => {
+      const filterName = button.dataset.catalogFilter;
+      const active = Boolean(state.catalogFilters[filterName]);
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+  }
+
+  function applyCatalogFilters() {
+    const covers = Array.from(elements.gameCoverGrid.querySelectorAll(".game-cover"));
+
+    covers.forEach((cover) => {
+      cover.hidden = !matchesCatalogFilters(cover);
+    });
+
+    const visibleCovers = covers.filter((cover) => !cover.hidden);
+    const activeElement = document.activeElement;
+    const remoteCoverWasHidden = remoteFocusTarget
+      && remoteFocusTarget.classList.contains("game-cover")
+      && remoteFocusTarget.hidden;
+    const browserCoverWasHidden = activeElement
+      && activeElement.classList
+      && activeElement.classList.contains("game-cover")
+      && activeElement.hidden;
+
+    if (remoteCoverWasHidden || browserCoverWasHidden) {
+      const fallback = visibleCovers[0]
+        || elements.catalogFilterButtons.find((button) => button.classList.contains("is-active"))
+        || elements.catalogFilterButtons[0]
+        || elements.settingsButton;
+
+      setRemoteFocus(fallback);
+
+      if (browserCoverWasHidden && fallback) {
+        fallback.focus({ preventScroll: true });
+      }
+    }
+
+    window.requestAnimationFrame(() => {
+      updateCatalogScrollEdgeFade();
+      ensureCatalogTargetVisible(remoteFocusTarget);
+    });
+  }
+
+  function toggleCatalogFilter(filterName) {
+    if (!Object.prototype.hasOwnProperty.call(state.catalogFilters, filterName)) {
+      return;
+    }
+
+    state.catalogFilters[filterName] = !state.catalogFilters[filterName];
+    syncCatalogFilterButtons();
+    applyCatalogFilters();
+  }
+
   function updateGameCompatibility() {
     elements.gameCoverGrid.querySelectorAll(".game-cover").forEach((cover) => {
       const maximumPlayers = Number(cover.dataset.maxPlayers);
-      const incompatible = state.players > maximumPlayers;
+      const incompatible = !isGameCompatible(cover);
       cover.classList.toggle("game-cover--incompatible", incompatible);
 
       const compatibility = cover.querySelector(".game-cover-compatibility");
@@ -377,13 +470,16 @@
       }
 
       const number = cover.dataset.gameNumber;
+      const title = cover.dataset.gameTitle || ("Placeholder Game " + number);
       cover.setAttribute(
         "aria-label",
         incompatible
-          ? "Placeholder game " + number + ". Not everyone can play. Supports up to " + maximumPlayers + " players."
-          : "Placeholder game " + number + ". Compatible with the current party."
+          ? title + ". Not everyone can play. Supports up to " + maximumPlayers + " players."
+          : title + ". Compatible with the current party."
       );
     });
+
+    applyCatalogFilters();
   }
 
   function renderGameCovers() {
@@ -396,11 +492,15 @@
       cover.className = "game-cover game-cover--variant-" + (index % 6);
       cover.dataset.maxPlayers = String(maximumPlayers);
       cover.dataset.gameNumber = gameNumber;
-      cover.dataset.gameTitle = index === 0 ? "Grimcellar" : "Placeholder Game " + gameNumber;
+      cover.dataset.favorite = String(favoriteGameNumbers.has(gameNumber));
+      cover.dataset.downloaded = String(downloadedGameNumbers.has(gameNumber));
 
-      if (index === 0) {
+      const realGame = realGameCovers[index] || null;
+      cover.dataset.gameTitle = realGame ? realGame.title : "Placeholder Game " + gameNumber;
+
+      if (realGame) {
         cover.classList.add("game-cover--image");
-        cover.dataset.coverImage = "assets/covers/grimcellar.png";
+        cover.dataset.coverImage = realGame.image;
       }
 
       const art = document.createElement("span");
@@ -444,6 +544,7 @@
       elements.gameCoverGrid.appendChild(cover);
     });
 
+    syncCatalogFilterButtons();
     updateGameCompatibility();
   }
 
@@ -548,7 +649,12 @@
     }
 
     if (state.screen === "catalog") {
-      elements.gameCoverGrid.querySelectorAll(".game-cover:not(:disabled)").forEach((cover) => {
+      elements.catalogFilterButtons.forEach((button) => {
+        if (!button.disabled) {
+          focusables.push(button);
+        }
+      });
+      elements.gameCoverGrid.querySelectorAll(".game-cover:not(:disabled):not([hidden])").forEach((cover) => {
         focusables.push(cover);
       });
       return focusables;
@@ -988,7 +1094,7 @@
       return;
     }
 
-    const origin = gameDetailsOrigin || elements.gameCoverGrid.querySelector(".game-cover");
+    const origin = gameDetailsOrigin || elements.gameCoverGrid.querySelector(".game-cover:not([hidden])");
     state.gameDetailsOpen = false;
     setGameDetailsBackgroundInert(false);
     elements.gameDetailsOverlay.hidden = true;
@@ -1138,8 +1244,8 @@
     elements.partybeamScreen.setAttribute("aria-label", "PartyBeam game catalog");
     elements.catalogScroll.scrollTop = 0;
 
-    const firstCover = elements.gameCoverGrid.querySelector(".game-cover");
-    setRemoteFocus(firstCover);
+    const firstCover = elements.gameCoverGrid.querySelector(".game-cover:not([hidden])");
+    setRemoteFocus(firstCover || elements.catalogFilterButtons[0]);
     updateCatalogScrollEdgeFade();
   }
 
@@ -1301,6 +1407,12 @@
     button.addEventListener("click", () => {
       state.players = Number(button.dataset.players);
       renderPlayers();
+    });
+  });
+
+  elements.catalogFilterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      toggleCatalogFilter(button.dataset.catalogFilter);
     });
   });
 

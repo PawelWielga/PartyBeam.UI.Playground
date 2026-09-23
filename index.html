@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
-  <link rel="stylesheet" href="styles.css?v=24">
+  <link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body>
   <div class="playground-shell">
@@ -142,7 +142,23 @@
                 </aside>
 
                 <section class="catalog-library" aria-labelledby="catalogTitle">
-                  <h1 id="catalogTitle">CHOOSE A GAME</h1>
+                  <div class="catalog-library-toolbar">
+                    <div class="catalog-filters" aria-label="Game filters">
+                      <button class="catalog-filter" type="button" data-catalog-filter="favorites" aria-pressed="false">
+                        <span class="catalog-filter__icon" aria-hidden="true">♥</span>
+                        <span>FAVORITES</span>
+                      </button>
+                      <button class="catalog-filter" type="button" data-catalog-filter="downloaded" aria-pressed="false">
+                        <span class="catalog-filter__icon" aria-hidden="true">↓</span>
+                        <span>DOWNLOADED</span>
+                      </button>
+                      <button class="catalog-filter" type="button" data-catalog-filter="compatible" aria-pressed="false">
+                        <span class="catalog-filter__icon" aria-hidden="true">✓</span>
+                        <span>ALL CAN PLAY</span>
+                      </button>
+                    </div>
+                    <h1 id="catalogTitle">CHOOSE A GAME</h1>
+                  </div>
                   <div class="catalog-scroll" id="catalogScroll">
                     <div class="game-cover-grid" id="gameCoverGrid"></div>
                   </div>

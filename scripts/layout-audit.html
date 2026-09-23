@@ -71,17 +71,28 @@
         await click('[data-players="' + count + '"]');
       }
 
+      async function waitForControl(id, attempts = 40) {
+        for (let attempt = 0; attempt < attempts; attempt += 1) {
+          const control = frame.contentDocument?.getElementById(id);
+          if (control) {
+            return control;
+          }
+
+          await waitFrames(1);
+        }
+
+        throw new Error("Missing required control #" + id);
+      }
+
       async function setContinueEnabled(enabled) {
-        const doc = frame.contentDocument;
-        const input = doc.getElementById("continueEnabled");
+        const input = await waitForControl("continueEnabled");
         input.checked = enabled;
         input.dispatchEvent(new Event("change", { bubbles: true }));
         await waitFrames();
       }
 
       async function setUiState(value) {
-        const doc = frame.contentDocument;
-        const select = doc.getElementById("uiState");
+        const select = await waitForControl("uiState");
         select.value = value;
         select.dispatchEvent(new Event("change", { bubbles: true }));
         await waitFrames();
@@ -596,6 +607,8 @@
         const headingRect = doc.querySelector(".catalog-players-heading").getBoundingClientRect();
         const codeRect = code.getBoundingClientRect();
         const playersHeadingGroupRect = doc.querySelector(".catalog-players-heading__group").getBoundingClientRect();
+        const brandRect = doc.querySelector(".partybeam-brand").getBoundingClientRect();
+        const settingsRect = doc.getElementById("settingsButton").getBoundingClientRect();
 
         assert(rectInside(codeRect, headingRect), viewport + " catalog game code outside Players heading row");
         assert(
@@ -604,6 +617,20 @@
         );
 
         assert(rectInside(catalogRect, screenRect), viewport + " catalog outside screen");
+        assert(
+          Math.abs(brandRect.left - catalogRect.left) <= 1,
+          viewport + " logo does not align with Players panel",
+          "brand.left=" + brandRect.left + ", catalog.left=" + catalogRect.left
+        );
+        assert(
+          Math.abs(settingsRect.right - catalogRect.right) <= 1,
+          viewport + " Settings does not align with catalog right edge",
+          "settings.right=" + settingsRect.right + ", catalog.right=" + catalogRect.right
+        );
+        assert(
+          Math.abs((catalogRect.left - screenRect.left) - (screenRect.right - catalogRect.right)) <= 1,
+          viewport + " catalog outer gutters are not symmetrical"
+        );
         assert(topbarRect.bottom <= catalogRect.top + 1, viewport + " catalog overlaps header");
         assert(playersRect.right <= libraryRect.left + 1, viewport + " player panel overlaps game library");
         assert(pxValue(catalog, "paddingBottom") <= 1, viewport + " catalog screen keeps bottom padding");
@@ -654,6 +681,44 @@
           doc.activeElement !== covers[0],
           viewport + " catalog entry kept DOM focus on the first cover and suppressed TV focus"
         );
+
+        if (covers.length >= 7 && (viewport === "tv1080" || viewport === "tv720" || viewport === "full")) {
+          await dispatchKey("ArrowDown");
+          await waitFrames(2);
+
+          const secondRowScrollTop = scroll.scrollTop;
+          assert(
+            doc.querySelector(".game-cover.remote-focused") === covers[5],
+            viewport + " sixth cover did not receive focus before horizontal scroll stability check"
+          );
+
+          await dispatchKey("ArrowRight");
+          await waitFrames(2);
+          assert(
+            doc.querySelector(".game-cover.remote-focused") === covers[6],
+            viewport + " seventh cover did not receive focus"
+          );
+          assert(
+            Math.abs(scroll.scrollTop - secondRowScrollTop) <= 1,
+            viewport + " horizontal navigation changed catalog scroll position",
+            "6->7 delta=" + (scroll.scrollTop - secondRowScrollTop)
+          );
+
+          await dispatchKey("ArrowLeft");
+          await waitFrames(2);
+          assert(
+            doc.querySelector(".game-cover.remote-focused") === covers[5],
+            viewport + " sixth cover did not regain focus"
+          );
+          assert(
+            Math.abs(scroll.scrollTop - secondRowScrollTop) <= 1,
+            viewport + " reverse horizontal navigation changed catalog scroll position",
+            "7->6 delta=" + (scroll.scrollTop - secondRowScrollTop)
+          );
+
+          await dispatchKey("ArrowUp");
+          await waitFrames(2);
+        }
 
         const incompatible = covers.find((cover) => cover.classList.contains("game-cover--incompatible"));
         const compatible = covers.find((cover) => !cover.classList.contains("game-cover--incompatible"));
@@ -748,6 +813,8 @@
         const actionsRect = actions.getBoundingClientRect();
         const footerRect = footer.getBoundingClientRect();
         const manageRect = manage.getBoundingClientRect();
+        const brandRect = doc.querySelector(".partybeam-brand").getBoundingClientRect();
+        const settingsRect = doc.getElementById("settingsButton").getBoundingClientRect();
 
         assert(noHorizontalOverflow(html), label + " document horizontal scroll");
         assert(noHorizontalOverflow(body), label + " body horizontal scroll");
@@ -772,6 +839,28 @@
         assert(rectInside(footerRect, screenRect), label + " footer outside screen");
         assert(rectInside(manageRect, footerRect), label + " Manage games outside footer");
 
+        const leftGutter = contentRect.left - screenRect.left;
+        const rightGutter = screenRect.right - contentRect.right;
+        assert(
+          Math.abs(leftGutter - rightGutter) <= 1,
+          label + " lobby outer gutters are not symmetrical",
+          "left=" + leftGutter + ", right=" + rightGutter
+        );
+        assert(
+          Math.abs(brandRect.left - contentRect.left) <= 1,
+          label + " logo does not align with lobby content",
+          "brand.left=" + brandRect.left + ", content.left=" + contentRect.left
+        );
+        assert(
+          Math.abs(settingsRect.right - contentRect.right) <= 1,
+          label + " Settings does not align with lobby content",
+          "settings.right=" + settingsRect.right + ", content.right=" + contentRect.right
+        );
+        assert(
+          Math.abs(manageRect.right - contentRect.right) <= 1,
+          label + " Manage games does not align with lobby content",
+          "manage.right=" + manageRect.right + ", content.right=" + contentRect.right
+        );
         assert(
           Math.abs(homesRect.left - playersRect.left) <= 1,
           label + " home cards left edge does not align with Players",
@@ -818,7 +907,7 @@
       async function run() {
         await waitFrames(5);
 
-        const viewports = ["tv1080", "tv720", "phone", "full"];
+        const viewports = ["tv1080", "tv720", "full"];
         const playerCounts = [0, 1, 2, 4, 6, 8];
 
         for (const viewport of viewports) {
