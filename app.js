@@ -533,13 +533,18 @@
 
     const containerRect = elements.catalogScroll.getBoundingClientRect();
     const targetRect = element.getBoundingClientRect();
-    const margin = 16;
+    const targetCenter = targetRect.top + targetRect.height / 2;
+    const viewportCenter = containerRect.top + containerRect.height / 2;
+    const maxScrollTop = Math.max(
+      0,
+      elements.catalogScroll.scrollHeight - elements.catalogScroll.clientHeight
+    );
+    const centeredScrollTop = elements.catalogScroll.scrollTop + targetCenter - viewportCenter;
 
-    if (targetRect.top < containerRect.top + margin) {
-      elements.catalogScroll.scrollTop -= containerRect.top + margin - targetRect.top;
-    } else if (targetRect.bottom > containerRect.bottom - margin) {
-      elements.catalogScroll.scrollTop += targetRect.bottom - (containerRect.bottom - margin);
-    }
+    elements.catalogScroll.scrollTop = Math.min(
+      maxScrollTop,
+      Math.max(0, centeredScrollTop)
+    );
   }
 
   function setRemoteFocus(element) {
