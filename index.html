@@ -6,8 +6,8 @@
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
   <link rel="icon" type="image/png" href="assets/icon.png">
-  <link rel="stylesheet" href="styles.css?v=35">
-  <link rel="stylesheet" href="simplified-flow.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=36">
+  <link rel="stylesheet" href="simplified-flow.css?v=2">
 </head>
 <body>
   <div class="playground-shell">
@@ -210,15 +210,15 @@
                 <div class="state-card" id="stateCard"></div>
               </div>
 
-              <div class="settings-overlay" id="settingsOverlay" hidden aria-hidden="true">
-                <section class="settings-panel" id="settingsPanel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" aria-describedby="settingsSubtitle">
-                  <header class="settings-header">
-                    <div class="settings-heading">
-                      <span class="settings-kicker">PARTYBEAM</span>
+              <div class="settings-overlay partybeam-system-overlay" id="settingsOverlay" hidden aria-hidden="true">
+                <section class="settings-panel partybeam-system-panel" id="settingsPanel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" aria-describedby="settingsSubtitle">
+                  <header class="settings-header partybeam-system-header">
+                    <div class="settings-heading partybeam-system-heading">
+                      <span class="settings-kicker partybeam-system-kicker">PARTYBEAM</span>
                       <h2 id="settingsTitle">SETTINGS</h2>
                       <p id="settingsSubtitle">Tune PartyBeam for your screen and players.</p>
                     </div>
-                    <button class="settings-close" id="settingsCloseButton" type="button" aria-label="Close Settings">
+                    <button class="settings-close partybeam-system-close" id="settingsCloseButton" type="button" aria-label="Close Settings">
                       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M6 6l12 12M18 6 6 18"></path>
                       </svg>
@@ -401,9 +401,9 @@
                     </div>
                   </div>
 
-                  <footer class="settings-footer">
+                  <footer class="settings-footer partybeam-system-footer">
                     <span>Changes are applied instantly</span>
-                    <button class="screen-button screen-button--primary settings-done" id="settingsDoneButton" type="button">DONE</button>
+                    <button class="screen-button screen-button--primary settings-done partybeam-system-done" id="settingsDoneButton" type="button">DONE</button>
                   </footer>
                 </section>
               </div>
@@ -575,6 +575,6 @@
   </div>
 
   <script src="app.js?v=24"></script>
-  <script src="simplified-flow.js?v=1"></script>
+  <script src="simplified-flow.js?v=2"></script>
 </body>
 </html>
