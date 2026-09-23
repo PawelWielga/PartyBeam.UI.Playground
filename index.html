@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
-  <link rel="stylesheet" href="styles.css?v=22">
+  <link rel="stylesheet" href="styles.css?v=23">
 </head>
 <body>
   <div class="playground-shell">
@@ -361,6 +361,79 @@
                   </footer>
                 </section>
               </div>
+
+              <div class="game-details-overlay" id="gameDetailsOverlay" hidden aria-hidden="true">
+                <section class="game-details-panel" id="gameDetailsPanel" role="dialog" aria-modal="true" aria-labelledby="gameDetailsTitle" aria-describedby="gameDetailsDescription">
+                  <header class="game-details-header">
+                    <div>
+                      <span class="game-details-kicker">GAME DETAILS</span>
+                      <h2 id="gameDetailsTitle">GRIMCELLAR</h2>
+                    </div>
+                    <button class="game-details-close" id="gameDetailsCloseButton" type="button" aria-label="Close game details">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M6 6l12 12M18 6 6 18"></path>
+                      </svg>
+                      <span>Close</span>
+                    </button>
+                  </header>
+
+                  <div class="game-details-main">
+                    <article class="game-details-copy">
+                      <p class="game-details-lead" id="gameDetailsDescription">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Gather your party, choose your path and get ready for a couch adventure built for the whole room.
+                      </p>
+
+                      <div class="game-details-meta" aria-label="Game information">
+                        <div class="game-details-meta-card">
+                          <span>PLAYERS</span>
+                          <strong id="gameDetailsPlayers">1–6 players</strong>
+                        </div>
+                        <div class="game-details-meta-card">
+                          <span>AVERAGE PLAY TIME</span>
+                          <strong>30–45 min</strong>
+                        </div>
+                        <div class="game-details-meta-card game-details-meta-card--wide">
+                          <span>PLAY MODE</span>
+                          <strong>Local party · phones as controllers</strong>
+                        </div>
+                      </div>
+                    </article>
+
+                    <figure class="game-details-cover" aria-label="Selected game cover artwork">
+                      <div class="game-details-cover-art">
+                        <span class="game-details-cover-number" id="gameDetailsCoverNumber">01</span>
+                        <span class="game-details-cover-mark">PARTYBEAM</span>
+                        <strong id="gameDetailsCoverTitle">GRIMCELLAR</strong>
+                        <span class="game-details-cover-subtitle">DESCEND · FIGHT · SURVIVE</span>
+                      </div>
+                    </figure>
+                  </div>
+
+                  <footer class="game-details-footer">
+                    <div class="game-download-status" id="gameDownloadStatus">
+                      <div class="game-download-progress" id="gameDownloadProgress" hidden>
+                        <div class="game-download-progress-heading">
+                          <strong>Downloading...</strong>
+                          <span id="gameDownloadPercent">0%</span>
+                        </div>
+                        <div class="game-download-progress-track" id="gameDownloadProgressTrack" role="progressbar" aria-label="Game download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                          <span class="game-download-progress-fill" id="gameDownloadProgressFill"></span>
+                        </div>
+                        <span class="game-download-size" id="gameDownloadSize">0 MB / 200 MB</span>
+                      </div>
+
+                      <div class="game-download-error" id="gameDownloadError" role="status" hidden>
+                        <strong>Download failed</strong>
+                        <span>Something interrupted the download. Try again.</span>
+                      </div>
+                    </div>
+
+                    <button class="screen-button screen-button--primary game-details-action" id="gameDetailsActionButton" type="button">
+                      DOWNLOAD GAME
+                    </button>
+                  </footer>
+                </section>
+              </div>
             </section>
           </div>
         </div>
@@ -434,6 +507,16 @@
         </select>
       </label>
 
+      <label class="dev-field">
+        <span>Game preparation state</span>
+        <select id="gamePreparationState">
+          <option value="not-downloaded">Not downloaded</option>
+          <option value="downloading">Downloading (42%)</option>
+          <option value="ready">Ready</option>
+          <option value="error">Error</option>
+        </select>
+      </label>
+
       <label class="dev-checkbox">
         <input type="checkbox" id="continueEnabled" checked>
         <span>Continue enabled</span>
@@ -445,6 +528,6 @@
     <div class="playground-toast" id="playgroundToast" role="status" aria-live="polite" hidden></div>
   </div>
 
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=21"></script>
 </body>
 </html>
