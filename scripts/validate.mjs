@@ -122,10 +122,10 @@ for (const playersPanelSpacing of [
 }
 
 for (const catalogTitleToken of [
-  "isolation: isolate;",
-  ".catalog-library h1::before",
-  "ellipse at 68% 50%",
-  "rgba(4, 6, 14, 0.52) 38%",
+  "padding: 8px 12px 8px 44px;",
+  "ellipse at 72% 50%",
+  "rgba(4, 6, 14, 0.5) 38%",
+  "transparent 82%",
   "0 2px 4px rgba(0, 0, 0, 0.92)"
 ]) {
   if (!styles.includes(catalogTitleToken)) {
