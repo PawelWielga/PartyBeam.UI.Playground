@@ -346,7 +346,17 @@
         assert(topbarRect.bottom <= catalogRect.top + 1, viewport + " catalog overlaps header");
         assert(playersRect.right <= libraryRect.left + 1, viewport + " player panel overlaps game library");
         assert(pxValue(catalog, "paddingBottom") <= 1, viewport + " catalog screen keeps bottom padding");
-        assert(pxValue(scroll, "paddingBottom") <= 1, viewport + " catalog scroll keeps bottom padding");
+
+        const expectedCatalogBottomPadding = viewport === "tv720"
+          ? 14
+          : viewport === "phone"
+            ? 10
+            : 24;
+        assert(
+          Math.abs(pxValue(scroll, "paddingBottom") - expectedCatalogBottomPadding) <= 1,
+          viewport + " catalog scroll bottom spacing is incorrect",
+          String(pxValue(scroll, "paddingBottom"))
+        );
         assert(
           Math.abs(screenRect.bottom - scrollRect.bottom) <= 2,
           viewport + " catalog scroll leaves a dead band at the bottom",
