@@ -85,6 +85,11 @@ button:disabled {
     var(--bg);
 }
 
+.playground-shell.is-full-preview .playground-toolbar,
+.playground-shell.is-full-preview .playground-panel-toggles {
+  display: none;
+}
+
 .playground-toolbar {
   position: relative;
   z-index: 20;
