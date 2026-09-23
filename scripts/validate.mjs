@@ -101,6 +101,16 @@ if (!app.includes("const targetCenter = targetRect.top + targetRect.height / 2;"
   fail("Catalog focus scrolling must center the active cover and clamp cleanly at the top and bottom.");
 }
 
+for (const catalogPadding of [
+  "padding: 12px 14px 24px;",
+  "padding: 10px 12px 14px;",
+  "padding: 9px 10px 10px;"
+]) {
+  if (!styles.includes(catalogPadding)) {
+    fail("Catalog scroll must keep bottom spacing below the final row at every preview size: " + catalogPadding);
+  }
+}
+
 if (!process.exitCode) {
   console.log("Static site validation passed.");
 }
