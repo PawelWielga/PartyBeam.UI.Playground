@@ -627,44 +627,50 @@
     0 18px 44px rgba(0, 0, 0, 0.4);
 }
 
-@media (max-width: 1400px), (max-height: 800px) {
-  .pb-manage-main {
-    gap: 10px;
-    padding: 14px 26px 18px;
-  }
-
-  .pb-storage-summary {
-    padding: 11px 14px;
-    border-radius: 15px;
-  }
-
-  .pb-manage-game {
-    min-height: 68px;
-    padding: 8px 2px;
-  }
+.preview-canvas[data-device="tv"] .pb-manage-game,
+.preview-canvas[data-device="tv720"] .pb-manage-game {
+  grid-template-columns: minmax(260px, 1fr) minmax(220px, .75fr) auto;
 }
 
-@media (max-width: 900px) {
-  .pb-manage-main {
-    gap: 10px;
-    padding: 14px;
-  }
+.preview-canvas[data-device="tv"] .pb-storage-summary,
+.preview-canvas[data-device="tv720"] .pb-storage-summary {
+  grid-template-columns: auto minmax(180px, 1fr);
+}
 
-  .pb-manage-list {
-    padding-right: 0;
-  }
+.preview-canvas[data-device="tv720"] .pb-manage-main {
+  gap: 10px;
+  padding: 14px 26px 18px;
+}
 
-  .pb-manage-game {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 12px 1px;
-  }
+.preview-canvas[data-device="tv720"] .pb-storage-summary {
+  padding: 11px 14px;
+  border-radius: 15px;
+}
 
-  .pb-manage-game__actions {
-    justify-content: flex-start;
-  }
+.preview-canvas[data-device="tv720"] .pb-manage-game {
+  min-height: 68px;
+  padding: 8px 2px;
+}
 
-  .pb-storage-summary {
-    grid-template-columns: 1fr;
-  }
+.preview-canvas[data-device="phone"] .pb-manage-main {
+  gap: 10px;
+  padding: 14px;
+}
+
+.preview-canvas[data-device="phone"] .pb-manage-list {
+  padding-right: 0;
+}
+
+.preview-canvas[data-device="phone"] .pb-manage-game {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 12px 1px;
+}
+
+.preview-canvas[data-device="phone"] .pb-manage-game__actions {
+  justify-content: flex-start;
+}
+
+.preview-canvas[data-device="phone"] .pb-storage-summary {
+  grid-template-columns: 1fr;
 }
