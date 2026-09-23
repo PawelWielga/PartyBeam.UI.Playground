@@ -2203,7 +2203,7 @@ button:disabled {
   grid-template-rows: auto minmax(0, 1fr);
   align-content: start;
   gap: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .catalog-library-toolbar {
@@ -2212,7 +2212,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 0 12px 0 14px;
+  padding: 10px 12px 0 14px;
 }
 
 .catalog-filters {
@@ -2636,7 +2636,7 @@ button:disabled {
 
 .preview-canvas[data-device="tv720"] .catalog-library-toolbar {
   gap: 10px;
-  padding: 0 8px 0 10px;
+  padding: 8px 8px 0 10px;
 }
 
 .preview-canvas[data-device="tv720"] .catalog-filters {
@@ -2766,7 +2766,7 @@ button:disabled {
 .preview-canvas[data-device="phone"] .catalog-library-toolbar {
   align-items: flex-end;
   gap: 4px;
-  padding: 0 4px;
+  padding: 12px 4px 0;
   flex-direction: column-reverse;
 }
 
