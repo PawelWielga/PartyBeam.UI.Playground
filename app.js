@@ -33,7 +33,6 @@
     viewportMeta: document.getElementById("viewportMeta"),
     lobbyScreen: document.getElementById("lobbyScreen"),
     catalogScreen: document.getElementById("catalogScreen"),
-    catalogJoinCode: document.getElementById("catalogJoinCode"),
     catalogPlayersList: document.getElementById("catalogPlayersList"),
     catalogPlayersSummary: document.getElementById("catalogPlayersSummary"),
     catalogScroll: document.getElementById("catalogScroll"),
@@ -731,7 +730,6 @@
     state.screen = "catalog";
     elements.lobbyScreen.hidden = true;
     elements.catalogScreen.hidden = false;
-    elements.catalogJoinCode.hidden = false;
     elements.footer.hidden = true;
     elements.partybeamScreen.classList.add("is-catalog");
     elements.partybeamScreen.setAttribute("aria-label", "PartyBeam game catalog");
@@ -747,7 +745,6 @@
     state.screen = "lobby";
     elements.catalogScreen.hidden = true;
     elements.lobbyScreen.hidden = false;
-    elements.catalogJoinCode.hidden = true;
     elements.footer.hidden = false;
     elements.partybeamScreen.classList.remove("is-catalog");
     elements.partybeamScreen.setAttribute("aria-label", "PartyBeam lobby screen");
