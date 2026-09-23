@@ -577,6 +577,12 @@
         assert(pxValue(covers[0], "borderTopWidth") === 4, viewport + " game cover border is not 4px");
         assert(noHorizontalOverflow(catalog), viewport + " catalog horizontal overflow");
         assert(noHorizontalOverflow(library), viewport + " catalog library horizontal overflow");
+        assert(
+          Math.abs(searchRect.top - firstFilterRect.top) <= 1
+            && Math.abs(searchRect.bottom - firstFilterRect.bottom) <= 1,
+          viewport + " catalog search wrapped below filter row",
+          "filter.top=" + firstFilterRect.top + ", search.top=" + searchRect.top
+        );
         assert(scroll.scrollHeight > scroll.clientHeight + 1, viewport + " catalog does not vertically scroll");
 
         const screenRect = screen.getBoundingClientRect();
@@ -590,6 +596,8 @@
         const playersHeadingGroupRect = doc.querySelector(".catalog-players-heading__group").getBoundingClientRect();
         const brandRect = doc.querySelector(".partybeam-brand").getBoundingClientRect();
         const settingsRect = doc.getElementById("settingsButton").getBoundingClientRect();
+        const firstFilterRect = doc.querySelector(".catalog-filter").getBoundingClientRect();
+        const searchRect = doc.getElementById("catalogSearchInput").getBoundingClientRect();
 
         assert(rectInside(codeRect, headingRect), viewport + " catalog game code outside Players heading row");
         assert(
