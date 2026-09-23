@@ -607,6 +607,8 @@
         const headingRect = doc.querySelector(".catalog-players-heading").getBoundingClientRect();
         const codeRect = code.getBoundingClientRect();
         const playersHeadingGroupRect = doc.querySelector(".catalog-players-heading__group").getBoundingClientRect();
+        const brandRect = doc.querySelector(".partybeam-brand").getBoundingClientRect();
+        const settingsRect = doc.getElementById("settingsButton").getBoundingClientRect();
 
         assert(rectInside(codeRect, headingRect), viewport + " catalog game code outside Players heading row");
         assert(
@@ -615,6 +617,20 @@
         );
 
         assert(rectInside(catalogRect, screenRect), viewport + " catalog outside screen");
+        assert(
+          Math.abs(brandRect.left - catalogRect.left) <= 1,
+          viewport + " logo does not align with Players panel",
+          "brand.left=" + brandRect.left + ", catalog.left=" + catalogRect.left
+        );
+        assert(
+          Math.abs(settingsRect.right - catalogRect.right) <= 1,
+          viewport + " Settings does not align with catalog right edge",
+          "settings.right=" + settingsRect.right + ", catalog.right=" + catalogRect.right
+        );
+        assert(
+          Math.abs((catalogRect.left - screenRect.left) - (screenRect.right - catalogRect.right)) <= 1,
+          viewport + " catalog outer gutters are not symmetrical"
+        );
         assert(topbarRect.bottom <= catalogRect.top + 1, viewport + " catalog overlaps header");
         assert(playersRect.right <= libraryRect.left + 1, viewport + " player panel overlaps game library");
         assert(pxValue(catalog, "paddingBottom") <= 1, viewport + " catalog screen keeps bottom padding");
@@ -797,6 +813,8 @@
         const actionsRect = actions.getBoundingClientRect();
         const footerRect = footer.getBoundingClientRect();
         const manageRect = manage.getBoundingClientRect();
+        const brandRect = doc.querySelector(".partybeam-brand").getBoundingClientRect();
+        const settingsRect = doc.getElementById("settingsButton").getBoundingClientRect();
 
         assert(noHorizontalOverflow(html), label + " document horizontal scroll");
         assert(noHorizontalOverflow(body), label + " body horizontal scroll");
@@ -821,6 +839,28 @@
         assert(rectInside(footerRect, screenRect), label + " footer outside screen");
         assert(rectInside(manageRect, footerRect), label + " Manage games outside footer");
 
+        const leftGutter = contentRect.left - screenRect.left;
+        const rightGutter = screenRect.right - contentRect.right;
+        assert(
+          Math.abs(leftGutter - rightGutter) <= 1,
+          label + " lobby outer gutters are not symmetrical",
+          "left=" + leftGutter + ", right=" + rightGutter
+        );
+        assert(
+          Math.abs(brandRect.left - contentRect.left) <= 1,
+          label + " logo does not align with lobby content",
+          "brand.left=" + brandRect.left + ", content.left=" + contentRect.left
+        );
+        assert(
+          Math.abs(settingsRect.right - contentRect.right) <= 1,
+          label + " Settings does not align with lobby content",
+          "settings.right=" + settingsRect.right + ", content.right=" + contentRect.right
+        );
+        assert(
+          Math.abs(manageRect.right - contentRect.right) <= 1,
+          label + " Manage games does not align with lobby content",
+          "manage.right=" + manageRect.right + ", content.right=" + contentRect.right
+        );
         assert(
           Math.abs(homesRect.left - playersRect.left) <= 1,
           label + " home cards left edge does not align with Players",
