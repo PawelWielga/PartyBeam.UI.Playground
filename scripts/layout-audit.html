@@ -331,6 +331,7 @@
         const catalogRect = catalog.getBoundingClientRect();
         const playersRect = playersPanel.getBoundingClientRect();
         const libraryRect = library.getBoundingClientRect();
+        const scrollRect = scroll.getBoundingClientRect();
         const headingRect = doc.querySelector(".catalog-players-heading").getBoundingClientRect();
         const codeRect = code.getBoundingClientRect();
         const playersHeadingGroupRect = doc.querySelector(".catalog-players-heading__group").getBoundingClientRect();
@@ -344,6 +345,13 @@
         assert(rectInside(catalogRect, screenRect), viewport + " catalog outside screen");
         assert(topbarRect.bottom <= catalogRect.top + 1, viewport + " catalog overlaps header");
         assert(playersRect.right <= libraryRect.left + 1, viewport + " player panel overlaps game library");
+        assert(pxValue(catalog, "paddingBottom") <= 1, viewport + " catalog screen keeps bottom padding");
+        assert(pxValue(scroll, "paddingBottom") <= 1, viewport + " catalog scroll keeps bottom padding");
+        assert(
+          Math.abs(screenRect.bottom - scrollRect.bottom) <= 2,
+          viewport + " catalog scroll leaves a dead band at the bottom",
+          String(screenRect.bottom - scrollRect.bottom)
+        );
 
         const panelRatio = playersRect.width / catalogRect.width;
         if (viewport === "tv1080" || viewport === "tv720" || viewport === "full") {
