@@ -315,6 +315,8 @@
         assert(code.textContent.replace(/\s+/g, "").includes("8F4K2P"), viewport + " catalog join code changed");
         assert(footer.hidden, viewport + " catalog footer stayed visible");
         assert(covers.length >= 20, viewport + " catalog does not contain enough placeholder covers");
+        assert(pxValue(playersPanel, "borderTopWidth") === 4, viewport + " catalog players panel border is not 4px");
+        assert(pxValue(covers[0], "borderTopWidth") === 4, viewport + " game cover border is not 4px");
         assert(noHorizontalOverflow(catalog), viewport + " catalog horizontal overflow");
         assert(noHorizontalOverflow(library), viewport + " catalog library horizontal overflow");
         assert(scroll.scrollHeight > scroll.clientHeight + 1, viewport + " catalog does not vertically scroll");
@@ -381,6 +383,11 @@
           assert(
             rectInside(compatibilityRect, coverRect),
             viewport + " compatibility overlay leaves game cover"
+          );
+
+          assert(
+            pxValue(compatibility, "borderTopWidth") === 2,
+            viewport + " compatibility overlay border is not 2px"
           );
 
           if (viewport === "tv720") {
@@ -458,6 +465,15 @@
         assert(noVerticalOverflow(content), label + " body content vertical overflow");
         assert(noHorizontalOverflow(homes), label + " cards horizontal overflow");
         assert(noHorizontalOverflow(footer), label + " footer horizontal overflow");
+
+        const homeCard = doc.querySelector(".home-card");
+        const playerSlot = doc.querySelector(".player-slot");
+        const settingsButton = doc.getElementById("settingsButton");
+        const continueButton = doc.getElementById("continueButton");
+        assert(pxValue(homeCard, "borderTopWidth") === 4, label + " home card border is not 4px");
+        assert(pxValue(playerSlot, "borderTopWidth") === 2, label + " player slot border is not 2px");
+        assert(pxValue(settingsButton, "borderTopWidth") === 2, label + " Settings border is not 2px");
+        assert(pxValue(continueButton, "borderTopWidth") === 2, label + " Continue border is not 2px");
 
         assert(rectInside(topbarRect, screenRect), label + " header outside screen");
         assert(rectInside(contentRect, screenRect), label + " lobby body outside screen");
