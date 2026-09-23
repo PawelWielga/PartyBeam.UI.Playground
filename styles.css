@@ -2080,33 +2080,6 @@ button:disabled {
   display: none;
 }
 
-.catalog-join-code {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  min-width: 172px;
-  display: grid;
-  justify-items: center;
-  gap: 3px;
-  transform: translate(-50%, -50%);
-  color: var(--text);
-  text-align: center;
-}
-
-.catalog-join-code__label {
-  color: rgba(231, 235, 250, 0.62);
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: 0.18em;
-}
-
-.catalog-join-code strong {
-  font-size: 25px;
-  line-height: 1;
-  letter-spacing: 0.095em;
-  text-shadow: 0 0 22px rgba(126, 89, 255, 0.3);
-}
-
 .catalog-screen {
   width: min(1800px, calc(100% - 116px));
   min-width: 0;
@@ -2142,8 +2115,37 @@ button:disabled {
 }
 
 .catalog-players-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.catalog-players-heading__group,
+.catalog-game-code {
+  min-width: 0;
   display: grid;
   gap: 5px;
+}
+
+.catalog-game-code {
+  justify-items: end;
+  text-align: right;
+}
+
+.catalog-game-code > span {
+  color: rgba(231, 235, 250, 0.7);
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+}
+
+.catalog-game-code strong {
+  color: #fafbff;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 20px rgba(126, 89, 255, 0.28);
 }
 
 .catalog-players-heading h2,
@@ -2386,18 +2388,6 @@ button:disabled {
   inset: var(--screen-header-height) 0 0;
 }
 
-.preview-canvas[data-device="tv720"] .catalog-join-code {
-  min-width: 132px;
-}
-
-.preview-canvas[data-device="tv720"] .catalog-join-code__label {
-  font-size: 9px;
-}
-
-.preview-canvas[data-device="tv720"] .catalog-join-code strong {
-  font-size: 19px;
-}
-
 .preview-canvas[data-device="tv720"] .catalog-screen {
   width: calc(100% - 72px);
   gap: 18px;
@@ -2416,6 +2406,14 @@ button:disabled {
 
 .preview-canvas[data-device="tv720"] .catalog-players-heading span {
   font-size: 12px;
+}
+
+.preview-canvas[data-device="tv720"] .catalog-game-code > span {
+  font-size: 10px;
+}
+
+.preview-canvas[data-device="tv720"] .catalog-game-code strong {
+  font-size: 16px;
 }
 
 .preview-canvas[data-device="tv720"] .catalog-players-list {
@@ -2474,21 +2472,6 @@ button:disabled {
   font-size: 12px;
 }
 
-.preview-canvas[data-device="phone"] .catalog-join-code {
-  left: auto;
-  right: 88px;
-  min-width: 0;
-  transform: translateY(-50%);
-}
-
-.preview-canvas[data-device="phone"] .catalog-join-code__label {
-  display: none;
-}
-
-.preview-canvas[data-device="phone"] .catalog-join-code strong {
-  font-size: 13px;
-}
-
 .preview-canvas[data-device="phone"] .catalog-screen {
   width: calc(100% - 20px);
   grid-template-columns: 24% minmax(0, 1fr);
@@ -2503,7 +2486,21 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .catalog-players-heading {
+  gap: 5px;
+}
+
+.preview-canvas[data-device="phone"] .catalog-players-heading__group,
+.preview-canvas[data-device="phone"] .catalog-game-code {
   gap: 2px;
+}
+
+.preview-canvas[data-device="phone"] .catalog-game-code > span {
+  font-size: 7px;
+  letter-spacing: 0.08em;
+}
+
+.preview-canvas[data-device="phone"] .catalog-game-code strong {
+  font-size: 10px;
 }
 
 .preview-canvas[data-device="phone"] .catalog-players-heading h2 {
