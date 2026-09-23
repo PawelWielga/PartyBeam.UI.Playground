@@ -590,6 +590,15 @@
         const playersHeadingGroupRect = doc.querySelector(".catalog-players-heading__group").getBoundingClientRect();
         const brandRect = doc.querySelector(".partybeam-brand").getBoundingClientRect();
         const settingsRect = doc.getElementById("settingsButton").getBoundingClientRect();
+        const firstFilterRect = doc.querySelector(".catalog-filter").getBoundingClientRect();
+        const searchRect = doc.getElementById("catalogSearchInput").getBoundingClientRect();
+
+        assert(
+          Math.abs(searchRect.top - firstFilterRect.top) <= 1
+            && Math.abs(searchRect.bottom - firstFilterRect.bottom) <= 1,
+          viewport + " catalog search wrapped below filter row",
+          "filter.top=" + firstFilterRect.top + ", search.top=" + searchRect.top
+        );
 
         assert(rectInside(codeRect, headingRect), viewport + " catalog game code outside Players heading row");
         assert(

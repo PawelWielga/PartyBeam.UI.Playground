@@ -12,6 +12,10 @@ function fail(message) {
   process.exitCode = 1;
 }
 
+if (html.includes("\\n")) {
+  fail("index.html contains a literal \\n escape instead of a real line break.");
+}
+
 const mainCount = (html.match(/<main\b/gi) || []).length;
 if (mainCount !== 1) {
   fail("index.html must contain exactly one <main> landmark; found " + mainCount + ".");
