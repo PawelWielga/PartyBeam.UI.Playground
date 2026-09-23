@@ -22,7 +22,9 @@
     players: 6,
     uiState: "normal",
     continueEnabled: true,
-    screen: "lobby"
+    screen: "lobby",
+    settingsOpen: false,
+    settingsCategory: "general"
   };
 
   const elements = {
@@ -56,6 +58,13 @@
     joinQrCode: document.getElementById("joinQrCode"),
     toast: document.getElementById("playgroundToast"),
     settingsButton: document.getElementById("settingsButton"),
+    settingsOverlay: document.getElementById("settingsOverlay"),
+    settingsPanel: document.getElementById("settingsPanel"),
+    settingsContent: document.getElementById("settingsContent"),
+    settingsCloseButton: document.getElementById("settingsCloseButton"),
+    settingsDoneButton: document.getElementById("settingsDoneButton"),
+    masterVolume: document.getElementById("masterVolume"),
+    masterVolumeValue: document.getElementById("masterVolumeValue"),
     manageGamesButton: document.getElementById("manageGamesButton")
   };
 
@@ -71,6 +80,7 @@
   let remoteFocusAnimationLastFrameAt = null;
   let remoteFocusAnimationFrame = null;
   let remoteFocusGeometry = null;
+  let settingsOpenedWithBrowserFocus = false;
 
   function normalizeDegrees(value) {
     return ((value % 360) + 360) % 360;
@@ -473,6 +483,10 @@
   function getTvFocusableElements() {
     const focusables = [];
 
+    if (state.settingsOpen) {
+      return getSettingsFocusableElements();
+    }
+
     if (!elements.settingsButton.disabled) {
       focusables.push(elements.settingsButton);
     }
@@ -707,6 +721,28 @@
   }
 
   function handleRemoteCommand(command) {
+    if (state.settingsOpen) {
+      if (command === "back") {
+        closeSettings();
+        return;
+      }
+
+      if (command === "home") {
+        const firstCategory = elements.settingsOverlay.querySelector("[data-settings-category]");
+        setRemoteFocus(firstCategory || elements.settingsCloseButton);
+        return;
+      }
+
+      if (
+        remoteFocusTarget === elements.masterVolume
+        && (command === "left" || command === "right")
+      ) {
+        const delta = command === "left" ? -5 : 5;
+        updateMasterVolume(Number(elements.masterVolume.value) + delta);
+        return;
+      }
+    }
+
     if (["up", "down", "left", "right"].includes(command)) {
       moveRemoteFocus(command);
       return;
@@ -748,6 +784,116 @@
     }
 
     browserFocusInsideScreen = false;
+  }
+
+  function getSettingsFocusableElements() {
+    return Array.from(
+      elements.settingsOverlay.querySelectorAll(
+        "button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex=\"-1\"])"
+      )
+    ).filter((element) => !element.closest("[hidden]") && element.getClientRects().length > 0);
+  }
+
+  function setSettingsBackgroundInert(inert) {
+    Array.from(elements.partybeamScreen.children).forEach((child) => {
+      if (child !== elements.settingsOverlay) {
+        child.inert = inert;
+      }
+    });
+  }
+
+  function selectSettingsCategory(category) {
+    const requested = elements.settingsOverlay.querySelector(
+      '[data-settings-category="' + category + '"]'
+    );
+    const selected = requested
+      ? category
+      : "general";
+
+    state.settingsCategory = selected;
+
+    elements.settingsOverlay.querySelectorAll("[data-settings-category]").forEach((button) => {
+      const active = button.dataset.settingsCategory === selected;
+      button.classList.toggle("is-active", active);
+      if (active) {
+        button.setAttribute("aria-current", "page");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+
+    elements.settingsOverlay.querySelectorAll("[data-settings-section]").forEach((section) => {
+      section.hidden = section.dataset.settingsSection !== selected;
+    });
+
+    elements.settingsContent.scrollTop = 0;
+    window.requestAnimationFrame(() => {
+      invalidateRemoteFocusGeometry();
+      syncRemoteFocusAnimation();
+    });
+  }
+
+  function openSettings() {
+    if (state.settingsOpen) {
+      return;
+    }
+
+    settingsOpenedWithBrowserFocus = document.activeElement === elements.settingsButton;
+    state.settingsOpen = true;
+    elements.settingsOverlay.hidden = false;
+    elements.settingsOverlay.setAttribute("aria-hidden", "false");
+    elements.partybeamScreen.classList.add("is-settings-open");
+    setSettingsBackgroundInert(true);
+    selectSettingsCategory(state.settingsCategory);
+
+    const initialTarget = elements.settingsOverlay.querySelector(
+      '[data-settings-category="' + state.settingsCategory + '"]'
+    ) || elements.settingsCloseButton;
+
+    setRemoteFocus(initialTarget);
+
+    if (settingsOpenedWithBrowserFocus) {
+      initialTarget.focus({ preventScroll: true });
+    } else {
+      browserFocusInsideScreen = false;
+      renderRemoteFocusVisual();
+    }
+  }
+
+  function closeSettings() {
+    if (!state.settingsOpen) {
+      return;
+    }
+
+    state.settingsOpen = false;
+    setSettingsBackgroundInert(false);
+    elements.settingsOverlay.hidden = true;
+    elements.settingsOverlay.setAttribute("aria-hidden", "true");
+    elements.partybeamScreen.classList.remove("is-settings-open");
+
+    setRemoteFocus(elements.settingsButton);
+    elements.settingsButton.focus({ preventScroll: true });
+    settingsOpenedWithBrowserFocus = false;
+  }
+
+  function setToggleState(button, enabled) {
+    button.classList.toggle("is-on", enabled);
+    button.setAttribute("aria-checked", String(enabled));
+    const stateLabel = button.querySelector(".settings-toggle-state");
+    if (stateLabel) {
+      stateLabel.textContent = enabled ? "On" : "Off";
+    }
+
+    if (button.dataset.settingToggle === "reduced-motion") {
+      elements.partybeamScreen.classList.toggle("settings-reduced-motion", enabled);
+    }
+  }
+
+  function updateMasterVolume(value) {
+    const numericValue = Math.max(0, Math.min(100, Number(value)));
+    elements.masterVolume.value = String(numericValue);
+    elements.masterVolumeValue.value = numericValue + "%";
+    elements.masterVolume.setAttribute("aria-valuetext", numericValue + " percent");
   }
 
   function showCatalog() {
@@ -952,8 +1098,38 @@
     showCatalog();
   });
 
-  elements.settingsButton.addEventListener("click", () => {
-    showToast("Settings clicked · playground only");
+  elements.settingsButton.addEventListener("click", openSettings);
+
+  elements.settingsCloseButton.addEventListener("click", closeSettings);
+  elements.settingsDoneButton.addEventListener("click", closeSettings);
+
+  elements.settingsOverlay.querySelectorAll("[data-settings-category]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectSettingsCategory(button.dataset.settingsCategory);
+    });
+  });
+
+  elements.settingsOverlay.querySelectorAll("[data-setting-toggle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      setToggleState(button, button.getAttribute("aria-checked") !== "true");
+    });
+  });
+
+  elements.settingsOverlay.querySelectorAll("[data-setting-choice]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const setting = button.dataset.settingChoice;
+      elements.settingsOverlay.querySelectorAll(
+        '[data-setting-choice="' + setting + '"]'
+      ).forEach((choice) => {
+        const selected = choice === button;
+        choice.classList.toggle("is-selected", selected);
+        choice.setAttribute("aria-pressed", String(selected));
+      });
+    });
+  });
+
+  elements.masterVolume.addEventListener("input", () => {
+    updateMasterVolume(elements.masterVolume.value);
   });
 
   elements.manageGamesButton.addEventListener("click", () => {
@@ -962,6 +1138,17 @@
 
   elements.catalogScroll.addEventListener("scroll", updateCatalogScrollEdgeFade, {
     passive: true
+  });
+
+  document.addEventListener("focusin", (event) => {
+    if (!state.settingsOpen || elements.settingsOverlay.contains(event.target)) {
+      return;
+    }
+
+    const fallback = getSettingsFocusableElements()[0];
+    if (fallback) {
+      fallback.focus({ preventScroll: true });
+    }
   });
 
   elements.partybeamScreen.addEventListener("focusin", (event) => {
@@ -987,6 +1174,12 @@
     const typing = tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA";
 
     if (event.key === "Escape") {
+      if (state.settingsOpen) {
+        event.preventDefault();
+        closeSettings();
+        return;
+      }
+
       if (!elements.devPanel.hidden) {
         setDevPanel(false);
         return;
@@ -996,6 +1189,22 @@
         setRemotePanel(false);
         return;
       }
+    }
+
+    if (state.settingsOpen && event.key === "Tab") {
+      const focusables = getSettingsFocusableElements();
+      if (focusables.length > 0) {
+        event.preventDefault();
+        const activeIndex = focusables.indexOf(document.activeElement);
+        const direction = event.shiftKey ? -1 : 1;
+        const nextIndex = activeIndex < 0
+          ? 0
+          : (activeIndex + direction + focusables.length) % focusables.length;
+        const target = focusables[nextIndex];
+        setRemoteFocus(target);
+        target.focus({ preventScroll: true });
+      }
+      return;
     }
 
     if (typing) {
@@ -1025,6 +1234,12 @@
       if (["up", "down", "left", "right"].includes(command)) {
         event.preventDefault();
         moveBrowserFocus(command);
+        return;
+      }
+
+      if (command === "back" && state.settingsOpen) {
+        event.preventDefault();
+        closeSettings();
         return;
       }
 
@@ -1060,5 +1275,6 @@
 
   renderQrPlaceholder(elements.downloadQrCode, 3);
   renderQrPlaceholder(elements.joinQrCode, 7);
+  updateMasterVolume(elements.masterVolume.value);
   render();
 })();
