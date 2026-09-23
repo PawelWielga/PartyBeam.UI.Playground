@@ -17,6 +17,16 @@
     8, 2, 4, 6, 8
   ];
 
+  const realGameCovers = [
+    { title: "Grimcellar", image: "assets/covers/grimcellar.png" },
+    { title: "Reflex", image: "assets/covers/reflex.png" },
+    { title: "Quiz Blast", image: "assets/covers/quizblast.png" },
+    { title: "Kingdom Run", image: "assets/covers/kingdomrun.png" },
+    { title: "Turbo Orbit", image: "assets/covers/turboorbit.png" },
+    { title: "Midnight Files", image: "assets/covers/midnight.png" },
+    { title: "Panic Kitchen", image: "assets/covers/panickitchen.png" }
+  ];
+
   const state = {
     viewport: "tv1080",
     previousViewport: "tv1080",
@@ -377,11 +387,12 @@
       }
 
       const number = cover.dataset.gameNumber;
+      const title = cover.dataset.gameTitle || ("Placeholder Game " + number);
       cover.setAttribute(
         "aria-label",
         incompatible
-          ? "Placeholder game " + number + ". Not everyone can play. Supports up to " + maximumPlayers + " players."
-          : "Placeholder game " + number + ". Compatible with the current party."
+          ? title + ". Not everyone can play. Supports up to " + maximumPlayers + " players."
+          : title + ". Compatible with the current party."
       );
     });
   }
@@ -396,11 +407,13 @@
       cover.className = "game-cover game-cover--variant-" + (index % 6);
       cover.dataset.maxPlayers = String(maximumPlayers);
       cover.dataset.gameNumber = gameNumber;
-      cover.dataset.gameTitle = index === 0 ? "Grimcellar" : "Placeholder Game " + gameNumber;
 
-      if (index === 0) {
+      const realGame = realGameCovers[index] || null;
+      cover.dataset.gameTitle = realGame ? realGame.title : "Placeholder Game " + gameNumber;
+
+      if (realGame) {
         cover.classList.add("game-cover--image");
-        cover.dataset.coverImage = "assets/covers/grimcellar.png";
+        cover.dataset.coverImage = realGame.image;
       }
 
       const art = document.createElement("span");
