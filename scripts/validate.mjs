@@ -53,6 +53,44 @@ if (stack.length > 0) {
 }
 
 
+
+for (const systemShellMarkup of [
+  "settings-overlay partybeam-system-overlay",
+  "settings-panel partybeam-system-panel",
+  "settings-header partybeam-system-header",
+  "settings-close partybeam-system-close",
+  "settings-footer partybeam-system-footer"
+]) {
+  if (!html.includes(systemShellMarkup)) {
+    fail("Settings system-shell class regression: " + systemShellMarkup);
+  }
+}
+
+for (const manageSystemShellBehavior of [
+  'overlay.dataset.view = view',
+  'class="partybeam-system-overlay pb-manage-overlay"',
+  'class="partybeam-system-panel pb-manage-panel"',
+  'class="partybeam-system-header"',
+  'class="partybeam-system-close"',
+  'class="partybeam-system-footer"'
+]) {
+  if (!simplifiedFlow.includes(manageSystemShellBehavior)) {
+    fail("Manage Games system-shell regression: " + manageSystemShellBehavior);
+  }
+}
+
+for (const systemShellStyle of [
+  ".partybeam-system-overlay {",
+  ".partybeam-system-panel {",
+  ".partybeam-system-header {",
+  ".partybeam-system-close {",
+  ".partybeam-system-footer {"
+]) {
+  if (!styles.includes(systemShellStyle)) {
+    fail("Shared system-shell style regression: " + systemShellStyle);
+  }
+}
+
 for (const fullPreviewBehavior of [
   "const logicalPreset = preset.full",
   "viewportPresets[state.previousViewport] || viewportPresets.tv1080",
