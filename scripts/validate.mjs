@@ -94,6 +94,13 @@ for (const token of ["--remote-focus-ring-inset", "--remote-focus-ring-thickness
   }
 }
 
+if (!app.includes("const targetCenter = targetRect.top + targetRect.height / 2;")
+  || !app.includes("const viewportCenter = containerRect.top + containerRect.height / 2;")
+  || !app.includes("elements.catalogScroll.scrollHeight - elements.catalogScroll.clientHeight")
+  || !app.includes("Math.max(0, centeredScrollTop)")) {
+  fail("Catalog focus scrolling must center the active cover and clamp cleanly at the top and bottom.");
+}
+
 if (!process.exitCode) {
   console.log("Static site validation passed.");
 }
