@@ -615,7 +615,7 @@
       event.stopImmediatePropagation();
       flow.title = (detailsTitle?.textContent || "Grimcellar").trim();
       detailsClose.click();
-      window.requestAnimationFrame(startPlayFlow);
+      startPlayFlow();
       return;
     }
 
