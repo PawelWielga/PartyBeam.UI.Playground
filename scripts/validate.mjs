@@ -122,13 +122,14 @@ for (const playersPanelSpacing of [
 }
 
 for (const catalogTitleToken of [
-  "justify-self: end;",
-  "border: var(--border-control) solid rgba(215, 204, 255, 0.24);",
-  "linear-gradient(135deg, rgba(8, 10, 20, 0.92), rgba(18, 19, 40, 0.88));",
-  "0 2px 10px rgba(0, 0, 0, 0.72)"
+  "padding: 8px 12px 8px 44px;",
+  "ellipse at 72% 50%",
+  "rgba(4, 6, 14, 0.5) 38%",
+  "transparent 82%",
+  "0 2px 4px rgba(0, 0, 0, 0.92)"
 ]) {
   if (!styles.includes(catalogTitleToken)) {
-    fail("Catalog title must keep its high-contrast surface treatment: " + catalogTitleToken);
+    fail("Catalog title must keep its soft contrast scrim treatment: " + catalogTitleToken);
   }
 }
 
