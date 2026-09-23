@@ -434,6 +434,108 @@
         );
       }
 
+
+      async function validateGameDetails(viewport) {
+        const doc = frame.contentDocument;
+
+        await setPlayers(6);
+        await setUiState("normal");
+        await setContinueEnabled(true);
+        await click("#continueButton");
+
+        const screen = doc.getElementById("partybeamScreen");
+        const cover = doc.querySelector(".game-cover");
+        cover.focus();
+        await waitFrames(1);
+        cover.click();
+        await waitFrames(1);
+
+        const overlay = doc.getElementById("gameDetailsOverlay");
+        const panel = doc.getElementById("gameDetailsPanel");
+        const copy = doc.querySelector(".game-details-copy");
+        const artwork = doc.querySelector(".game-details-cover");
+        const action = doc.getElementById("gameDetailsActionButton");
+        const progress = doc.getElementById("gameDownloadProgress");
+        const error = doc.getElementById("gameDownloadError");
+        const prepState = doc.getElementById("gamePreparationState");
+        const screenRect = screen.getBoundingClientRect();
+        const overlayRect = overlay.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+        const copyRect = copy.getBoundingClientRect();
+        const artworkRect = artwork.getBoundingClientRect();
+
+        cases += 1;
+
+        assert(!overlay.hidden, viewport + " Game Details overlay stayed hidden");
+        assert(overlay.getAttribute("aria-hidden") === "false", viewport + " Game Details aria-hidden did not update");
+        assert(rectInside(overlayRect, screenRect), viewport + " Game Details overlay leaves PartyBeam screen");
+        assert(rectInside(panelRect, screenRect, 1), viewport + " Game Details panel leaves PartyBeam screen");
+        assert(noHorizontalOverflow(panel), viewport + " Game Details panel horizontal overflow");
+        assert(action.textContent.trim() === "DOWNLOAD GAME", viewport + " Game Details initial action is not Download");
+        assert(progress.hidden, viewport + " Game Details progress visible before download");
+        assert(error.hidden, viewport + " Game Details error visible before failure");
+        assert(overlay.contains(doc.activeElement), viewport + " Game Details did not move browser focus inside modal");
+
+        if (viewport === "phone") {
+          assert(
+            artworkRect.bottom <= copyRect.top + 1,
+            viewport + " Game Details phone cover is not stacked above details"
+          );
+        } else {
+          assert(
+            copyRect.right <= artworkRect.left + 1,
+            viewport + " Game Details TV copy is not left of cover"
+          );
+        }
+
+        action.click();
+        assert(action.textContent.trim() === "CANCEL", viewport + " Download did not switch action to Cancel");
+        assert(!progress.hidden, viewport + " Download progress did not appear");
+        assert(
+          Number(doc.getElementById("gameDownloadProgressTrack").getAttribute("aria-valuenow")) >= 0,
+          viewport + " Download progress value missing"
+        );
+
+        action.click();
+        assert(action.textContent.trim() === "DOWNLOAD GAME", viewport + " Cancel did not restore Download");
+        assert(progress.hidden, viewport + " Cancel did not hide progress");
+
+        prepState.value = "error";
+        prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
+        assert(action.textContent.trim() === "RETRY", viewport + " Error state does not expose Retry");
+        assert(!error.hidden, viewport + " Error state message stayed hidden");
+
+        prepState.value = "ready";
+        prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
+        assert(action.textContent.trim() === "START GAME", viewport + " Ready state does not expose Start Game");
+        assert(progress.hidden, viewport + " Ready state left progress visible");
+
+        prepState.value = "not-downloaded";
+        prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
+        await waitFrames(1);
+
+        const backgroundTarget = doc.getElementById("settingsButton");
+        backgroundTarget.focus();
+        assert(
+          overlay.contains(doc.activeElement),
+          viewport + " Game Details focus escaped to blurred background"
+        );
+
+        await dispatchKey("Escape");
+        await waitFrames(1);
+        assert(overlay.hidden, viewport + " Escape did not close Game Details");
+        assert(doc.activeElement === cover, viewport + " Escape did not restore game-card focus");
+
+        cover.click();
+        await dispatchKey("Backspace");
+        await waitFrames(1);
+        assert(overlay.hidden, viewport + " Back did not close Game Details");
+        assert(doc.activeElement === cover, viewport + " Back did not restore game-card focus");
+
+        await dispatchKey("Backspace");
+        await waitFrames(1);
+      }
+
       async function validateCatalog(viewport) {
         const doc = frame.contentDocument;
 
@@ -742,6 +844,9 @@
           validateFocusSafety(viewport + " / normal");
           await validateKeyboardFocusHandoff(viewport + " / Settings keyboard", "#settingsButton");
           await validateSettings(viewport);
+          if (viewport !== "full") {
+            await validateGameDetails(viewport);
+          }
           await validateCatalog(viewport);
         }
 
