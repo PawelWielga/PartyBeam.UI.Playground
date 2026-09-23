@@ -39,11 +39,6 @@
                   </span>
                 </div>
 
-                <div class="catalog-join-code" id="catalogJoinCode" hidden aria-label="Game code 8 F 4 K 2 P">
-                  <span class="catalog-join-code__label">GAME CODE</span>
-                  <strong>8F4 K2P</strong>
-                </div>
-
                 <button class="screen-button screen-button--ghost" type="button" id="settingsButton">
                   <svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path d="M12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Z"></path>
@@ -134,8 +129,14 @@
               <section class="catalog-screen" id="catalogScreen" hidden aria-label="Game catalog">
                 <aside class="catalog-players-panel" aria-labelledby="catalogPlayersTitle">
                   <div class="catalog-players-heading">
-                    <h2 id="catalogPlayersTitle">PLAYERS</h2>
-                    <span id="catalogPlayersSummary">6 connected</span>
+                    <div class="catalog-players-heading__group">
+                      <h2 id="catalogPlayersTitle">PLAYERS</h2>
+                      <span id="catalogPlayersSummary">6 connected</span>
+                    </div>
+                    <div class="catalog-game-code" aria-label="Game code 8 F 4 K 2 P">
+                      <span>GAME CODE</span>
+                      <strong>8F4 K2P</strong>
+                    </div>
                   </div>
                   <div class="catalog-players-list" id="catalogPlayersList"></div>
                 </aside>
