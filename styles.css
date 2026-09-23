@@ -2195,13 +2195,18 @@ button:disabled {
 }
 
 .catalog-library h1 {
-  position: relative;
-  z-index: 1;
-  isolation: isolate;
   justify-self: end;
   width: fit-content;
   max-width: 100%;
-  padding: 6px 10px;
+  padding: 8px 12px 8px 44px;
+  background:
+    radial-gradient(
+      ellipse at 72% 50%,
+      rgba(4, 6, 14, 0.72) 0%,
+      rgba(4, 6, 14, 0.5) 38%,
+      rgba(4, 6, 14, 0.2) 62%,
+      transparent 82%
+    );
   color: #fff;
   font-size: 32px;
   line-height: 1.05;
@@ -2210,22 +2215,6 @@ button:disabled {
     0 2px 4px rgba(0, 0, 0, 0.92),
     0 0 10px rgba(0, 0, 0, 0.58),
     0 0 16px rgba(111, 80, 223, 0.12);
-}
-
-.catalog-library h1::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -12px -4px -12px -52px;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      ellipse at 68% 50%,
-      rgba(4, 6, 14, 0.72) 0%,
-      rgba(4, 6, 14, 0.52) 38%,
-      rgba(4, 6, 14, 0.22) 62%,
-      transparent 82%
-    );
 }
 
 .catalog-scroll {
@@ -2515,7 +2504,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .catalog-library h1 {
-  padding: 4px 8px;
+  padding: 5px 8px 5px 30px;
   font-size: 22px;
 }
 
@@ -2624,7 +2613,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .catalog-library h1 {
-  padding: 3px 6px;
+  padding: 3px 6px 3px 20px;
   font-size: 14px;
 }
 
