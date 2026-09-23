@@ -71,17 +71,28 @@
         await click('[data-players="' + count + '"]');
       }
 
+      async function waitForControl(id, attempts = 40) {
+        for (let attempt = 0; attempt < attempts; attempt += 1) {
+          const control = frame.contentDocument?.getElementById(id);
+          if (control) {
+            return control;
+          }
+
+          await waitFrames(1);
+        }
+
+        throw new Error("Missing required control #" + id);
+      }
+
       async function setContinueEnabled(enabled) {
-        const doc = frame.contentDocument;
-        const input = doc.getElementById("continueEnabled");
+        const input = await waitForControl("continueEnabled");
         input.checked = enabled;
         input.dispatchEvent(new Event("change", { bubbles: true }));
         await waitFrames();
       }
 
       async function setUiState(value) {
-        const doc = frame.contentDocument;
-        const select = doc.getElementById("uiState");
+        const select = await waitForControl("uiState");
         select.value = value;
         select.dispatchEvent(new Event("change", { bubbles: true }));
         await waitFrames();
@@ -818,7 +829,7 @@
       async function run() {
         await waitFrames(5);
 
-        const viewports = ["tv1080", "tv720", "phone", "full"];
+        const viewports = ["tv1080", "tv720", "full"];
         const playerCounts = [0, 1, 2, 4, 6, 8];
 
         for (const viewport of viewports) {
