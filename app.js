@@ -57,6 +57,7 @@
     viewportMeta: document.getElementById("viewportMeta"),
     lobbyScreen: document.getElementById("lobbyScreen"),
     catalogScreen: document.getElementById("catalogScreen"),
+    gameLaunchScreen: document.getElementById("gameLaunchScreen"),
     catalogPlayersList: document.getElementById("catalogPlayersList"),
     catalogPlayersSummary: document.getElementById("catalogPlayersSummary"),
     catalogScroll: document.getElementById("catalogScroll"),
@@ -123,6 +124,9 @@
   let gameDetailsOpenedWithBrowserFocus = false;
   let gameDetailsOrigin = null;
   let gameDownloadTimer = null;
+  let gameLaunchTimer = null;
+
+  const GAME_LAUNCH_MOCK_DURATION_MS = 5000;
 
   function normalizeDegrees(value) {
     return ((value % 360) + 360) % 360;
@@ -628,6 +632,10 @@
   function getTvFocusableElements() {
     const focusables = [];
 
+    if (state.screen === "game-loading") {
+      return focusables;
+    }
+
     if (state.gameDetailsOpen) {
       return getGameDetailsFocusableElements();
     }
@@ -875,6 +883,10 @@
   }
 
   function handleRemoteCommand(command) {
+    if (state.screen === "game-loading") {
+      return;
+    }
+
     if (state.gameDetailsOpen) {
       if (command === "back") {
         closeGameDetails();
@@ -1043,6 +1055,44 @@
 
       renderGamePreparationState();
     }, 120);
+  }
+
+  function stopGameLaunchSimulation() {
+    if (gameLaunchTimer !== null) {
+      window.clearTimeout(gameLaunchTimer);
+      gameLaunchTimer = null;
+    }
+  }
+
+  function hideGameLaunchScreen() {
+    stopGameLaunchSimulation();
+    elements.gameLaunchScreen.hidden = true;
+    elements.gameLaunchScreen.setAttribute("aria-hidden", "true");
+    elements.partybeamScreen.classList.remove("is-game-launching");
+  }
+
+  function showGameLaunchScreen() {
+    if (state.gameDetailsOpen) {
+      closeGameDetails();
+    }
+
+    releaseBrowserFocusForScreenTransition();
+    stopGameLaunchSimulation();
+
+    state.screen = "game-loading";
+    elements.lobbyScreen.hidden = true;
+    elements.catalogScreen.hidden = true;
+    elements.footer.hidden = true;
+    elements.gameLaunchScreen.hidden = false;
+    elements.gameLaunchScreen.setAttribute("aria-hidden", "false");
+    elements.partybeamScreen.classList.remove("is-catalog");
+    elements.partybeamScreen.classList.add("is-game-launching");
+    elements.partybeamScreen.setAttribute("aria-label", "Loading selected PartyBeam game");
+    setRemoteFocus(null);
+
+    gameLaunchTimer = window.setTimeout(() => {
+      showLobby();
+    }, GAME_LAUNCH_MOCK_DURATION_MS);
   }
 
   function updateGameDetailsCopy(origin) {
@@ -1234,6 +1284,7 @@
   }
 
   function showCatalog() {
+    hideGameLaunchScreen();
     releaseBrowserFocusForScreenTransition();
 
     state.screen = "catalog";
@@ -1250,6 +1301,7 @@
   }
 
   function showLobby() {
+    hideGameLaunchScreen();
     releaseBrowserFocusForScreenTransition();
 
     state.screen = "lobby";
@@ -1470,7 +1522,7 @@
     }
 
     if (state.gamePreparationState === "ready") {
-      showToast("Starting game · playground only");
+      showGameLaunchScreen();
       return;
     }
 
