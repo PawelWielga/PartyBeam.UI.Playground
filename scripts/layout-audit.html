@@ -736,6 +736,34 @@
           incompatible.classList.remove("remote-focused");
         }
 
+        const searchInput = doc.getElementById("catalogSearchInput");
+        const emptyState = doc.getElementById("catalogEmptyState");
+        assert(Boolean(searchInput), viewport + " catalog search input is missing");
+
+        searchInput.value = "Reflex";
+        searchInput.dispatchEvent(new frame.contentWindow.Event("input", { bubbles: true }));
+        await waitFrames(2);
+
+        const searchMatches = covers.filter((cover) => !cover.hidden);
+        assert(searchMatches.length === 1, viewport + " game search did not narrow catalog to one result");
+        assert(
+          searchMatches[0]?.dataset.gameTitle === "Reflex",
+          viewport + " game search returned the wrong title"
+        );
+        assert(emptyState.hidden, viewport + " empty state appeared while search had a result");
+
+        searchInput.value = "Definitely Missing Game";
+        searchInput.dispatchEvent(new frame.contentWindow.Event("input", { bubbles: true }));
+        await waitFrames(2);
+        assert(covers.every((cover) => cover.hidden), viewport + " missing-game search left visible covers");
+        assert(!emptyState.hidden, viewport + " missing-game search did not show empty state");
+
+        searchInput.value = "";
+        searchInput.dispatchEvent(new frame.contentWindow.Event("input", { bubbles: true }));
+        await waitFrames(2);
+        assert(covers.every((cover) => !cover.hidden), viewport + " clearing game search did not restore catalog");
+        assert(emptyState.hidden, viewport + " clearing game search left empty state visible");
+
         await setPlayers(8);
         const catalogPlayerRows = Array.from(doc.querySelectorAll("#catalogPlayersList .player-slot"));
         assert(catalogPlayerRows.length === 9, viewport + " catalog player panel did not render 8 players plus Waiting");
