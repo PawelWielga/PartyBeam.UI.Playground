@@ -121,6 +121,17 @@ for (const playersPanelSpacing of [
   }
 }
 
+for (const catalogTitleToken of [
+  "justify-self: end;",
+  "border: var(--border-control) solid rgba(215, 204, 255, 0.24);",
+  "linear-gradient(135deg, rgba(8, 10, 20, 0.92), rgba(18, 19, 40, 0.88));",
+  "0 2px 10px rgba(0, 0, 0, 0.72)"
+]) {
+  if (!styles.includes(catalogTitleToken)) {
+    fail("Catalog title must keep its high-contrast surface treatment: " + catalogTitleToken);
+  }
+}
+
 if (!process.exitCode) {
   console.log("Static site validation passed.");
 }
