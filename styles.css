@@ -3566,20 +3566,62 @@ button:disabled {
 .game-launch-spinner-wrap {
   position: absolute;
   left: 50%;
-  bottom: 8%;
+  bottom: 7%;
   z-index: 1;
+  width: 92px;
+  height: 92px;
   display: grid;
   place-items: center;
+  border: var(--border-control) solid rgba(215, 204, 255, 0.18);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(118, 87, 232, 0.13), transparent 58%),
+    rgba(5, 7, 14, 0.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 0 28px rgba(111, 80, 223, 0.20);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transform: translateX(-50%);
 }
 
 .game-launch-spinner {
+  position: relative;
   width: 58px;
   height: 58px;
-  border-width: 5px;
-  border-color: rgba(255, 255, 255, 0.16);
-  border-top-color: #ffffff;
-  filter: drop-shadow(0 0 12px rgba(128, 86, 255, 0.48));
+  border: 0;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      from 0deg,
+      transparent 0deg 80deg,
+      rgba(111, 80, 223, 0.30) 118deg,
+      var(--primary-hover) 174deg,
+      var(--focus) 224deg,
+      var(--success) 270deg,
+      transparent 322deg 360deg
+    );
+  filter:
+    drop-shadow(0 0 8px rgba(118, 87, 232, 0.72))
+    drop-shadow(0 0 16px rgba(72, 213, 151, 0.20));
+  animation: partybeam-launch-spin 1150ms linear infinite;
+}
+
+.game-launch-spinner::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: rgba(5, 7, 14, 0.96);
+  box-shadow:
+    inset 0 0 0 1px rgba(215, 204, 255, 0.08),
+    0 0 10px rgba(5, 7, 14, 0.85);
+}
+
+@keyframes partybeam-launch-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .partybeam-screen.is-game-launching .partybeam-topbar,
@@ -3587,16 +3629,32 @@ button:disabled {
   visibility: hidden;
 }
 
+.preview-canvas[data-device="tv720"] .game-launch-spinner-wrap {
+  width: 72px;
+  height: 72px;
+}
+
 .preview-canvas[data-device="tv720"] .game-launch-spinner {
   width: 46px;
   height: 46px;
-  border-width: 4px;
+}
+
+.preview-canvas[data-device="tv720"] .game-launch-spinner::after {
+  inset: 6px;
+}
+
+.preview-canvas[data-device="phone"] .game-launch-spinner-wrap {
+  width: 62px;
+  height: 62px;
 }
 
 .preview-canvas[data-device="phone"] .game-launch-spinner {
   width: 38px;
   height: 38px;
-  border-width: 4px;
+}
+
+.preview-canvas[data-device="phone"] .game-launch-spinner::after {
+  inset: 5px;
 }
 
 /* Game details / preparation prototype ------------------------------------ */
