@@ -2097,6 +2097,7 @@ button:disabled {
 .catalog-players-panel {
   min-width: 0;
   min-height: 0;
+  margin-bottom: 24px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   align-content: start;
@@ -2395,6 +2396,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .catalog-players-panel {
+  margin-bottom: 14px;
   gap: 12px;
   padding: 16px 14px;
   border-radius: var(--radius-md);
@@ -2480,6 +2482,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .catalog-players-panel {
+  margin-bottom: 10px;
   gap: 6px;
   padding: 8px 5px;
   border-radius: var(--radius-sm);
