@@ -151,6 +151,36 @@ for (const catalogTitleToken of [
   }
 }
 
+for (const catalogFilter of ["favorites", "downloaded", "compatible"]) {
+  if (!html.includes('data-catalog-filter="' + catalogFilter + '"')) {
+    fail("Catalog filter control is missing: " + catalogFilter);
+  }
+}
+
+for (const catalogFilterBehavior of [
+  "function matchesCatalogFilters(cover)",
+  "function applyCatalogFilters()",
+  "function toggleCatalogFilter(filterName)",
+  'elements.gameCoverGrid.querySelectorAll(".game-cover:not(:disabled):not([hidden])")',
+  "cover.dataset.favorite",
+  "cover.dataset.downloaded"
+]) {
+  if (!app.includes(catalogFilterBehavior)) {
+    fail("Catalog filter behavior regression guard missing: " + catalogFilterBehavior);
+  }
+}
+
+for (const catalogFilterStyle of [
+  ".catalog-library-toolbar {",
+  ".catalog-filter {",
+  ".catalog-filter.is-active {",
+  '--remote-focus-radius: 999px;'
+]) {
+  if (!styles.includes(catalogFilterStyle)) {
+    fail("Catalog filter visual regression guard missing: " + catalogFilterStyle);
+  }
+}
+
 for (const settingsId of [
   "settingsOverlay",
   "settingsPanel",
