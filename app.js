@@ -139,7 +139,11 @@
   }
 
   function getAnimatedRemoteFocusTarget() {
-    if (reducedMotionQuery.matches || browserFocusInsideScreen) {
+    if (
+      reducedMotionQuery.matches
+      || elements.partybeamScreen.classList.contains("settings-reduced-motion")
+      || browserFocusInsideScreen
+    ) {
       return null;
     }
 
@@ -872,7 +876,18 @@
     elements.partybeamScreen.classList.remove("is-settings-open");
 
     setRemoteFocus(elements.settingsButton);
-    elements.settingsButton.focus({ preventScroll: true });
+
+    if (settingsOpenedWithBrowserFocus) {
+      elements.settingsButton.focus({ preventScroll: true });
+    } else {
+      const activeElement = document.activeElement;
+      if (activeElement && elements.settingsOverlay.contains(activeElement)) {
+        activeElement.blur();
+      }
+      browserFocusInsideScreen = false;
+      renderRemoteFocusVisual();
+    }
+
     settingsOpenedWithBrowserFocus = false;
   }
 
@@ -886,6 +901,8 @@
 
     if (button.dataset.settingToggle === "reduced-motion") {
       elements.partybeamScreen.classList.toggle("settings-reduced-motion", enabled);
+      invalidateRemoteFocusGeometry();
+      renderRemoteFocusVisual();
     }
   }
 
