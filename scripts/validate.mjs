@@ -3,6 +3,8 @@ import { access, readFile } from "node:fs/promises";
 const html = await readFile("index.html", "utf8");
 const app = await readFile("app.js", "utf8");
 const styles = await readFile("styles.css", "utf8");
+const simplifiedFlow = await readFile("simplified-flow.js", "utf8");
+const simplifiedStyles = await readFile("simplified-flow.css", "utf8");
 const voidTags = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
 const stack = [];
 const ids = new Set();
@@ -52,6 +54,55 @@ if (stack.length > 0) {
   fail("Unclosed tags: " + stack.join(", "));
 }
 
+
+
+for (const systemShellMarkup of [
+  "settings-overlay partybeam-system-overlay",
+  "settings-panel partybeam-system-panel",
+  "settings-header partybeam-system-header",
+  "settings-close partybeam-system-close",
+  "settings-footer partybeam-system-footer"
+]) {
+  if (!html.includes(systemShellMarkup)) {
+    fail("Settings system-shell class regression: " + systemShellMarkup);
+  }
+}
+
+for (const manageSystemShellBehavior of [
+  'overlay.dataset.view = view',
+  'class="partybeam-system-overlay pb-manage-overlay"',
+  'class="partybeam-system-panel pb-manage-panel"',
+  'class="partybeam-system-header"',
+  'class="partybeam-system-close"',
+  'class="partybeam-system-footer"'
+]) {
+  if (!simplifiedFlow.includes(manageSystemShellBehavior)) {
+    fail("Manage Games system-shell regression: " + manageSystemShellBehavior);
+  }
+}
+
+for (const systemShellStyle of [
+  ".partybeam-system-overlay {",
+  ".partybeam-system-panel {",
+  ".partybeam-system-header {",
+  ".partybeam-system-close {",
+  ".partybeam-system-footer {"
+]) {
+  if (!styles.includes(systemShellStyle)) {
+    fail("Shared system-shell style regression: " + systemShellStyle);
+  }
+}
+
+for (const manageSystemStyle of [
+  '.pb-simple-flow[data-view="manage-games"]',
+  ".pb-manage-main {",
+  '.preview-canvas[data-device="tv"] .pb-manage-game',
+  '.preview-canvas[data-device="phone"] .pb-manage-game'
+]) {
+  if (!simplifiedStyles.includes(manageSystemStyle)) {
+    fail("Manage Games shared-shell style regression: " + manageSystemStyle);
+  }
+}
 
 for (const fullPreviewBehavior of [
   "const logicalPreset = preset.full",
