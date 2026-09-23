@@ -64,10 +64,12 @@
   let remoteFocusTarget = null;
   let browserFocusInsideScreen = false;
 
-  const REMOTE_FOCUS_CYCLE_MS = 1800;
+  const REMOTE_FOCUS_BASE_CYCLE_MS = 1800;
   const REMOTE_FOCUS_PEAK_ANGLE_DEG = 294;
+  const REMOTE_FOCUS_EDGE_BLEND = 0.22;
   const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let remoteFocusAnimationStartedAt = null;
+  let remoteFocusAnimationAngleDeg = 0;
+  let remoteFocusAnimationLastFrameAt = null;
   let remoteFocusAnimationFrame = null;
   let remoteFocusGeometry = null;
 
@@ -95,107 +97,36 @@
 
   function invalidateRemoteFocusGeometry() {
     remoteFocusGeometry = null;
-    remoteFocusAnimationStartedAt = null;
+    remoteFocusAnimationAngleDeg = 0;
+    remoteFocusAnimationLastFrameAt = null;
   }
 
-  function getRoundedPerimeterLength(width, height, radius) {
-    return 2 * (width + height - 4 * radius) + 2 * Math.PI * radius;
+  function smoothstep01(value) {
+    const clamped = Math.min(1, Math.max(0, value));
+    return clamped * clamped * (3 - 2 * clamped);
   }
 
-  function getRemoteFocusPerimeterAngle(width, height, radius, distance) {
-    const halfWidth = width / 2;
-    const halfHeight = height / 2;
-    const horizontal = Math.max(0, width - 2 * radius);
-    const vertical = Math.max(0, height - 2 * radius);
-    const halfHorizontal = horizontal / 2;
-    const quarterArc = Math.PI * radius / 2;
-    const perimeter = getRoundedPerimeterLength(width, height, radius);
-    let remaining = ((distance % perimeter) + perimeter) % perimeter;
-    let x = 0;
-    let y = -halfHeight;
+  function getRemoteFocusEdgeSpeedMultiplier(width, height, angleDeg) {
+    const halfWidth = Math.max(width / 2, Number.EPSILON);
+    const halfHeight = Math.max(height / 2, Number.EPSILON);
+    const angle = normalizeDegrees(angleDeg) * Math.PI / 180;
 
-    function pointOnArc(centerX, centerY, startAngle, arcDistance) {
-      const angle = startAngle + arcDistance / Math.max(radius, Number.EPSILON);
-      return {
-        x: centerX + radius * Math.cos(angle),
-        y: centerY + radius * Math.sin(angle)
-      };
-    }
+    // A conic gradient turns at a constant angular rate, which makes the
+    // highlight race across the short edges of a wide button. Keep the
+    // original pace on the long edges and slow only the short ones.
+    const verticalEdgeMetric = Math.abs(Math.sin(angle)) / halfWidth;
+    const horizontalEdgeMetric = Math.abs(Math.cos(angle)) / halfHeight;
+    const dominance = (verticalEdgeMetric - horizontalEdgeMetric)
+      / Math.max(verticalEdgeMetric + horizontalEdgeMetric, Number.EPSILON);
+    const verticalBlend = smoothstep01(
+      (dominance + REMOTE_FOCUS_EDGE_BLEND) / (2 * REMOTE_FOCUS_EDGE_BLEND)
+    );
 
-    if (remaining <= halfHorizontal) {
-      x = remaining;
-    } else {
-      remaining -= halfHorizontal;
+    const horizontalMultiplier = width >= height ? 1 : width / height;
+    const verticalMultiplier = height >= width ? 1 : height / width;
 
-      if (radius > 0 && remaining <= quarterArc) {
-        ({ x, y } = pointOnArc(
-          halfWidth - radius,
-          -halfHeight + radius,
-          -Math.PI / 2,
-          remaining
-        ));
-      } else {
-        remaining -= quarterArc;
-
-        if (remaining <= vertical) {
-          x = halfWidth;
-          y = -halfHeight + radius + remaining;
-        } else {
-          remaining -= vertical;
-
-          if (radius > 0 && remaining <= quarterArc) {
-            ({ x, y } = pointOnArc(
-              halfWidth - radius,
-              halfHeight - radius,
-              0,
-              remaining
-            ));
-          } else {
-            remaining -= quarterArc;
-
-            if (remaining <= horizontal) {
-              x = halfWidth - radius - remaining;
-              y = halfHeight;
-            } else {
-              remaining -= horizontal;
-
-              if (radius > 0 && remaining <= quarterArc) {
-                ({ x, y } = pointOnArc(
-                  -halfWidth + radius,
-                  halfHeight - radius,
-                  Math.PI / 2,
-                  remaining
-                ));
-              } else {
-                remaining -= quarterArc;
-
-                if (remaining <= vertical) {
-                  x = -halfWidth;
-                  y = halfHeight - radius - remaining;
-                } else {
-                  remaining -= vertical;
-
-                  if (radius > 0 && remaining <= quarterArc) {
-                    ({ x, y } = pointOnArc(
-                      -halfWidth + radius,
-                      -halfHeight + radius,
-                      Math.PI,
-                      remaining
-                    ));
-                  } else {
-                    remaining -= quarterArc;
-                    x = -halfWidth + radius + remaining;
-                    y = -halfHeight;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return normalizeDegrees(Math.atan2(x, -y) * 180 / Math.PI);
+    return horizontalMultiplier
+      + (verticalMultiplier - horizontalMultiplier) * verticalBlend;
   }
 
   function getAnimatedRemoteFocusTarget() {
@@ -215,7 +146,8 @@
       window.cancelAnimationFrame(remoteFocusAnimationFrame);
       remoteFocusAnimationFrame = null;
     }
-    remoteFocusAnimationStartedAt = null;
+    remoteFocusAnimationAngleDeg = 0;
+    remoteFocusAnimationLastFrameAt = null;
     remoteFocusGeometry = null;
   }
 
@@ -224,26 +156,37 @@
 
     const activeTarget = getAnimatedRemoteFocusTarget();
     if (!activeTarget) {
-      remoteFocusAnimationStartedAt = null;
+      remoteFocusAnimationLastFrameAt = null;
       return;
     }
 
-    const { width, height, radius } = remoteFocusGeometry
+    const { width, height } = remoteFocusGeometry
       || (remoteFocusGeometry = getRemoteFocusGeometry(activeTarget));
     if (width <= 0 || height <= 0) {
-      remoteFocusAnimationStartedAt = null;
+      remoteFocusAnimationLastFrameAt = null;
       return;
     }
 
-    if (remoteFocusAnimationStartedAt === null) {
-      remoteFocusAnimationStartedAt = timestamp;
+    if (remoteFocusAnimationLastFrameAt === null) {
+      remoteFocusAnimationLastFrameAt = timestamp;
+    } else {
+      const deltaMs = Math.max(0, timestamp - remoteFocusAnimationLastFrameAt);
+      const baseDegrees = 360 * deltaMs / REMOTE_FOCUS_BASE_CYCLE_MS;
+      const speedMultiplier = getRemoteFocusEdgeSpeedMultiplier(
+        width,
+        height,
+        remoteFocusAnimationAngleDeg
+      );
+
+      remoteFocusAnimationAngleDeg = normalizeDegrees(
+        remoteFocusAnimationAngleDeg + baseDegrees * speedMultiplier
+      );
+      remoteFocusAnimationLastFrameAt = timestamp;
     }
 
-    const perimeter = getRoundedPerimeterLength(width, height, radius);
-    const elapsed = (timestamp - remoteFocusAnimationStartedAt) % REMOTE_FOCUS_CYCLE_MS;
-    const distance = perimeter * (elapsed / REMOTE_FOCUS_CYCLE_MS);
-    const perimeterAngle = getRemoteFocusPerimeterAngle(width, height, radius, distance);
-    const gradientAngle = normalizeDegrees(perimeterAngle - REMOTE_FOCUS_PEAK_ANGLE_DEG);
+    const gradientAngle = normalizeDegrees(
+      remoteFocusAnimationAngleDeg - REMOTE_FOCUS_PEAK_ANGLE_DEG
+    );
 
     activeTarget.style.setProperty("--remote-focus-angle", `${gradientAngle}deg`);
     remoteFocusAnimationFrame = window.requestAnimationFrame(animateRemoteFocus);
