@@ -3361,6 +3361,26 @@ button:disabled {
   font-size: 12px;
 }
 
+.partybeam-screen.settings-reduced-motion *,
+.partybeam-screen.settings-reduced-motion *::before,
+.partybeam-screen.settings-reduced-motion *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+.partybeam-screen.settings-reduced-motion .remote-focused::before,
+.partybeam-screen.settings-reduced-motion .remote-focused::after {
+  animation: none;
+  --remote-focus-angle: 292deg;
+}
+
+.settings-slider.remote-focused {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .settings-toggle-track > span {
     transition: none;
