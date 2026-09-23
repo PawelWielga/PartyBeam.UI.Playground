@@ -666,6 +666,44 @@
           viewport + " catalog entry kept DOM focus on the first cover and suppressed TV focus"
         );
 
+        if (covers.length >= 7 && (viewport === "tv1080" || viewport === "tv720" || viewport === "full")) {
+          await dispatchKey("ArrowDown");
+          await waitFrames(2);
+
+          const secondRowScrollTop = scroll.scrollTop;
+          assert(
+            doc.querySelector(".game-cover.remote-focused") === covers[5],
+            viewport + " sixth cover did not receive focus before horizontal scroll stability check"
+          );
+
+          await dispatchKey("ArrowRight");
+          await waitFrames(2);
+          assert(
+            doc.querySelector(".game-cover.remote-focused") === covers[6],
+            viewport + " seventh cover did not receive focus"
+          );
+          assert(
+            Math.abs(scroll.scrollTop - secondRowScrollTop) <= 1,
+            viewport + " horizontal navigation changed catalog scroll position",
+            "6->7 delta=" + (scroll.scrollTop - secondRowScrollTop)
+          );
+
+          await dispatchKey("ArrowLeft");
+          await waitFrames(2);
+          assert(
+            doc.querySelector(".game-cover.remote-focused") === covers[5],
+            viewport + " sixth cover did not regain focus"
+          );
+          assert(
+            Math.abs(scroll.scrollTop - secondRowScrollTop) <= 1,
+            viewport + " reverse horizontal navigation changed catalog scroll position",
+            "7->6 delta=" + (scroll.scrollTop - secondRowScrollTop)
+          );
+
+          await dispatchKey("ArrowUp");
+          await waitFrames(2);
+        }
+
         const incompatible = covers.find((cover) => cover.classList.contains("game-cover--incompatible"));
         const compatible = covers.find((cover) => !cover.classList.contains("game-cover--incompatible"));
         assert(Boolean(incompatible), viewport + " catalog has no incompatible placeholder at six players");
