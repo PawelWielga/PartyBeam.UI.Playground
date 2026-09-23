@@ -1525,7 +1525,7 @@ button:disabled {
 }
 
 .partybeam-topbar {
-  padding-inline: 74px;
+  padding-inline: max(58px, calc((100% - 1800px) / 2));
   border-bottom: 0;
 }
 
@@ -1895,7 +1895,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .partybeam-topbar {
-  padding-inline: 42px;
+  padding-inline: 36px;
 }
 
 .preview-canvas[data-device="tv720"] .brand-mark {
@@ -2029,7 +2029,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .partybeam-topbar {
-  padding-inline: 14px;
+  padding-inline: 10px;
 }
 
 .preview-canvas[data-device="phone"] .partybeam-brand {
