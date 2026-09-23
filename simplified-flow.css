@@ -567,3 +567,104 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Manage Games uses the same system-panel shell as Settings. */
+.pb-simple-flow[data-view="manage-games"] {
+  background: transparent;
+}
+
+.pb-manage-overlay {
+  z-index: 0;
+}
+
+.pb-manage-main {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 16px;
+  padding: 24px 38px 28px;
+  overflow: hidden;
+}
+
+.pb-storage-summary {
+  border: 2px solid rgba(218, 223, 251, 0.13);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.pb-manage-list {
+  border-top: 1px solid rgba(225, 230, 255, 0.10);
+  padding: 0 8px 16px 0;
+}
+
+.pb-manage-game {
+  min-height: 92px;
+  padding: 14px 4px;
+  border: 0;
+  border-bottom: 1px solid rgba(225, 230, 255, 0.10);
+  border-radius: 0;
+  background: transparent;
+}
+
+.pb-manage-game__actions button {
+  border-color: rgba(216, 221, 249, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(238, 241, 255, 0.84);
+}
+
+.pb-manage-game__actions button:hover {
+  border-color: rgba(177, 158, 255, 0.38);
+  background: rgba(111, 80, 223, 0.16);
+  color: #fff;
+}
+
+.pb-simple-flow[data-view="manage-games"] button:focus-visible {
+  outline-color: var(--focus);
+  box-shadow:
+    0 0 0 8px rgba(111, 80, 223, 0.30),
+    0 18px 44px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 1400px), (max-height: 800px) {
+  .pb-manage-main {
+    gap: 10px;
+    padding: 14px 26px 18px;
+  }
+
+  .pb-storage-summary {
+    padding: 11px 14px;
+    border-radius: 15px;
+  }
+
+  .pb-manage-game {
+    min-height: 68px;
+    padding: 8px 2px;
+  }
+}
+
+@media (max-width: 900px) {
+  .pb-manage-main {
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .pb-manage-list {
+    padding-right: 0;
+  }
+
+  .pb-manage-game {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px 1px;
+  }
+
+  .pb-manage-game__actions {
+    justify-content: flex-start;
+  }
+
+  .pb-storage-summary {
+    grid-template-columns: 1fr;
+  }
+}
