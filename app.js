@@ -75,6 +75,7 @@
     gameDetailsCloseButton: document.getElementById("gameDetailsCloseButton"),
     gameDetailsTitle: document.getElementById("gameDetailsTitle"),
     gameDetailsPlayers: document.getElementById("gameDetailsPlayers"),
+    gameDetailsCover: document.querySelector(".game-details-cover"),
     gameDetailsCoverNumber: document.getElementById("gameDetailsCoverNumber"),
     gameDetailsCoverTitle: document.getElementById("gameDetailsCoverTitle"),
     gameDetailsActionButton: document.getElementById("gameDetailsActionButton"),
@@ -397,6 +398,11 @@
       cover.dataset.gameNumber = gameNumber;
       cover.dataset.gameTitle = index === 0 ? "Grimcellar" : "Placeholder Game " + gameNumber;
 
+      if (index === 0) {
+        cover.classList.add("game-cover--image");
+        cover.dataset.coverImage = "assets/covers/grimcellar.png";
+      }
+
       const art = document.createElement("span");
       art.className = "game-cover-art";
 
@@ -406,7 +412,18 @@
 
       const placeholder = document.createElement("span");
       placeholder.className = "game-cover-placeholder-label";
-      placeholder.textContent = index === 0 ? "GRIMCELLAR" : "PLACEHOLDER";
+      placeholder.textContent = "PLACEHOLDER";
+
+      if (cover.dataset.coverImage) {
+        const image = document.createElement("img");
+        image.className = "game-cover-image";
+        image.src = cover.dataset.coverImage;
+        image.alt = "";
+        image.decoding = "async";
+        art.appendChild(image);
+      } else {
+        art.append(number, placeholder);
+      }
 
       const compatibility = document.createElement("span");
       compatibility.className = "game-cover-compatibility";
@@ -419,7 +436,6 @@
       detail.textContent = "Supports up to " + maximumPlayers + " players";
 
       compatibility.append(warning, detail);
-      art.append(number, placeholder);
       cover.append(art, compatibility);
       cover.addEventListener("click", () => {
         openGameDetails(cover);
@@ -932,6 +948,11 @@
     elements.gameDetailsPlayers.textContent = "1–" + maximumPlayers + " players";
     elements.gameDetailsCoverNumber.textContent = gameNumber;
     elements.gameDetailsCoverTitle.textContent = gameTitle.toUpperCase();
+
+    const coverImage = origin.dataset.coverImage || "";
+    elements.gameDetailsCover.classList.toggle("game-details-cover--image", Boolean(coverImage));
+    elements.gameDetailsCover.style.backgroundImage = coverImage ? `url("${coverImage}")` : "";
+
     elements.gameDetailsActionButton.setAttribute("aria-label", "Game action for " + gameTitle);
   }
 
