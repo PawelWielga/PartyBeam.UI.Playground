@@ -1530,6 +1530,8 @@ button:disabled {
 }
 
 .partybeam-brand {
+  width: min(432px, calc((100% + 32px) * 0.24));
+  justify-content: space-between;
   gap: 20px;
 }
 
@@ -1905,6 +1907,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .partybeam-brand {
+  width: calc((100% + 12px) * 0.24);
   gap: 13px;
 }
 
@@ -2030,6 +2033,11 @@ button:disabled {
 
 .preview-canvas[data-device="phone"] .partybeam-topbar {
   padding-inline: 14px;
+}
+
+.preview-canvas[data-device="phone"] .partybeam-brand {
+  width: auto;
+  justify-content: flex-start;
 }
 
 .preview-canvas[data-device="phone"] .brand-copy {
