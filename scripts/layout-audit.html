@@ -358,6 +358,11 @@
           String(pxValue(scroll, "paddingBottom"))
         );
         assert(
+          Math.abs((screenRect.bottom - playersRect.bottom) - expectedCatalogBottomPadding) <= 2,
+          viewport + " Players panel bottom spacing does not match the catalog",
+          String(screenRect.bottom - playersRect.bottom)
+        );
+        assert(
           Math.abs(screenRect.bottom - scrollRect.bottom) <= 2,
           viewport + " catalog scroll leaves a dead band at the bottom",
           String(screenRect.bottom - scrollRect.bottom)

@@ -111,6 +111,16 @@ for (const catalogPadding of [
   }
 }
 
+for (const playersPanelSpacing of [
+  "margin-bottom: 24px;",
+  "margin-bottom: 14px;",
+  "margin-bottom: 10px;"
+]) {
+  if (!styles.includes(playersPanelSpacing)) {
+    fail("Catalog Players panel must keep the same bottom spacing as the game library: " + playersPanelSpacing);
+  }
+}
+
 if (!process.exitCode) {
   console.log("Static site validation passed.");
 }
