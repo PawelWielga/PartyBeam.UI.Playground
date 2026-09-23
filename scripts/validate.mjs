@@ -84,6 +84,24 @@ if (!app.includes("remoteFocusGeometry = getRemoteFocusGeometry(activeTarget)"))
   fail("Remote focus geometry must be cached instead of recalculated every animation frame.");
 }
 
+const animatedFocusTargetStart = app.indexOf("function getAnimatedRemoteFocusTarget()");
+const animatedFocusTargetEnd = app.indexOf("function stopRemoteFocusAnimation()", animatedFocusTargetStart);
+const animatedFocusTargetBlock = app.slice(animatedFocusTargetStart, animatedFocusTargetEnd);
+if (animatedFocusTargetBlock.includes("browserFocusInsideScreen")) {
+  fail("Browser focus inside PartyBeam must keep the animated focus ring active.");
+}
+
+const focusVisualStart = app.indexOf("function renderRemoteFocusVisual()");
+const focusVisualEnd = app.indexOf("function updateCatalogScrollEdgeFade()", focusVisualStart);
+const focusVisualBlock = app.slice(focusVisualStart, focusVisualEnd);
+if (!focusVisualBlock.includes('if (remoteFocusTarget)') || focusVisualBlock.includes("!browserFocusInsideScreen")) {
+  fail("PartyBeam browser focus and remote focus must share the same remote-focused visual.");
+}
+
+if (css.includes(".settings-slider.remote-focused")) {
+  fail("Settings slider must not reintroduce a separate static focus style.");
+}
+
 if (!app.includes('getComputedStyle(element, "::after")')) {
   fail("Remote focus geometry must use the rendered ::after ring radius.");
 }
