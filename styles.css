@@ -823,6 +823,7 @@ button:disabled {
 .lobby-actions {
   display: grid;
   justify-items: center;
+  margin-top: 12px;
 }
 
 .screen-button--primary {
