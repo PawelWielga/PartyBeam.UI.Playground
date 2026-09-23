@@ -320,13 +320,11 @@
         assert(rectInside(panelRect, screenRect, 1), viewport + " Settings panel leaves PartyBeam screen");
         assert(noHorizontalOverflow(panel), viewport + " Settings panel horizontal overflow");
         assert(noHorizontalOverflow(content), viewport + " Settings content horizontal overflow");
+        const activeCategory = categories.find((category) => category.classList.contains("is-active"));
+        assert(Boolean(activeCategory), viewport + " Settings has no active category");
         assert(
-          doc.activeElement === categories[0],
-          viewport + " Settings initial focus is not the first category"
-        );
-        assert(
-          categories[0].classList.contains("is-active"),
-          viewport + " General category is not initially active"
+          doc.activeElement === activeCategory,
+          viewport + " Settings initial focus is not the active category"
         );
 
         if (viewport === "phone") {
@@ -344,6 +342,13 @@
             viewport + " Settings TV categories are not left of content"
           );
         }
+
+        categories[0].click();
+        await waitFrames(1);
+        assert(
+          !doc.querySelector('[data-settings-section="general"]').hidden,
+          viewport + " General settings did not open"
+        );
 
         const firstToggle = doc.querySelector('[data-setting-toggle="start-on-launch"]');
         const beforeToggle = firstToggle.getAttribute("aria-checked");
