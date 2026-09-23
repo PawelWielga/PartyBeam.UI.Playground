@@ -625,9 +625,10 @@
         assert(playersRect.right <= libraryRect.left + 1, viewport + " player panel overlaps game library");
         assert(pxValue(catalog, "paddingBottom") <= 1, viewport + " catalog screen keeps bottom padding");
 
-        const expectedCatalogBottomPadding = viewport === "tv720"
+        const catalogDevice = doc.getElementById("previewCanvas").dataset.device;
+        const expectedCatalogBottomPadding = catalogDevice === "tv720"
           ? 14
-          : viewport === "phone"
+          : catalogDevice === "phone"
             ? 10
             : 24;
         assert(
