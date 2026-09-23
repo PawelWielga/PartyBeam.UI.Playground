@@ -471,33 +471,30 @@
         cover.focus();
         await waitFrames(1);
         cover.click();
-        await waitFrames(1);
+        await waitFrames(2);
 
-        const overlay = doc.getElementById("gameDetailsOverlay");
+        const detailsOverlay = doc.getElementById("gameDetailsOverlay");
         const panel = doc.getElementById("gameDetailsPanel");
         const copy = doc.querySelector(".game-details-copy");
         const artwork = doc.querySelector(".game-details-cover");
         const action = doc.getElementById("gameDetailsActionButton");
-        const progress = doc.getElementById("gameDownloadProgress");
-        const error = doc.getElementById("gameDownloadError");
-        const prepState = doc.getElementById("gamePreparationState");
+        const downloadStatus = doc.getElementById("gameDownloadStatus");
         const screenRect = screen.getBoundingClientRect();
-        const overlayRect = overlay.getBoundingClientRect();
+        const detailsRect = detailsOverlay.getBoundingClientRect();
         const panelRect = panel.getBoundingClientRect();
         const copyRect = copy.getBoundingClientRect();
         const artworkRect = artwork.getBoundingClientRect();
 
         cases += 1;
 
-        assert(!overlay.hidden, viewport + " Game Details overlay stayed hidden");
-        assert(overlay.getAttribute("aria-hidden") === "false", viewport + " Game Details aria-hidden did not update");
-        assert(rectInside(overlayRect, screenRect), viewport + " Game Details overlay leaves PartyBeam screen");
+        assert(!detailsOverlay.hidden, viewport + " Game Details overlay stayed hidden");
+        assert(detailsOverlay.getAttribute("aria-hidden") === "false", viewport + " Game Details aria-hidden did not update");
+        assert(rectInside(detailsRect, screenRect), viewport + " Game Details overlay leaves PartyBeam screen");
         assert(rectInside(panelRect, screenRect, 1), viewport + " Game Details panel leaves PartyBeam screen");
         assert(noHorizontalOverflow(panel), viewport + " Game Details panel horizontal overflow");
-        assert(action.textContent.trim() === "DOWNLOAD GAME", viewport + " Game Details initial action is not Download");
-        assert(progress.hidden, viewport + " Game Details progress visible before download");
-        assert(error.hidden, viewport + " Game Details error visible before failure");
-        assert(overlay.contains(doc.activeElement), viewport + " Game Details did not move browser focus inside modal");
+        assert(action.textContent.trim() === "PLAY", viewport + " Game Details primary action is not Play");
+        assert(downloadStatus.hidden, viewport + " Game Details exposes download management on the happy path");
+        assert(detailsOverlay.contains(doc.activeElement), viewport + " Game Details did not move browser focus inside modal");
 
         if (viewport === "phone") {
           assert(
@@ -512,52 +509,36 @@
         }
 
         action.click();
-        assert(action.textContent.trim() === "CANCEL", viewport + " Download did not switch action to Cancel");
-        assert(!progress.hidden, viewport + " Download progress did not appear");
-        assert(
-          Number(doc.getElementById("gameDownloadProgressTrack").getAttribute("aria-valuenow")) >= 0,
-          viewport + " Download progress value missing"
-        );
+        await waitFrames(3);
 
-        action.click();
-        assert(action.textContent.trim() === "DOWNLOAD GAME", viewport + " Cancel did not restore Download");
-        assert(progress.hidden, viewport + " Cancel did not hide progress");
-
-        prepState.value = "error";
-        prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
-        assert(action.textContent.trim() === "RETRY", viewport + " Error state does not expose Retry");
-        assert(!error.hidden, viewport + " Error state message stayed hidden");
-
-        prepState.value = "ready";
-        prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
-        assert(action.textContent.trim() === "START GAME", viewport + " Ready state does not expose Start Game");
-        assert(progress.hidden, viewport + " Ready state left progress visible");
-
-        prepState.value = "not-downloaded";
-        prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
-        await waitFrames(1);
-
-        const backgroundTarget = doc.getElementById("settingsButton");
-        backgroundTarget.focus();
-        assert(
-          overlay.contains(doc.activeElement),
-          viewport + " Game Details focus escaped to blurred background"
-        );
+        const simpleFlow = doc.getElementById("pbSimpleFlow");
+        const simpleRect = simpleFlow.getBoundingClientRect();
+        assert(detailsOverlay.hidden, viewport + " PLAY did not close Game Details");
+        assert(!simpleFlow.hidden, viewport + " PLAY did not enter simplified lifecycle");
+        assert(simpleFlow.getAttribute("aria-hidden") === "false", viewport + " simplified lifecycle aria-hidden did not update");
+        assert(rectInside(simpleRect, screenRect), viewport + " simplified lifecycle leaves PartyBeam screen");
 
         await dispatchKey("Escape");
-        await waitFrames(1);
-        assert(overlay.hidden, viewport + " Escape did not close Game Details");
-        assert(doc.activeElement === cover, viewport + " Escape did not restore game-card focus");
+        await waitFrames(2);
+        assert(simpleFlow.hidden, viewport + " Escape did not leave simplified lifecycle");
+        assert(doc.activeElement === cover, viewport + " simplified lifecycle did not restore game-card focus");
 
         cover.click();
-        await dispatchKey("Backspace");
-        await waitFrames(1);
-        assert(overlay.hidden, viewport + " Back did not close Game Details");
-        assert(doc.activeElement === cover, viewport + " Back did not restore game-card focus");
+        await waitFrames(2);
+        action.click();
+        await waitFrames(2);
+        assert(!simpleFlow.hidden, viewport + " second PLAY did not enter simplified lifecycle");
+
+        const remoteBack = doc.querySelector('[data-remote-key="back"]');
+        remoteBack.click();
+        await waitFrames(2);
+        assert(simpleFlow.hidden, viewport + " Remote Back did not leave simplified lifecycle");
+        assert(doc.activeElement === cover, viewport + " Remote Back did not restore game-card focus");
 
         await dispatchKey("Backspace");
         await waitFrames(1);
       }
+
 
       async function validateCatalog(viewport) {
         const doc = frame.contentDocument;
@@ -906,6 +887,7 @@
 
       async function run() {
         await waitFrames(5);
+        await waitForControl("continueButton");
 
         const viewports = ["tv1080", "tv720", "full"];
         const playerCounts = [0, 1, 2, 4, 6, 8];
