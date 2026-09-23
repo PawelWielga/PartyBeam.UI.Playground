@@ -416,6 +416,22 @@
           doc.activeElement === settingsButton,
           viewport + " Done did not return focus to Settings"
         );
+
+        settingsButton.blur();
+        await waitFrames(2);
+        const remoteOk = doc.querySelector('[data-remote-key="ok"]');
+        const remoteBack = doc.querySelector('[data-remote-key="back"]');
+        remoteOk.click();
+        await waitFrames(2);
+        assert(!overlay.hidden, viewport + " Remote OK did not reopen Settings");
+
+        remoteBack.click();
+        await waitFrames(2);
+        assert(overlay.hidden, viewport + " Remote Back did not close Settings");
+        assert(
+          settingsButton.classList.contains("remote-focused"),
+          viewport + " Remote close did not restore the animated Settings focus"
+        );
       }
 
       async function validateCatalog(viewport) {
