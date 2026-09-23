@@ -1530,19 +1530,17 @@ button:disabled {
 }
 
 .partybeam-brand {
-  width: min(432px, calc((100% + 32px) * 0.24));
-  justify-content: space-between;
-  gap: 20px;
+  gap: 26px;
 }
 
 .brand-mark {
-  width: 58px;
-  border-radius: 18px;
+  width: 84px;
+  border-radius: 24px;
   background: linear-gradient(145deg, #8b52ff 0%, #673bf0 100%);
   box-shadow:
     0 10px 32px rgba(116, 72, 255, 0.34),
     inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  font-size: 32px;
+  font-size: 46px;
 }
 
 .brand-copy {
@@ -1552,14 +1550,14 @@ button:disabled {
 }
 
 .brand-name {
-  font-size: 28px;
+  font-size: 40px;
   font-weight: 900;
   letter-spacing: 0.16em;
 }
 
 .brand-tagline {
   color: rgba(235, 239, 255, 0.68);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.31em;
 }
@@ -1901,22 +1899,21 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .brand-mark {
-  width: 40px;
-  border-radius: 12px;
-  font-size: 22px;
+  width: 58px;
+  border-radius: 16px;
+  font-size: 32px;
 }
 
 .preview-canvas[data-device="tv720"] .partybeam-brand {
-  width: calc((100% + 12px) * 0.24);
-  gap: 13px;
+  gap: 18px;
 }
 
 .preview-canvas[data-device="tv720"] .brand-name {
-  font-size: 19px;
+  font-size: 28px;
 }
 
 .preview-canvas[data-device="tv720"] .brand-tagline {
-  font-size: 6px;
+  font-size: 8px;
   letter-spacing: 0.25em;
 }
 
