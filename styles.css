@@ -2197,6 +2197,7 @@ button:disabled {
 .catalog-library h1 {
   padding: 2px 12px 0;
   font-size: 32px;
+  text-align: right;
 }
 
 .catalog-scroll {
