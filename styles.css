@@ -2338,6 +2338,33 @@ button:disabled {
   outline-offset: 7px;
 }
 
+.partybeam-screen.is-catalog .game-cover {
+  transition:
+    filter 180ms ease,
+    transform 180ms ease;
+}
+
+.partybeam-screen.is-catalog .game-cover:not(.remote-focused):not(:focus-visible):not(:hover) {
+  filter: saturate(0.8) brightness(0.8);
+}
+
+.partybeam-screen.is-catalog .game-cover.remote-focused,
+.partybeam-screen.is-catalog .game-cover:focus-visible,
+.partybeam-screen.is-catalog .game-cover:hover {
+  filter: none;
+  transform: translateY(-2px) scale(1.015);
+}
+
+.partybeam-screen.settings-reduced-motion.is-catalog .game-cover {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partybeam-screen.is-catalog .game-cover {
+    transition: none;
+  }
+}
+
 .game-cover-art::before,
 .game-cover-art::after {
   content: "";
