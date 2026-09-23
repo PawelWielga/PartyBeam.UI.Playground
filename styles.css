@@ -14,6 +14,8 @@
   --radius-sm: 12px;
   --radius-md: 16px;
   --radius-lg: 24px;
+  --border-major: 4px;
+  --border-control: 2px;
   --shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
   color: var(--text);
   background: var(--bg);
@@ -1557,7 +1559,7 @@ button:disabled {
 .screen-button--ghost {
   min-height: 58px;
   padding-inline: 20px;
-  border: 1px solid rgba(222, 226, 255, 0.28);
+  border: var(--border-control) solid rgba(222, 226, 255, 0.28);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.045));
   color: rgba(244, 246, 255, 0.88);
@@ -1593,7 +1595,7 @@ button:disabled {
   height: 326px;
   gap: 10px;
   padding: 22px 28px;
-  border: 1px solid transparent;
+  border: var(--border-major) solid transparent;
   border-radius: var(--radius-lg);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.11),
@@ -1801,7 +1803,7 @@ button:disabled {
   min-height: 50px;
   gap: 11px;
   padding: 8px 13px;
-  border: 1px solid rgba(218, 224, 255, 0.2);
+  border: var(--border-control) solid rgba(218, 224, 255, 0.2);
   border-radius: 13px;
   background:
     linear-gradient(180deg, rgba(28, 33, 58, 0.68), rgba(16, 21, 40, 0.64));
@@ -1834,7 +1836,7 @@ button:disabled {
 .screen-button--primary {
   min-width: 390px;
   min-height: 64px;
-  border: 1px solid rgba(235, 220, 255, 0.36);
+  border: var(--border-control) solid rgba(235, 220, 255, 0.36);
   background:
     linear-gradient(135deg, #6f59f2 0%, #874df4 52%, #a832f0 100%);
   box-shadow:
@@ -2128,7 +2130,7 @@ button:disabled {
   gap: 20px;
   padding: 28px 24px;
   overflow: hidden;
-  border: 1px solid rgba(218, 224, 255, 0.2);
+  border: var(--border-major) solid rgba(218, 224, 255, 0.2);
   border-radius: var(--radius-lg);
   background:
     linear-gradient(180deg, rgba(19, 25, 48, 0.88), rgba(10, 15, 31, 0.82));
@@ -2237,7 +2239,7 @@ button:disabled {
   aspect-ratio: 2 / 3;
   padding: 0;
   overflow: visible;
-  border: 1px solid rgba(225, 229, 255, 0.16);
+  border: var(--border-major) solid rgba(225, 229, 255, 0.16);
   border-radius: 22px;
   background:
     radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.16), transparent 22%),
@@ -2353,7 +2355,7 @@ button:disabled {
   display: none;
   gap: 4px;
   padding: 12px 13px;
-  border: 1px solid rgba(255, 190, 115, 0.34);
+  border: var(--border-control) solid rgba(255, 190, 115, 0.34);
   border-radius: 14px;
   background: rgba(30, 19, 22, 0.9);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
