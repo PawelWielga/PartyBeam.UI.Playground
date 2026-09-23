@@ -4222,6 +4222,7 @@ button:disabled {
 
 /* Header logo readability --------------------------------------------------- */
 .partybeam-topbar .partybeam-brand .brand-mark {
+  margin-right: 13px;
   transform: scale(1.3);
-  transform-origin: center;
+  transform-origin: left center;
 }
