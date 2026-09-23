@@ -19,6 +19,7 @@
 
   const state = {
     viewport: "tv1080",
+    previousViewport: "tv1080",
     players: 6,
     uiState: "normal",
     continueEnabled: true,
@@ -31,6 +32,7 @@
   };
 
   const elements = {
+    playgroundShell: document.querySelector(".playground-shell"),
     previewStage: document.getElementById("previewStage"),
     previewViewport: document.getElementById("previewViewport"),
     previewCanvas: document.getElementById("previewCanvas"),
@@ -269,6 +271,7 @@
 
   function applyViewport() {
     const preset = viewportPresets[state.viewport];
+    elements.playgroundShell.classList.toggle("is-full-preview", Boolean(preset.full));
     const available = getStageSpace();
 
     let logicalWidth;
@@ -1256,8 +1259,20 @@
 
   document.querySelectorAll("[data-viewport]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.viewport = button.dataset.viewport;
+      const nextViewport = button.dataset.viewport;
+
+      if (nextViewport === "full" && state.viewport !== "full") {
+        state.previousViewport = state.viewport;
+        setDevPanel(false);
+        setRemotePanel(false);
+      }
+
+      state.viewport = nextViewport;
       applyViewport();
+
+      if (nextViewport === "full") {
+        button.blur();
+      }
     });
   });
 
@@ -1425,6 +1440,13 @@
 
       if (!elements.remotePanel.hidden) {
         setRemotePanel(false);
+        return;
+      }
+
+      if (state.viewport === "full") {
+        event.preventDefault();
+        state.viewport = state.previousViewport;
+        applyViewport();
         return;
       }
     }
