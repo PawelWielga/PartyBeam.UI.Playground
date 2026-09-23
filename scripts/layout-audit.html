@@ -235,8 +235,12 @@
 
         assert(doc.activeElement === target, label + " browser focus did not reach target");
         assert(
-          doc.querySelectorAll(".remote-focused").length === 0,
-          label + " remote ring remained visible during browser focus"
+          doc.querySelectorAll(".remote-focused").length === 1,
+          label + " browser focus did not keep exactly one animated focus ring"
+        );
+        assert(
+          target.classList.contains("remote-focused"),
+          label + " browser-focused target did not use the animated focus ring"
         );
 
         const enterPrevented = await dispatchKey("Enter");
@@ -254,8 +258,12 @@
           label + " spatial arrow moved focus outside PartyBeam screen"
         );
         assert(
-          doc.querySelectorAll(".remote-focused").length === 0,
-          label + " remote ring reappeared while browser focus stayed inside screen"
+          doc.querySelectorAll(".remote-focused").length === 1,
+          label + " spatial browser focus did not keep exactly one animated focus ring"
+        );
+        assert(
+          afterArrow.classList.contains("remote-focused"),
+          label + " spatial browser focus did not move the animated focus ring"
         );
 
         afterArrow.blur();
@@ -263,7 +271,11 @@
 
         assert(
           doc.querySelectorAll(".remote-focused").length === 1,
-          label + " remote ring did not return after browser focus left screen"
+          label + " animated focus ring disappeared after browser focus left screen"
+        );
+        assert(
+          afterArrow.classList.contains("remote-focused"),
+          label + " animated focus ring moved after browser focus left screen"
         );
       }
 
