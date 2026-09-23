@@ -163,7 +163,6 @@
     if (
       reducedMotionQuery.matches
       || elements.partybeamScreen.classList.contains("settings-reduced-motion")
-      || browserFocusInsideScreen
     ) {
       return null;
     }
@@ -559,7 +558,7 @@
       focused.classList.remove("remote-focused");
     });
 
-    if (remoteFocusTarget && !browserFocusInsideScreen) {
+    if (remoteFocusTarget) {
       remoteFocusTarget.classList.add("remote-focused");
     }
 
