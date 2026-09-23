@@ -276,6 +276,7 @@
 
     invalidateRemoteFocusGeometry();
     syncRemoteFocusAnimation();
+    updateCatalogScrollEdgeFade();
   }
 
   function createPlayerSlot(name, connected) {
@@ -522,6 +523,25 @@
     syncRemoteFocusAnimation();
   }
 
+  function updateCatalogScrollEdgeFade() {
+    const scroller = elements.catalogScroll;
+
+    if (state.screen !== "catalog" || scroller.clientHeight <= 0) {
+      scroller.classList.remove("is-clipped-top", "is-clipped-bottom");
+      return;
+    }
+
+    const maxScrollTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+    const scrollTop = Math.min(maxScrollTop, Math.max(0, scroller.scrollTop));
+    const edgeEpsilon = 1;
+
+    scroller.classList.toggle("is-clipped-top", scrollTop > edgeEpsilon);
+    scroller.classList.toggle(
+      "is-clipped-bottom",
+      scrollTop < maxScrollTop - edgeEpsilon
+    );
+  }
+
   function ensureCatalogTargetVisible(element) {
     if (
       state.screen !== "catalog"
@@ -545,6 +565,7 @@
       maxScrollTop,
       Math.max(0, centeredScrollTop)
     );
+    updateCatalogScrollEdgeFade();
   }
 
   function setRemoteFocus(element) {
@@ -742,6 +763,7 @@
 
     const firstCover = elements.gameCoverGrid.querySelector(".game-cover");
     setRemoteFocus(firstCover);
+    updateCatalogScrollEdgeFade();
   }
 
   function showLobby() {
@@ -936,6 +958,10 @@
 
   elements.manageGamesButton.addEventListener("click", () => {
     showToast("Manage games clicked · playground only");
+  });
+
+  elements.catalogScroll.addEventListener("scroll", updateCatalogScrollEdgeFade, {
+    passive: true
   });
 
   elements.partybeamScreen.addEventListener("focusin", (event) => {
