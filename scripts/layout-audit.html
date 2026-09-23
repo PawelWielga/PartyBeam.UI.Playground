@@ -465,6 +465,16 @@
         assert(rectInside(manageRect, footerRect), label + " Manage games outside footer");
 
         assert(
+          Math.abs(homesRect.left - playersRect.left) <= 1,
+          label + " home cards left edge does not align with Players",
+          "cards.left=" + homesRect.left + ", players.left=" + playersRect.left
+        );
+        assert(
+          Math.abs(homesRect.right - playersRect.right) <= 1,
+          label + " home cards right edge does not align with Players",
+          "cards.right=" + homesRect.right + ", players.right=" + playersRect.right
+        );
+        assert(
           homesRect.bottom <= playersRect.top + 1,
           label + " players overlap main cards",
           "cards.bottom=" + homesRect.bottom + ", players.top=" + playersRect.top
