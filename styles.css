@@ -2352,7 +2352,6 @@ button:disabled {
 .partybeam-screen.is-catalog .game-cover:focus-visible,
 .partybeam-screen.is-catalog .game-cover:hover {
   filter: none;
-  transform: translateY(-2px) scale(1.015);
 }
 
 .partybeam-screen.settings-reduced-motion.is-catalog .game-cover {
