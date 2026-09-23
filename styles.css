@@ -2201,6 +2201,7 @@ button:disabled {
 }
 
 .catalog-scroll {
+  --catalog-edge-fade-size: 42px;
   min-width: 0;
   min-height: 0;
   overflow-x: hidden;
@@ -2210,6 +2211,59 @@ button:disabled {
   scrollbar-width: thin;
   scroll-behavior: auto;
   overscroll-behavior: contain;
+}
+
+.catalog-scroll.is-clipped-top:not(.is-clipped-bottom) {
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--catalog-edge-fade-size),
+      #000 100%
+    );
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--catalog-edge-fade-size),
+      #000 100%
+    );
+}
+
+.catalog-scroll.is-clipped-bottom:not(.is-clipped-top) {
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      #000 0,
+      #000 calc(100% - var(--catalog-edge-fade-size)),
+      transparent 100%
+    );
+  mask-image:
+    linear-gradient(
+      to bottom,
+      #000 0,
+      #000 calc(100% - var(--catalog-edge-fade-size)),
+      transparent 100%
+    );
+}
+
+.catalog-scroll.is-clipped-top.is-clipped-bottom {
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--catalog-edge-fade-size),
+      #000 calc(100% - var(--catalog-edge-fade-size)),
+      transparent 100%
+    );
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--catalog-edge-fade-size),
+      #000 calc(100% - var(--catalog-edge-fade-size)),
+      transparent 100%
+    );
 }
 
 .catalog-scroll::-webkit-scrollbar {
@@ -2438,6 +2492,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="tv720"] .catalog-scroll {
+  --catalog-edge-fade-size: 30px;
   padding: 10px 12px 14px;
 }
 
@@ -2546,6 +2601,7 @@ button:disabled {
 }
 
 .preview-canvas[data-device="phone"] .catalog-scroll {
+  --catalog-edge-fade-size: 20px;
   padding: 9px 10px 10px;
 }
 
