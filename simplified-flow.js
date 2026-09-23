@@ -111,6 +111,7 @@
     clearTimers();
     flow.view = view;
     flow.previousFocus = document.activeElement;
+    overlay.dataset.view = view;
     overlay.hidden = false;
     overlay.setAttribute("aria-hidden", "false");
     shell.classList.add("pb-simple-flow-active");
@@ -120,6 +121,7 @@
   function closeOverlay() {
     clearTimers();
     flow.view = null;
+    delete overlay.dataset.view;
     overlay.hidden = true;
     overlay.setAttribute("aria-hidden", "true");
     shell.classList.remove("pb-simple-flow-active");
@@ -400,46 +402,86 @@
     const lowSpace = flow.storageScenario === "low";
 
     surface.innerHTML = `
-      <div class="pb-flow-screen pb-flow-screen--manage">
-        ${renderHeader("LIBRARY", "Manage games", "Storage and offline availability, without package-level details.", "BACK")}
-        <div class="pb-storage-summary">
-          <div>
-            <span>STORAGE</span>
-            <strong>${(storage.free / 1000).toFixed(1)} GB free</strong>
+      <div class="partybeam-system-overlay pb-manage-overlay">
+        <section
+          class="partybeam-system-panel pb-manage-panel"
+          id="pbManagePanel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pbManageTitle"
+          aria-describedby="pbManageSubtitle">
+          <header class="partybeam-system-header" id="pbManageHeader">
+            <div class="partybeam-system-heading">
+              <span class="partybeam-system-kicker">PARTYBEAM</span>
+              <h2 id="pbManageTitle">MANAGE GAMES</h2>
+              <p id="pbManageSubtitle">Manage storage, updates and offline availability.</p>
+            </div>
+            <button
+              class="partybeam-system-close"
+              id="pbManageCloseButton"
+              type="button"
+              data-flow-action="close"
+              aria-label="Close Manage Games">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M6 6l12 12M18 6 6 18"></path>
+              </svg>
+              <span>Close</span>
+            </button>
+          </header>
+
+          <div class="pb-manage-main">
+            <div class="pb-storage-summary">
+              <div>
+                <span>STORAGE</span>
+                <strong>${(storage.free / 1000).toFixed(1)} GB free</strong>
+              </div>
+              <div class="pb-storage-meter" aria-label="Approximate storage usage">
+                <span style="width: ${Math.min(96, (storage.used / (storage.used + storage.free || 1)) * 100)}%"></span>
+              </div>
+            </div>
+
+            ${lowSpace ? `
+              <aside class="pb-space-warning" role="status">
+                <strong>Not enough space</strong>
+                <span>Free 350 MB to continue.</span>
+                <p>Remove a game you no longer need, then try again.</p>
+              </aside>
+            ` : ""}
+
+            <main class="pb-manage-list">
+              ${flow.games.map((game) => `
+                <article class="pb-manage-game" data-game-id="${game.id}">
+                  <div class="pb-manage-game__copy">
+                    <strong>${game.title}</strong>
+                    <span>${game.installed ? game.size + " MB" : ""}</span>
+                    <small>${statusForGame(game)}</small>
+                  </div>
+                  <div class="pb-manage-game__progress" hidden>
+                    <div class="pb-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                      <span style="width:0%"></span>
+                    </div>
+                    <small>Preparing...</small>
+                  </div>
+                  <div class="pb-manage-game__actions">
+                    ${game.installed && game.update ? '<button type="button" data-game-action="update">UPDATE</button>' : ""}
+                    ${game.installed && !game.offline ? '<button type="button" data-game-action="offline">MAKE AVAILABLE OFFLINE</button>' : ""}
+                    ${game.installed ? '<button type="button" data-game-action="remove">REMOVE</button>' : ""}
+                  </div>
+                </article>
+              `).join("")}
+            </main>
           </div>
-          <div class="pb-storage-meter" aria-label="Approximate storage usage">
-            <span style="width: ${Math.min(96, (storage.used / (storage.used + storage.free || 1)) * 100)}%"></span>
-          </div>
-        </div>
-        ${lowSpace ? `
-          <aside class="pb-space-warning" role="status">
-            <strong>Not enough space</strong>
-            <span>Free 350 MB to continue.</span>
-            <p>Remove a game you no longer need, then try again.</p>
-          </aside>
-        ` : ""}
-        <main class="pb-manage-list">
-          ${flow.games.map((game) => `
-            <article class="pb-manage-game" data-game-id="${game.id}">
-              <div class="pb-manage-game__copy">
-                <strong>${game.title}</strong>
-                <span>${game.installed ? game.size + " MB" : ""}</span>
-                <small>${statusForGame(game)}</small>
-              </div>
-              <div class="pb-manage-game__progress" hidden>
-                <div class="pb-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                  <span style="width:0%"></span>
-                </div>
-                <small>Preparing...</small>
-              </div>
-              <div class="pb-manage-game__actions">
-                ${game.installed && game.update ? '<button type="button" data-game-action="update">UPDATE</button>' : ""}
-                ${game.installed && !game.offline ? '<button type="button" data-game-action="offline">MAKE AVAILABLE OFFLINE</button>' : ""}
-                ${game.installed ? '<button type="button" data-game-action="remove">REMOVE</button>' : ""}
-              </div>
-            </article>
-          `).join("")}
-        </main>
+
+          <footer class="partybeam-system-footer">
+            <span>Storage changes are applied immediately</span>
+            <button
+              class="screen-button screen-button--primary partybeam-system-done"
+              type="button"
+              data-flow-action="close">
+              DONE
+            </button>
+          </footer>
+        </section>
       </div>
     `;
     focusFirst();
