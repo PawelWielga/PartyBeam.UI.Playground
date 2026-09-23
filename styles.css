@@ -3376,11 +3376,6 @@ button:disabled {
   --remote-focus-angle: 292deg;
 }
 
-.settings-slider.remote-focused {
-  outline: 3px solid var(--focus);
-  outline-offset: 3px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .settings-toggle-track > span {
     transition: none;
