@@ -24,7 +24,10 @@
     continueEnabled: true,
     screen: "lobby",
     settingsOpen: false,
-    settingsCategory: "general"
+    settingsCategory: "general",
+    gameDetailsOpen: false,
+    gamePreparationState: "not-downloaded",
+    gameDownloadProgress: 0
   };
 
   const elements = {
@@ -65,6 +68,21 @@
     settingsDoneButton: document.getElementById("settingsDoneButton"),
     masterVolume: document.getElementById("masterVolume"),
     masterVolumeValue: document.getElementById("masterVolumeValue"),
+    gameDetailsOverlay: document.getElementById("gameDetailsOverlay"),
+    gameDetailsPanel: document.getElementById("gameDetailsPanel"),
+    gameDetailsCloseButton: document.getElementById("gameDetailsCloseButton"),
+    gameDetailsTitle: document.getElementById("gameDetailsTitle"),
+    gameDetailsPlayers: document.getElementById("gameDetailsPlayers"),
+    gameDetailsCoverNumber: document.getElementById("gameDetailsCoverNumber"),
+    gameDetailsCoverTitle: document.getElementById("gameDetailsCoverTitle"),
+    gameDetailsActionButton: document.getElementById("gameDetailsActionButton"),
+    gameDownloadProgress: document.getElementById("gameDownloadProgress"),
+    gameDownloadProgressTrack: document.getElementById("gameDownloadProgressTrack"),
+    gameDownloadProgressFill: document.getElementById("gameDownloadProgressFill"),
+    gameDownloadPercent: document.getElementById("gameDownloadPercent"),
+    gameDownloadSize: document.getElementById("gameDownloadSize"),
+    gameDownloadError: document.getElementById("gameDownloadError"),
+    gamePreparationState: document.getElementById("gamePreparationState"),
     manageGamesButton: document.getElementById("manageGamesButton")
   };
 
@@ -81,6 +99,9 @@
   let remoteFocusAnimationFrame = null;
   let remoteFocusGeometry = null;
   let settingsOpenedWithBrowserFocus = false;
+  let gameDetailsOpenedWithBrowserFocus = false;
+  let gameDetailsOrigin = null;
+  let gameDownloadTimer = null;
 
   function normalizeDegrees(value) {
     return ((value % 360) + 360) % 360;
@@ -372,6 +393,7 @@
       cover.className = "game-cover game-cover--variant-" + (index % 6);
       cover.dataset.maxPlayers = String(maximumPlayers);
       cover.dataset.gameNumber = gameNumber;
+      cover.dataset.gameTitle = index === 0 ? "Grimcellar" : "Placeholder Game " + gameNumber;
 
       const art = document.createElement("span");
       art.className = "game-cover-art";
@@ -382,7 +404,7 @@
 
       const placeholder = document.createElement("span");
       placeholder.className = "game-cover-placeholder-label";
-      placeholder.textContent = "PLACEHOLDER";
+      placeholder.textContent = index === 0 ? "GRIMCELLAR" : "PLACEHOLDER";
 
       const compatibility = document.createElement("span");
       compatibility.className = "game-cover-compatibility";
@@ -398,7 +420,7 @@
       art.append(number, placeholder);
       cover.append(art, compatibility);
       cover.addEventListener("click", () => {
-        showToast("Game details screen · next step");
+        openGameDetails(cover);
       });
 
       elements.gameCoverGrid.appendChild(cover);
@@ -486,6 +508,10 @@
 
   function getTvFocusableElements() {
     const focusables = [];
+
+    if (state.gameDetailsOpen) {
+      return getGameDetailsFocusableElements();
+    }
 
     if (state.settingsOpen) {
       return getSettingsFocusableElements();
@@ -725,6 +751,18 @@
   }
 
   function handleRemoteCommand(command) {
+    if (state.gameDetailsOpen) {
+      if (command === "back") {
+        closeGameDetails();
+        return;
+      }
+
+      if (command === "home") {
+        setRemoteFocus(elements.gameDetailsActionButton);
+        return;
+      }
+    }
+
     if (state.settingsOpen) {
       if (command === "back") {
         closeSettings();
@@ -796,6 +834,159 @@
         "button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex=\"-1\"])"
       )
     ).filter((element) => !element.closest("[hidden]") && element.getClientRects().length > 0);
+  }
+
+  function getGameDetailsFocusableElements() {
+    return Array.from(
+      elements.gameDetailsOverlay.querySelectorAll(
+        "button:not(:disabled), [tabindex]:not([tabindex=\"-1\"])"
+      )
+    ).filter((element) => !element.closest("[hidden]") && element.getClientRects().length > 0);
+  }
+
+  function setGameDetailsBackgroundInert(inert) {
+    Array.from(elements.partybeamScreen.children).forEach((child) => {
+      if (child !== elements.gameDetailsOverlay) {
+        child.inert = inert;
+      }
+    });
+  }
+
+  function stopGameDownloadSimulation() {
+    if (gameDownloadTimer !== null) {
+      window.clearInterval(gameDownloadTimer);
+      gameDownloadTimer = null;
+    }
+  }
+
+  function renderGamePreparationState() {
+    const preparationState = state.gamePreparationState;
+    const downloading = preparationState === "downloading";
+    const error = preparationState === "error";
+    const ready = preparationState === "ready";
+    const progress = Math.max(0, Math.min(100, Math.round(state.gameDownloadProgress)));
+
+    elements.gameDetailsOverlay.dataset.preparationState = preparationState;
+    elements.gameDownloadProgress.hidden = !downloading;
+    elements.gameDownloadError.hidden = !error;
+    elements.gameDownloadPercent.textContent = progress + "%";
+    elements.gameDownloadProgressTrack.setAttribute("aria-valuenow", String(progress));
+    elements.gameDownloadProgressFill.style.width = progress + "%";
+    elements.gameDownloadSize.textContent = Math.round(200 * progress / 100) + " MB / 200 MB";
+
+    const actionLabel = downloading
+      ? "CANCEL"
+      : ready
+        ? "START GAME"
+        : error
+          ? "RETRY"
+          : "DOWNLOAD GAME";
+
+    elements.gameDetailsActionButton.textContent = actionLabel;
+    elements.gameDetailsActionButton.classList.toggle("is-cancel", downloading);
+
+    if (elements.gamePreparationState && elements.gamePreparationState.value !== preparationState) {
+      elements.gamePreparationState.value = preparationState;
+    }
+  }
+
+  function setGamePreparationState(preparationState, progress) {
+    stopGameDownloadSimulation();
+    state.gamePreparationState = preparationState;
+    state.gameDownloadProgress = typeof progress === "number"
+      ? progress
+      : preparationState === "downloading"
+        ? 42
+        : preparationState === "ready"
+          ? 100
+          : 0;
+    renderGamePreparationState();
+  }
+
+  function startGameDownloadSimulation() {
+    stopGameDownloadSimulation();
+    state.gamePreparationState = "downloading";
+    state.gameDownloadProgress = 0;
+    renderGamePreparationState();
+
+    gameDownloadTimer = window.setInterval(() => {
+      state.gameDownloadProgress = Math.min(100, state.gameDownloadProgress + 5);
+
+      if (state.gameDownloadProgress >= 100) {
+        stopGameDownloadSimulation();
+        state.gamePreparationState = "ready";
+      }
+
+      renderGamePreparationState();
+    }, 120);
+  }
+
+  function updateGameDetailsCopy(origin) {
+    const gameNumber = origin.dataset.gameNumber || "01";
+    const maximumPlayers = Number(origin.dataset.maxPlayers) || 6;
+    const gameTitle = origin.dataset.gameTitle || ("Placeholder Game " + gameNumber);
+
+    elements.gameDetailsTitle.textContent = gameTitle.toUpperCase();
+    elements.gameDetailsPlayers.textContent = "1–" + maximumPlayers + " players";
+    elements.gameDetailsCoverNumber.textContent = gameNumber;
+    elements.gameDetailsCoverTitle.textContent = gameTitle.toUpperCase();
+    elements.gameDetailsActionButton.setAttribute("aria-label", "Game action for " + gameTitle);
+  }
+
+  function openGameDetails(origin) {
+    if (state.gameDetailsOpen || !origin) {
+      return;
+    }
+
+    gameDetailsOrigin = origin;
+    gameDetailsOpenedWithBrowserFocus = document.activeElement === origin;
+    state.gameDetailsOpen = true;
+    updateGameDetailsCopy(origin);
+    renderGamePreparationState();
+
+    elements.gameDetailsOverlay.hidden = false;
+    elements.gameDetailsOverlay.setAttribute("aria-hidden", "false");
+    elements.partybeamScreen.classList.add("is-game-details-open");
+    setGameDetailsBackgroundInert(true);
+
+    const initialTarget = elements.gameDetailsActionButton;
+    setRemoteFocus(initialTarget);
+
+    if (gameDetailsOpenedWithBrowserFocus) {
+      initialTarget.focus({ preventScroll: true });
+    } else {
+      browserFocusInsideScreen = false;
+      renderRemoteFocusVisual();
+    }
+  }
+
+  function closeGameDetails() {
+    if (!state.gameDetailsOpen) {
+      return;
+    }
+
+    const origin = gameDetailsOrigin || elements.gameCoverGrid.querySelector(".game-cover");
+    state.gameDetailsOpen = false;
+    setGameDetailsBackgroundInert(false);
+    elements.gameDetailsOverlay.hidden = true;
+    elements.gameDetailsOverlay.setAttribute("aria-hidden", "true");
+    elements.partybeamScreen.classList.remove("is-game-details-open");
+
+    setRemoteFocus(origin);
+
+    if (gameDetailsOpenedWithBrowserFocus && origin) {
+      origin.focus({ preventScroll: true });
+    } else {
+      const activeElement = document.activeElement;
+      if (activeElement && elements.gameDetailsOverlay.contains(activeElement)) {
+        activeElement.blur();
+      }
+      browserFocusInsideScreen = false;
+      renderRemoteFocusVisual();
+    }
+
+    gameDetailsOpenedWithBrowserFocus = false;
+    gameDetailsOrigin = null;
   }
 
   function setSettingsBackgroundInert(inert) {
@@ -1083,6 +1274,10 @@
     renderState();
   });
 
+  elements.gamePreparationState.addEventListener("change", (event) => {
+    setGamePreparationState(event.target.value);
+  });
+
   elements.continueEnabled.addEventListener("change", (event) => {
     state.continueEnabled = event.target.checked;
     renderState();
@@ -1119,6 +1314,21 @@
 
   elements.settingsCloseButton.addEventListener("click", closeSettings);
   elements.settingsDoneButton.addEventListener("click", closeSettings);
+
+  elements.gameDetailsCloseButton.addEventListener("click", closeGameDetails);
+  elements.gameDetailsActionButton.addEventListener("click", () => {
+    if (state.gamePreparationState === "downloading") {
+      setGamePreparationState("not-downloaded", 0);
+      return;
+    }
+
+    if (state.gamePreparationState === "ready") {
+      showToast("Starting game · playground only");
+      return;
+    }
+
+    startGameDownloadSimulation();
+  });
 
   elements.settingsOverlay.querySelectorAll("[data-settings-category]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1158,13 +1368,19 @@
   });
 
   document.addEventListener("focusin", (event) => {
-    if (!state.settingsOpen || elements.settingsOverlay.contains(event.target)) {
+    if (state.gameDetailsOpen && !elements.gameDetailsOverlay.contains(event.target)) {
+      const fallback = getGameDetailsFocusableElements()[0];
+      if (fallback) {
+        fallback.focus({ preventScroll: true });
+      }
       return;
     }
 
-    const fallback = getSettingsFocusableElements()[0];
-    if (fallback) {
-      fallback.focus({ preventScroll: true });
+    if (state.settingsOpen && !elements.settingsOverlay.contains(event.target)) {
+      const fallback = getSettingsFocusableElements()[0];
+      if (fallback) {
+        fallback.focus({ preventScroll: true });
+      }
     }
   });
 
@@ -1191,6 +1407,12 @@
     const typing = tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA";
 
     if (event.key === "Escape") {
+      if (state.gameDetailsOpen) {
+        event.preventDefault();
+        closeGameDetails();
+        return;
+      }
+
       if (state.settingsOpen) {
         event.preventDefault();
         closeSettings();
@@ -1206,6 +1428,22 @@
         setRemotePanel(false);
         return;
       }
+    }
+
+    if (state.gameDetailsOpen && event.key === "Tab") {
+      const focusables = getGameDetailsFocusableElements();
+      if (focusables.length > 0) {
+        event.preventDefault();
+        const activeIndex = focusables.indexOf(document.activeElement);
+        const direction = event.shiftKey ? -1 : 1;
+        const nextIndex = activeIndex < 0
+          ? 0
+          : (activeIndex + direction + focusables.length) % focusables.length;
+        const target = focusables[nextIndex];
+        setRemoteFocus(target);
+        target.focus({ preventScroll: true });
+      }
+      return;
     }
 
     if (state.settingsOpen && event.key === "Tab") {
@@ -1254,6 +1492,12 @@
         return;
       }
 
+      if (command === "back" && state.gameDetailsOpen) {
+        event.preventDefault();
+        closeGameDetails();
+        return;
+      }
+
       if (command === "back" && state.settingsOpen) {
         event.preventDefault();
         closeSettings();
@@ -1293,5 +1537,6 @@
   renderQrPlaceholder(elements.downloadQrCode, 3);
   renderQrPlaceholder(elements.joinQrCode, 7);
   updateMasterVolume(elements.masterVolume.value);
+  renderGamePreparationState();
   render();
 })();
