@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
-  <link rel="stylesheet" href="styles.css?v=21">
+  <link rel="stylesheet" href="styles.css?v=22">
 </head>
 <body>
   <div class="playground-shell">
@@ -163,6 +163,204 @@
               <div class="state-overlay" id="stateOverlay" hidden aria-live="assertive">
                 <div class="state-card" id="stateCard"></div>
               </div>
+
+              <div class="settings-overlay" id="settingsOverlay" hidden aria-hidden="true">
+                <section class="settings-panel" id="settingsPanel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" aria-describedby="settingsSubtitle">
+                  <header class="settings-header">
+                    <div class="settings-heading">
+                      <span class="settings-kicker">PARTYBEAM</span>
+                      <h2 id="settingsTitle">SETTINGS</h2>
+                      <p id="settingsSubtitle">Tune PartyBeam for your screen and players.</p>
+                    </div>
+                    <button class="settings-close" id="settingsCloseButton" type="button" aria-label="Close Settings">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M6 6l12 12M18 6 6 18"></path>
+                      </svg>
+                      <span>Close</span>
+                    </button>
+                  </header>
+
+                  <div class="settings-main">
+                    <nav class="settings-categories" aria-label="Settings categories">
+                      <button class="settings-category is-active" type="button" data-settings-category="general" aria-current="page">General</button>
+                      <button class="settings-category" type="button" data-settings-category="display">Display</button>
+                      <button class="settings-category" type="button" data-settings-category="audio">Audio</button>
+                      <button class="settings-category" type="button" data-settings-category="controllers">Controllers</button>
+                      <button class="settings-category" type="button" data-settings-category="language">Language</button>
+                      <button class="settings-category" type="button" data-settings-category="about">About</button>
+                    </nav>
+
+                    <div class="settings-content" id="settingsContent">
+                      <section class="settings-section" data-settings-section="general" aria-labelledby="settingsGeneralTitle">
+                        <div class="settings-section-heading">
+                          <h3 id="settingsGeneralTitle">General</h3>
+                          <p>Choose what PartyBeam remembers between play sessions.</p>
+                        </div>
+                        <div class="settings-rows">
+                          <div class="settings-row">
+                            <div class="settings-row-copy">
+                              <strong>Start PartyBeam on launch</strong>
+                              <span>Open directly into the PartyBeam experience.</span>
+                            </div>
+                            <button class="settings-toggle is-on" type="button" role="switch" aria-checked="true" data-setting-toggle="start-on-launch">
+                              <span class="settings-toggle-track" aria-hidden="true"><span></span></span>
+                              <span class="settings-toggle-state">On</span>
+                            </button>
+                          </div>
+                          <div class="settings-row">
+                            <div class="settings-row-copy">
+                              <strong>Remember last game</strong>
+                              <span>Keep the last selected game ready for next time.</span>
+                            </div>
+                            <button class="settings-toggle is-on" type="button" role="switch" aria-checked="true" data-setting-toggle="remember-last-game">
+                              <span class="settings-toggle-track" aria-hidden="true"><span></span></span>
+                              <span class="settings-toggle-state">On</span>
+                            </button>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section class="settings-section" data-settings-section="display" aria-labelledby="settingsDisplayTitle" hidden>
+                        <div class="settings-section-heading">
+                          <h3 id="settingsDisplayTitle">Display</h3>
+                          <p>Adjust the interface for the room and screen.</p>
+                        </div>
+                        <div class="settings-rows">
+                          <div class="settings-row settings-row--stackable">
+                            <div class="settings-row-copy">
+                              <strong>UI scale</strong>
+                              <span>Change the size of PartyBeam controls and text.</span>
+                            </div>
+                            <div class="settings-choice-group" role="group" aria-label="UI scale">
+                              <button type="button" data-setting-choice="ui-scale" data-setting-value="small" aria-pressed="false">Small</button>
+                              <button class="is-selected" type="button" data-setting-choice="ui-scale" data-setting-value="default" aria-pressed="true">Default</button>
+                              <button type="button" data-setting-choice="ui-scale" data-setting-value="large" aria-pressed="false">Large</button>
+                            </div>
+                          </div>
+                          <div class="settings-row">
+                            <div class="settings-row-copy">
+                              <strong>Reduced motion</strong>
+                              <span>Use calmer transitions and fewer animated effects.</span>
+                            </div>
+                            <button class="settings-toggle" type="button" role="switch" aria-checked="false" data-setting-toggle="reduced-motion">
+                              <span class="settings-toggle-track" aria-hidden="true"><span></span></span>
+                              <span class="settings-toggle-state">Off</span>
+                            </button>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section class="settings-section" data-settings-section="audio" aria-labelledby="settingsAudioTitle" hidden>
+                        <div class="settings-section-heading">
+                          <h3 id="settingsAudioTitle">Audio</h3>
+                          <p>Balance PartyBeam sound for your setup.</p>
+                        </div>
+                        <div class="settings-rows">
+                          <div class="settings-row settings-row--volume">
+                            <div class="settings-row-copy">
+                              <strong>Master volume</strong>
+                              <span>Controls the overall PartyBeam volume.</span>
+                            </div>
+                            <label class="settings-slider-wrap" for="masterVolume">
+                              <span class="sr-only">Master volume</span>
+                              <input class="settings-slider" id="masterVolume" type="range" min="0" max="100" value="75" aria-valuetext="75 percent">
+                              <output id="masterVolumeValue" for="masterVolume">75%</output>
+                            </label>
+                          </div>
+                          <div class="settings-row">
+                            <div class="settings-row-copy">
+                              <strong>Music</strong>
+                              <span>Play menu and game music when available.</span>
+                            </div>
+                            <button class="settings-toggle is-on" type="button" role="switch" aria-checked="true" data-setting-toggle="music">
+                              <span class="settings-toggle-track" aria-hidden="true"><span></span></span>
+                              <span class="settings-toggle-state">On</span>
+                            </button>
+                          </div>
+                          <div class="settings-row">
+                            <div class="settings-row-copy">
+                              <strong>Sound effects</strong>
+                              <span>Play feedback sounds for actions and games.</span>
+                            </div>
+                            <button class="settings-toggle is-on" type="button" role="switch" aria-checked="true" data-setting-toggle="sound-effects">
+                              <span class="settings-toggle-track" aria-hidden="true"><span></span></span>
+                              <span class="settings-toggle-state">On</span>
+                            </button>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section class="settings-section" data-settings-section="controllers" aria-labelledby="settingsControllersTitle" hidden>
+                        <div class="settings-section-heading">
+                          <h3 id="settingsControllersTitle">Controllers</h3>
+                          <p>Choose how players connect and receive feedback.</p>
+                        </div>
+                        <div class="settings-rows">
+                          <div class="settings-row">
+                            <div class="settings-row-copy">
+                              <strong>Allow phone controllers</strong>
+                              <span>Let players join with the PartyBeam phone app.</span>
+                            </div>
+                            <button class="settings-toggle is-on" type="button" role="switch" aria-checked="true" data-setting-toggle="phone-controllers">
+                              <span class="settings-toggle-track" aria-hidden="true"><span></span></span>
+                              <span class="settings-toggle-state">On</span>
+                            </button>
+                          </div>
+                          <div class="settings-row">
+                            <div class="settings-row-copy">
+                              <strong>Controller vibration</strong>
+                              <span>Allow supported controllers to use vibration feedback.</span>
+                            </div>
+                            <button class="settings-toggle is-on" type="button" role="switch" aria-checked="true" data-setting-toggle="controller-vibration">
+                              <span class="settings-toggle-track" aria-hidden="true"><span></span></span>
+                              <span class="settings-toggle-state">On</span>
+                            </button>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section class="settings-section" data-settings-section="language" aria-labelledby="settingsLanguageTitle" hidden>
+                        <div class="settings-section-heading">
+                          <h3 id="settingsLanguageTitle">Language</h3>
+                          <p>Choose the language used by the PartyBeam interface.</p>
+                        </div>
+                        <div class="settings-rows">
+                          <div class="settings-row settings-row--stackable">
+                            <div class="settings-row-copy">
+                              <strong>Language</strong>
+                              <span>Playground copy remains a prototype.</span>
+                            </div>
+                            <div class="settings-choice-group" role="group" aria-label="Language">
+                              <button class="is-selected" type="button" data-setting-choice="language" data-setting-value="english" aria-pressed="true">English</button>
+                              <button type="button" data-setting-choice="language" data-setting-value="polish" aria-pressed="false">Polish</button>
+                            </div>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section class="settings-section" data-settings-section="about" aria-labelledby="settingsAboutTitle" hidden>
+                        <div class="settings-section-heading">
+                          <h3 id="settingsAboutTitle">About</h3>
+                          <p>Prototype information for this PartyBeam build.</p>
+                        </div>
+                        <div class="settings-about-card">
+                          <span class="brand-mark settings-about-mark" aria-hidden="true">P</span>
+                          <div>
+                            <strong>PartyBeam</strong>
+                            <span>App version: dev</span>
+                            <p>This Settings experience is a Playground-only prototype. Changes are not persisted.</p>
+                          </div>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+
+                  <footer class="settings-footer">
+                    <span>Changes are applied instantly</span>
+                    <button class="screen-button screen-button--primary settings-done" id="settingsDoneButton" type="button">DONE</button>
+                  </footer>
+                </section>
+              </div>
             </section>
           </div>
         </div>
@@ -247,6 +445,6 @@
     <div class="playground-toast" id="playgroundToast" role="status" aria-live="polite" hidden></div>
   </div>
 
-  <script src="app.js?v=19"></script>
+  <script src="app.js?v=20"></script>
 </body>
 </html>

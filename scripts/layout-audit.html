@@ -287,6 +287,153 @@
         assert(style.whiteSpace === "nowrap", label + " long name wrapping changed");
       }
 
+      async function validateSettings(viewport) {
+        const doc = frame.contentDocument;
+
+        await setPlayers(6);
+        await setUiState("normal");
+        await setContinueEnabled(true);
+
+        const screen = doc.getElementById("partybeamScreen");
+        const settingsButton = doc.getElementById("settingsButton");
+        settingsButton.focus();
+        await waitFrames(1);
+        settingsButton.click();
+        await waitFrames(2);
+
+        const overlay = doc.getElementById("settingsOverlay");
+        const panel = doc.getElementById("settingsPanel");
+        const categories = Array.from(doc.querySelectorAll("[data-settings-category]"));
+        const content = doc.getElementById("settingsContent");
+        const screenRect = screen.getBoundingClientRect();
+        const overlayRect = overlay.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+        const categoriesRect = doc.querySelector(".settings-categories").getBoundingClientRect();
+        const contentRect = content.getBoundingClientRect();
+
+        cases += 1;
+
+        assert(!overlay.hidden, viewport + " Settings overlay stayed hidden");
+        assert(overlay.getAttribute("aria-hidden") === "false", viewport + " Settings aria-hidden did not update");
+        assert(categories.length === 6, viewport + " Settings category count changed");
+        assert(rectInside(overlayRect, screenRect), viewport + " Settings overlay leaves PartyBeam screen");
+        assert(rectInside(panelRect, screenRect, 1), viewport + " Settings panel leaves PartyBeam screen");
+        assert(noHorizontalOverflow(panel), viewport + " Settings panel horizontal overflow");
+        assert(noHorizontalOverflow(content), viewport + " Settings content horizontal overflow");
+        const activeCategory = categories.find((category) => category.classList.contains("is-active"));
+        assert(Boolean(activeCategory), viewport + " Settings has no active category");
+        assert(
+          doc.activeElement === activeCategory,
+          viewport + " Settings initial focus is not the active category"
+        );
+
+        if (viewport === "phone") {
+          assert(
+            categoriesRect.bottom <= contentRect.top + 1,
+            viewport + " Settings phone categories are not above content"
+          );
+          assert(
+            frame.contentWindow.getComputedStyle(doc.querySelector(".settings-categories")).gridTemplateColumns.split(" ").length === 3,
+            viewport + " Settings phone categories are not compact"
+          );
+        } else {
+          assert(
+            categoriesRect.right <= contentRect.left + 1,
+            viewport + " Settings TV categories are not left of content"
+          );
+        }
+
+        categories[0].click();
+        await waitFrames(1);
+        assert(
+          !doc.querySelector('[data-settings-section="general"]').hidden,
+          viewport + " General settings did not open"
+        );
+
+        const firstToggle = doc.querySelector('[data-setting-toggle="start-on-launch"]');
+        const beforeToggle = firstToggle.getAttribute("aria-checked");
+        firstToggle.click();
+        await waitFrames(1);
+        assert(
+          firstToggle.getAttribute("aria-checked") !== beforeToggle,
+          viewport + " Settings toggle did not change immediately"
+        );
+
+        const displayCategory = doc.querySelector('[data-settings-category="display"]');
+        displayCategory.click();
+        await waitFrames(1);
+        assert(
+          !doc.querySelector('[data-settings-section="display"]').hidden,
+          viewport + " Display settings did not open"
+        );
+        assert(
+          doc.querySelector('[data-settings-section="general"]').hidden,
+          viewport + " General settings stayed visible after category change"
+        );
+
+        categories[0].focus();
+        await waitFrames(1);
+        await dispatchKey("ArrowDown");
+        assert(
+          overlay.contains(doc.activeElement),
+          viewport + " Settings D-pad navigation escaped the modal"
+        );
+
+        const backgroundTarget = doc.getElementById("manageGamesButton");
+        backgroundTarget.focus();
+        await waitFrames(2);
+        assert(
+          overlay.contains(doc.activeElement),
+          viewport + " Settings focus escaped to the blurred background"
+        );
+
+        await dispatchKey("Escape");
+        await waitFrames(2);
+        assert(overlay.hidden, viewport + " Escape did not close Settings");
+        assert(
+          doc.activeElement === settingsButton,
+          viewport + " Escape did not return focus to Settings"
+        );
+
+        settingsButton.click();
+        await waitFrames(2);
+        await dispatchKey("Backspace");
+        await waitFrames(2);
+        assert(overlay.hidden, viewport + " Back did not close Settings");
+        assert(
+          doc.activeElement === settingsButton,
+          viewport + " Back did not return focus to Settings"
+        );
+
+        settingsButton.click();
+        await waitFrames(2);
+        const done = doc.getElementById("settingsDoneButton");
+        done.focus();
+        done.click();
+        await waitFrames(2);
+        assert(overlay.hidden, viewport + " Done did not close Settings");
+        assert(
+          doc.activeElement === settingsButton,
+          viewport + " Done did not return focus to Settings"
+        );
+
+        settingsButton.blur();
+        await waitFrames(2);
+        const remoteOk = doc.querySelector('[data-remote-key="ok"]');
+        const remoteBack = doc.querySelector('[data-remote-key="back"]');
+        remoteOk.click();
+        await waitFrames(2);
+        assert(!overlay.hidden, viewport + " Remote OK did not reopen Settings");
+
+        remoteBack.click();
+        await waitFrames(2);
+        assert(overlay.hidden, viewport + " Remote Back did not close Settings");
+        assert(
+          settingsButton.classList.contains("remote-focused"),
+          viewport + " Remote close did not restore the animated Settings focus"
+        );
+      }
+
       async function validateCatalog(viewport) {
         const doc = frame.contentDocument;
 
@@ -594,6 +741,7 @@
           await setUiState("normal");
           validateFocusSafety(viewport + " / normal");
           await validateKeyboardFocusHandoff(viewport + " / Settings keyboard", "#settingsButton");
+          await validateSettings(viewport);
           await validateCatalog(viewport);
         }
 

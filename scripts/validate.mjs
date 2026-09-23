@@ -133,6 +133,52 @@ for (const catalogTitleToken of [
   }
 }
 
+for (const settingsId of [
+  "settingsOverlay",
+  "settingsPanel",
+  "settingsCloseButton",
+  "settingsDoneButton",
+  "masterVolume"
+]) {
+  if (!ids.has(settingsId)) {
+    fail("Settings prototype is missing required id: " + settingsId);
+  }
+}
+
+for (const category of ["general", "display", "audio", "controllers", "language", "about"]) {
+  if (!html.includes('data-settings-category="' + category + '"')
+    || !html.includes('data-settings-section="' + category + '"')) {
+    fail("Settings category/content pair is missing: " + category);
+  }
+}
+
+for (const settingsBehavior of [
+  "function openSettings()",
+  "function closeSettings()",
+  "function getSettingsFocusableElements()",
+  "function selectSettingsCategory(category)",
+  'state.settingsOpen && event.key === "Tab"',
+  'button.dataset.settingToggle === "reduced-motion"',
+  'elements.settingsButton.addEventListener("click", openSettings)'
+]) {
+  if (!app.includes(settingsBehavior)) {
+    fail("Settings behavior regression guard missing: " + settingsBehavior);
+  }
+}
+
+for (const settingsStyle of [
+  ".settings-overlay {",
+  "backdrop-filter: blur(13px) saturate(82%);",
+  "grid-template-columns: 290px minmax(0, 1fr);",
+  '.preview-canvas[data-device="phone"] .settings-main',
+  "grid-template-columns: repeat(3, minmax(0, 1fr));",
+  "@media (prefers-reduced-motion: reduce)"
+]) {
+  if (!styles.includes(settingsStyle)) {
+    fail("Settings responsive/visual regression guard missing: " + settingsStyle);
+  }
+}
+
 if (!process.exitCode) {
   console.log("Static site validation passed.");
 }
