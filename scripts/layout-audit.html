@@ -235,8 +235,12 @@
 
         assert(doc.activeElement === target, label + " browser focus did not reach target");
         assert(
-          doc.querySelectorAll(".remote-focused").length === 0,
-          label + " remote ring remained visible during browser focus"
+          doc.querySelectorAll(".remote-focused").length === 1,
+          label + " browser focus did not keep exactly one animated focus ring"
+        );
+        assert(
+          target.classList.contains("remote-focused"),
+          label + " browser-focused target did not use the animated focus ring"
         );
 
         const enterPrevented = await dispatchKey("Enter");
@@ -254,8 +258,12 @@
           label + " spatial arrow moved focus outside PartyBeam screen"
         );
         assert(
-          doc.querySelectorAll(".remote-focused").length === 0,
-          label + " remote ring reappeared while browser focus stayed inside screen"
+          doc.querySelectorAll(".remote-focused").length === 1,
+          label + " spatial browser focus did not keep exactly one animated focus ring"
+        );
+        assert(
+          afterArrow.classList.contains("remote-focused"),
+          label + " spatial browser focus did not move the animated focus ring"
         );
 
         afterArrow.blur();
@@ -263,7 +271,11 @@
 
         assert(
           doc.querySelectorAll(".remote-focused").length === 1,
-          label + " remote ring did not return after browser focus left screen"
+          label + " animated focus ring disappeared after browser focus left screen"
+        );
+        assert(
+          afterArrow.classList.contains("remote-focused"),
+          label + " animated focus ring moved after browser focus left screen"
         );
       }
 
@@ -285,6 +297,432 @@
         assert(style.overflow === "hidden", label + " long name overflow is not hidden");
         assert(style.textOverflow === "ellipsis", label + " long name has no ellipsis");
         assert(style.whiteSpace === "nowrap", label + " long name wrapping changed");
+      }
+
+      async function validateSettings(viewport) {
+        const doc = frame.contentDocument;
+
+        await setPlayers(6);
+        await setUiState("normal");
+        await setContinueEnabled(true);
+
+        const screen = doc.getElementById("partybeamScreen");
+        const settingsButton = doc.getElementById("settingsButton");
+        settingsButton.focus();
+        await waitFrames(1);
+        settingsButton.click();
+        await waitFrames(2);
+
+        const overlay = doc.getElementById("settingsOverlay");
+        const panel = doc.getElementById("settingsPanel");
+        const categories = Array.from(doc.querySelectorAll("[data-settings-category]"));
+        const content = doc.getElementById("settingsContent");
+        const screenRect = screen.getBoundingClientRect();
+        const overlayRect = overlay.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+        const categoriesRect = doc.querySelector(".settings-categories").getBoundingClientRect();
+        const contentRect = content.getBoundingClientRect();
+
+        cases += 1;
+
+        assert(!overlay.hidden, viewport + " Settings overlay stayed hidden");
+        assert(overlay.getAttribute("aria-hidden") === "false", viewport + " Settings aria-hidden did not update");
+        assert(categories.length === 6, viewport + " Settings category count changed");
+        assert(rectInside(overlayRect, screenRect), viewport + " Settings overlay leaves PartyBeam screen");
+        assert(rectInside(panelRect, screenRect, 1), viewport + " Settings panel leaves PartyBeam screen");
+        assert(noHorizontalOverflow(panel), viewport + " Settings panel horizontal overflow");
+        assert(noHorizontalOverflow(content), viewport + " Settings content horizontal overflow");
+        const activeCategory = categories.find((category) => category.classList.contains("is-active"));
+        assert(Boolean(activeCategory), viewport + " Settings has no active category");
+        assert(
+          doc.activeElement === activeCategory,
+          viewport + " Settings initial focus is not the active category"
+        );
+
+        if (viewport === "phone") {
+          assert(
+            categoriesRect.bottom <= contentRect.top + 1,
+            viewport + " Settings phone categories are not above content"
+          );
+          assert(
+            frame.contentWindow.getComputedStyle(doc.querySelector(".settings-categories")).gridTemplateColumns.split(" ").length === 3,
+            viewport + " Settings phone categories are not compact"
+          );
+        } else {
+          assert(
+            categoriesRect.right <= contentRect.left + 1,
+            viewport + " Settings TV categories are not left of content"
+          );
+        }
+
+        categories[0].click();
+        await waitFrames(1);
+        assert(
+          !doc.querySelector('[data-settings-section="general"]').hidden,
+          viewport + " General settings did not open"
+        );
+
+        const firstToggle = doc.querySelector('[data-setting-toggle="start-on-launch"]');
+        const beforeToggle = firstToggle.getAttribute("aria-checked");
+        firstToggle.click();
+        await waitFrames(1);
+        assert(
+          firstToggle.getAttribute("aria-checked") !== beforeToggle,
+          viewport + " Settings toggle did not change immediately"
+        );
+
+        const displayCategory = doc.querySelector('[data-settings-category="display"]');
+        displayCategory.click();
+        await waitFrames(1);
+        assert(
+          !doc.querySelector('[data-settings-section="display"]').hidden,
+          viewport + " Display settings did not open"
+        );
+        assert(
+          doc.querySelector('[data-settings-section="general"]').hidden,
+          viewport + " General settings stayed visible after category change"
+        );
+
+        categories[0].focus();
+        await waitFrames(1);
+        await dispatchKey("ArrowDown");
+        assert(
+          overlay.contains(doc.activeElement),
+          viewport + " Settings D-pad navigation escaped the modal"
+        );
+
+        const backgroundTarget = doc.getElementById("manageGamesButton");
+        backgroundTarget.focus();
+        await waitFrames(2);
+        assert(
+          overlay.contains(doc.activeElement),
+          viewport + " Settings focus escaped to the blurred background"
+        );
+
+        await dispatchKey("Escape");
+        await waitFrames(2);
+        assert(overlay.hidden, viewport + " Escape did not close Settings");
+        assert(
+          doc.activeElement === settingsButton,
+          viewport + " Escape did not return focus to Settings"
+        );
+
+        settingsButton.click();
+        await waitFrames(2);
+        await dispatchKey("Backspace");
+        await waitFrames(2);
+        assert(overlay.hidden, viewport + " Back did not close Settings");
+        assert(
+          doc.activeElement === settingsButton,
+          viewport + " Back did not return focus to Settings"
+        );
+
+        settingsButton.click();
+        await waitFrames(2);
+        const done = doc.getElementById("settingsDoneButton");
+        done.focus();
+        done.click();
+        await waitFrames(2);
+        assert(overlay.hidden, viewport + " Done did not close Settings");
+        assert(
+          doc.activeElement === settingsButton,
+          viewport + " Done did not return focus to Settings"
+        );
+
+        settingsButton.blur();
+        await waitFrames(2);
+        const remoteOk = doc.querySelector('[data-remote-key="ok"]');
+        const remoteBack = doc.querySelector('[data-remote-key="back"]');
+        remoteOk.click();
+        await waitFrames(2);
+        assert(!overlay.hidden, viewport + " Remote OK did not reopen Settings");
+
+        remoteBack.click();
+        await waitFrames(2);
+        assert(overlay.hidden, viewport + " Remote Back did not close Settings");
+        assert(
+          settingsButton.classList.contains("remote-focused"),
+          viewport + " Remote close did not restore the animated Settings focus"
+        );
+      }
+
+
+      async function validateGameDetails(viewport) {
+        const doc = frame.contentDocument;
+
+        await setPlayers(6);
+        await setUiState("normal");
+        await setContinueEnabled(true);
+        await click("#continueButton");
+
+        const screen = doc.getElementById("partybeamScreen");
+        const cover = doc.querySelector(".game-cover");
+        cover.focus();
+        await waitFrames(1);
+        cover.click();
+        await waitFrames(1);
+
+        const overlay = doc.getElementById("gameDetailsOverlay");
+        const panel = doc.getElementById("gameDetailsPanel");
+        const copy = doc.querySelector(".game-details-copy");
+        const artwork = doc.querySelector(".game-details-cover");
+        const action = doc.getElementById("gameDetailsActionButton");
+        const progress = doc.getElementById("gameDownloadProgress");
+        const error = doc.getElementById("gameDownloadError");
+        const prepState = doc.getElementById("gamePreparationState");
+        const screenRect = screen.getBoundingClientRect();
+        const overlayRect = overlay.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+        const copyRect = copy.getBoundingClientRect();
+        const artworkRect = artwork.getBoundingClientRect();
+
+        cases += 1;
+
+        assert(!overlay.hidden, viewport + " Game Details overlay stayed hidden");
+        assert(overlay.getAttribute("aria-hidden") === "false", viewport + " Game Details aria-hidden did not update");
+        assert(rectInside(overlayRect, screenRect), viewport + " Game Details overlay leaves PartyBeam screen");
+        assert(rectInside(panelRect, screenRect, 1), viewport + " Game Details panel leaves PartyBeam screen");
+        assert(noHorizontalOverflow(panel), viewport + " Game Details panel horizontal overflow");
+        assert(action.textContent.trim() === "DOWNLOAD GAME", viewport + " Game Details initial action is not Download");
+        assert(progress.hidden, viewport + " Game Details progress visible before download");
+        assert(error.hidden, viewport + " Game Details error visible before failure");
+        assert(overlay.contains(doc.activeElement), viewport + " Game Details did not move browser focus inside modal");
+
+        if (viewport === "phone") {
+          assert(
+            artworkRect.bottom <= copyRect.top + 1,
+            viewport + " Game Details phone cover is not stacked above details"
+          );
+        } else {
+          assert(
+            copyRect.right <= artworkRect.left + 1,
+            viewport + " Game Details TV copy is not left of cover"
+          );
+        }
+
+        action.click();
+        assert(action.textContent.trim() === "CANCEL", viewport + " Download did not switch action to Cancel");
+        assert(!progress.hidden, viewport + " Download progress did not appear");
+        assert(
+          Number(doc.getElementById("gameDownloadProgressTrack").getAttribute("aria-valuenow")) >= 0,
+          viewport + " Download progress value missing"
+        );
+
+        action.click();
+        assert(action.textContent.trim() === "DOWNLOAD GAME", viewport + " Cancel did not restore Download");
+        assert(progress.hidden, viewport + " Cancel did not hide progress");
+
+        prepState.value = "error";
+        prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
+        assert(action.textContent.trim() === "RETRY", viewport + " Error state does not expose Retry");
+        assert(!error.hidden, viewport + " Error state message stayed hidden");
+
+        prepState.value = "ready";
+        prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
+        assert(action.textContent.trim() === "START GAME", viewport + " Ready state does not expose Start Game");
+        assert(progress.hidden, viewport + " Ready state left progress visible");
+
+        prepState.value = "not-downloaded";
+        prepState.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
+        await waitFrames(1);
+
+        const backgroundTarget = doc.getElementById("settingsButton");
+        backgroundTarget.focus();
+        assert(
+          overlay.contains(doc.activeElement),
+          viewport + " Game Details focus escaped to blurred background"
+        );
+
+        await dispatchKey("Escape");
+        await waitFrames(1);
+        assert(overlay.hidden, viewport + " Escape did not close Game Details");
+        assert(doc.activeElement === cover, viewport + " Escape did not restore game-card focus");
+
+        cover.click();
+        await dispatchKey("Backspace");
+        await waitFrames(1);
+        assert(overlay.hidden, viewport + " Back did not close Game Details");
+        assert(doc.activeElement === cover, viewport + " Back did not restore game-card focus");
+
+        await dispatchKey("Backspace");
+        await waitFrames(1);
+      }
+
+      async function validateCatalog(viewport) {
+        const doc = frame.contentDocument;
+
+        await setPlayers(6);
+        await setUiState("normal");
+        await setContinueEnabled(true);
+
+        const continueButton = doc.getElementById("continueButton");
+        continueButton.focus();
+        await waitFrames(1);
+        continueButton.click();
+        await waitFrames(2);
+
+        const screen = doc.getElementById("partybeamScreen");
+        const topbar = doc.querySelector(".partybeam-topbar");
+        const lobby = doc.getElementById("lobbyScreen");
+        const catalog = doc.getElementById("catalogScreen");
+        const code = doc.querySelector(".catalog-game-code");
+        const footer = doc.querySelector(".partybeam-footer");
+        const playersPanel = doc.querySelector(".catalog-players-panel");
+        const library = doc.querySelector(".catalog-library");
+        const scroll = doc.getElementById("catalogScroll");
+        const grid = doc.getElementById("gameCoverGrid");
+        const covers = Array.from(doc.querySelectorAll(".game-cover"));
+
+        cases += 1;
+
+        assert(lobby.hidden, viewport + " catalog did not hide lobby");
+        assert(!catalog.hidden, viewport + " catalog screen stayed hidden");
+        assert(Boolean(code), viewport + " catalog game code missing from Players panel");
+        assert(code.textContent.replace(/\s+/g, "").includes("GAMECODE8F4K2P"), viewport + " catalog game code changed");
+        assert(footer.hidden, viewport + " catalog footer stayed visible");
+        assert(covers.length >= 20, viewport + " catalog does not contain enough placeholder covers");
+        assert(pxValue(playersPanel, "borderTopWidth") === 4, viewport + " catalog players panel border is not 4px");
+        assert(pxValue(covers[0], "borderTopWidth") === 4, viewport + " game cover border is not 4px");
+        assert(noHorizontalOverflow(catalog), viewport + " catalog horizontal overflow");
+        assert(noHorizontalOverflow(library), viewport + " catalog library horizontal overflow");
+        assert(scroll.scrollHeight > scroll.clientHeight + 1, viewport + " catalog does not vertically scroll");
+
+        const screenRect = screen.getBoundingClientRect();
+        const topbarRect = topbar.getBoundingClientRect();
+        const catalogRect = catalog.getBoundingClientRect();
+        const playersRect = playersPanel.getBoundingClientRect();
+        const libraryRect = library.getBoundingClientRect();
+        const scrollRect = scroll.getBoundingClientRect();
+        const headingRect = doc.querySelector(".catalog-players-heading").getBoundingClientRect();
+        const codeRect = code.getBoundingClientRect();
+        const playersHeadingGroupRect = doc.querySelector(".catalog-players-heading__group").getBoundingClientRect();
+
+        assert(rectInside(codeRect, headingRect), viewport + " catalog game code outside Players heading row");
+        assert(
+          playersHeadingGroupRect.right <= codeRect.left + 1,
+          viewport + " Players summary overlaps game code"
+        );
+
+        assert(rectInside(catalogRect, screenRect), viewport + " catalog outside screen");
+        assert(topbarRect.bottom <= catalogRect.top + 1, viewport + " catalog overlaps header");
+        assert(playersRect.right <= libraryRect.left + 1, viewport + " player panel overlaps game library");
+        assert(pxValue(catalog, "paddingBottom") <= 1, viewport + " catalog screen keeps bottom padding");
+
+        const expectedCatalogBottomPadding = viewport === "tv720"
+          ? 14
+          : viewport === "phone"
+            ? 10
+            : 24;
+        assert(
+          Math.abs(pxValue(scroll, "paddingBottom") - expectedCatalogBottomPadding) <= 1,
+          viewport + " catalog scroll bottom spacing is incorrect",
+          String(pxValue(scroll, "paddingBottom"))
+        );
+        assert(
+          Math.abs((screenRect.bottom - playersRect.bottom) - expectedCatalogBottomPadding) <= 2,
+          viewport + " Players panel bottom spacing does not match the catalog",
+          String(screenRect.bottom - playersRect.bottom)
+        );
+        assert(
+          Math.abs(screenRect.bottom - scrollRect.bottom) <= 2,
+          viewport + " catalog scroll leaves a dead band at the bottom",
+          String(screenRect.bottom - scrollRect.bottom)
+        );
+
+        const panelRatio = playersRect.width / catalogRect.width;
+        if (viewport === "tv1080" || viewport === "tv720" || viewport === "full") {
+          assert(panelRatio >= 0.225 && panelRatio <= 0.25, viewport + " player panel is not about 24%", String(panelRatio));
+        }
+
+        if (covers.length >= 6) {
+          const firstRect = covers[0].getBoundingClientRect();
+          const fifthRect = covers[4].getBoundingClientRect();
+          const sixthRect = covers[5].getBoundingClientRect();
+          const ratio = firstRect.height / Math.max(firstRect.width, 1);
+
+          assert(Math.abs(ratio - 1.5) <= 0.04, viewport + " game cover is not 2:3", String(ratio));
+
+          if (viewport === "tv1080" || viewport === "tv720" || viewport === "full") {
+            assert(Math.abs(firstRect.top - fifthRect.top) <= 1, viewport + " first row is not five covers");
+            assert(sixthRect.top > firstRect.top + 1, viewport + " sixth cover did not start a new row");
+          }
+        }
+
+        const focused = doc.querySelector(".game-cover.remote-focused");
+        assert(focused === covers[0], viewport + " first cover did not receive visible initial remote focus");
+        assert(
+          doc.activeElement !== covers[0],
+          viewport + " catalog entry kept DOM focus on the first cover and suppressed TV focus"
+        );
+
+        const incompatible = covers.find((cover) => cover.classList.contains("game-cover--incompatible"));
+        const compatible = covers.find((cover) => !cover.classList.contains("game-cover--incompatible"));
+        assert(Boolean(incompatible), viewport + " catalog has no incompatible placeholder at six players");
+        assert(Boolean(compatible), viewport + " catalog has no compatible placeholder at six players");
+
+        if (incompatible) {
+          incompatible.classList.add("remote-focused");
+          const compatibility = incompatible.querySelector(".game-cover-compatibility");
+          const warning = compatibility.querySelector("strong");
+          const detail = compatibility.querySelector("span");
+          const compatibilityRect = compatibility.getBoundingClientRect();
+          const coverRect = incompatible.getBoundingClientRect();
+
+          assert(
+            frame.contentWindow.getComputedStyle(compatibility).display !== "none",
+            viewport + " compatibility overlay stayed hidden on focus"
+          );
+          assert(
+            rectInside(compatibilityRect, coverRect),
+            viewport + " compatibility overlay leaves game cover"
+          );
+
+          assert(
+            pxValue(compatibility, "borderTopWidth") === 2,
+            viewport + " compatibility overlay border is not 2px"
+          );
+
+          if (viewport === "tv720") {
+            assert(pxValue(warning, "fontSize") >= 12, "tv720 compatibility warning below 12px");
+            assert(pxValue(detail, "fontSize") >= 12, "tv720 compatibility detail below 12px");
+          }
+
+          incompatible.classList.remove("remote-focused");
+        }
+
+        await setPlayers(8);
+        const catalogPlayerRows = Array.from(doc.querySelectorAll("#catalogPlayersList .player-slot"));
+        assert(catalogPlayerRows.length === 9, viewport + " catalog player panel did not render 8 players plus Waiting");
+        catalogPlayerRows.forEach((row, index) => {
+          assert(
+            rectInside(row.getBoundingClientRect(), playersPanel.getBoundingClientRect()),
+            viewport + " catalog player row clipped",
+            "row=" + index
+          );
+        });
+
+        const startScrollTop = scroll.scrollTop;
+        for (let index = 0; index < 5; index += 1) {
+          await dispatchKey("ArrowDown");
+        }
+        assert(scroll.scrollTop > startScrollTop, viewport + " remote navigation did not scroll catalog");
+
+        await dispatchKey("Backspace");
+        await waitFrames(2);
+
+        assert(!lobby.hidden, viewport + " remote Back did not return to lobby");
+        assert(catalog.hidden, viewport + " remote Back left catalog visible");
+        assert(!footer.hidden, viewport + " lobby footer did not return");
+
+        await setPlayers(6);
+        await click("#continueButton");
+        const firstCoverForKeyboard = doc.querySelector(".game-cover");
+        firstCoverForKeyboard.focus();
+        await waitFrames(1);
+        const browserBackPrevented = await dispatchKey("Backspace");
+        assert(browserBackPrevented, viewport + " keyboard Back was not handled from focused cover");
+        assert(!lobby.hidden, viewport + " keyboard Back did not return to lobby");
+        assert(catalog.hidden, viewport + " keyboard Back left catalog visible");
       }
 
       function validateLayout(label) {
@@ -320,11 +758,30 @@
         assert(noHorizontalOverflow(homes), label + " cards horizontal overflow");
         assert(noHorizontalOverflow(footer), label + " footer horizontal overflow");
 
+        const homeCard = doc.querySelector(".home-card");
+        const playerSlot = doc.querySelector(".player-slot");
+        const settingsButton = doc.getElementById("settingsButton");
+        const continueButton = doc.getElementById("continueButton");
+        assert(pxValue(homeCard, "borderTopWidth") === 4, label + " home card border is not 4px");
+        assert(pxValue(playerSlot, "borderTopWidth") === 2, label + " player slot border is not 2px");
+        assert(pxValue(settingsButton, "borderTopWidth") === 2, label + " Settings border is not 2px");
+        assert(pxValue(continueButton, "borderTopWidth") === 2, label + " Continue border is not 2px");
+
         assert(rectInside(topbarRect, screenRect), label + " header outside screen");
         assert(rectInside(contentRect, screenRect), label + " lobby body outside screen");
         assert(rectInside(footerRect, screenRect), label + " footer outside screen");
         assert(rectInside(manageRect, footerRect), label + " Manage games outside footer");
 
+        assert(
+          Math.abs(homesRect.left - playersRect.left) <= 1,
+          label + " home cards left edge does not align with Players",
+          "cards.left=" + homesRect.left + ", players.left=" + playersRect.left
+        );
+        assert(
+          Math.abs(homesRect.right - playersRect.right) <= 1,
+          label + " home cards right edge does not align with Players",
+          "cards.right=" + homesRect.right + ", players.right=" + playersRect.right
+        );
         assert(
           homesRect.bottom <= playersRect.top + 1,
           label + " players overlap main cards",
@@ -398,6 +855,11 @@
           await setUiState("normal");
           validateFocusSafety(viewport + " / normal");
           await validateKeyboardFocusHandoff(viewport + " / Settings keyboard", "#settingsButton");
+          await validateSettings(viewport);
+          if (viewport !== "full") {
+            await validateGameDetails(viewport);
+          }
+          await validateCatalog(viewport);
         }
 
         if (failures.length === 0) {
