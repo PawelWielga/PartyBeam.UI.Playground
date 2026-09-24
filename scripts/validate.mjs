@@ -60,7 +60,8 @@ for (const consumer of [app, simplifiedFlow]) {
 
 for (const modalFocusToken of [
   "function getActiveFocusRoot()",
-  'return overlay.querySelector(".pb-confirm") || overlay',
+  'overlay.querySelector(".pb-confirm")',
+  'overlay.querySelector(".pb-game-menu-panel")',
   "target.scrollIntoView({ block: \"nearest\", inline: \"nearest\" })",
   "managePanel.inert = true",
   'managePanel.setAttribute("aria-hidden", "true")',
