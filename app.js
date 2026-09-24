@@ -851,7 +851,10 @@
       0,
       elements.catalogScroll.scrollHeight - elements.catalogScroll.clientHeight
     );
-    const centeredScrollTop = elements.catalogScroll.scrollTop + targetCenter - viewportCenter;
+    const screenRect = elements.partybeamScreen.getBoundingClientRect();
+    const renderedUiScale = screenRect.width / Math.max(elements.partybeamScreen.offsetWidth, 1);
+    const centeredScrollTop = elements.catalogScroll.scrollTop
+      + (targetCenter - viewportCenter) / Math.max(renderedUiScale, Number.EPSILON);
 
     elements.catalogScroll.scrollTop = Math.min(
       maxScrollTop,
