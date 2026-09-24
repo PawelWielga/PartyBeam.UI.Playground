@@ -551,11 +551,25 @@
         if (directionalCase) {
           directionalCase.origin.focus();
           await waitFrames(1);
+          assert(directionalCase.origin.classList.contains("remote-focused"), viewport + " Manage Games origin does not use shared animated focus");
+          assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " Manage Games origin left multiple focus visuals");
+
+          const liveFocusables = Array.from(
+            overlay.querySelectorAll('button:not([disabled]):not([hidden]), [tabindex="0"]')
+          ).filter((element) => element.offsetParent !== null && !element.closest("[inert]"));
+          const expectedAfterFocus = spatial.findDirectionalTarget(
+            directionalCase.origin,
+            directionalCase.direction,
+            liveFocusables
+          );
+
           await dispatchKey(keyByDirection[directionalCase.direction]);
           assert(
-            doc.activeElement === directionalCase.expected,
+            doc.activeElement === expectedAfterFocus,
             viewport + " Manage Games D-pad did not select the spatial target for " + directionalCase.direction
           );
+          assert(doc.activeElement.classList.contains("remote-focused"), viewport + " Manage Games D-pad target does not use shared animated focus");
+          assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " Manage Games D-pad left multiple focus visuals");
           assert(
             rectInside(doc.activeElement.getBoundingClientRect(), panel.getBoundingClientRect(), 1),
             viewport + " Manage Games spatial focus moved outside the visible panel"
@@ -713,7 +727,7 @@
         let resume = gameMenuPanel?.querySelector('[data-flow-action="resume-game"]');
         let gameSettings = gameMenuPanel?.querySelector('[data-flow-action="game-settings"]');
         let restart = gameMenuPanel?.querySelector('[data-flow-action="restart-game"]');
-        let exitGame = gameMenuPanel?.querySelector('[data-flow-action="request-exit-game"]');
+        let exitGame = gameMenuPanel?.querySelector('[data-flow-action="exit-game"]');
 
         assert(Boolean(gameMenu), viewport + " Escape during gameplay did not open PartyBeam menu");
         assert(gameMenuPanel?.classList.contains("partybeam-system-panel"), viewport + " game menu does not reuse shared system panel");
@@ -722,14 +736,20 @@
         assert(Boolean(resume) && Boolean(gameSettings) && Boolean(restart) && Boolean(exitGame), viewport + " game menu is missing required actions");
         assert(gameSettings.disabled, viewport + " mock Game Settings action should be visibly unavailable");
         assert(doc.activeElement === resume, viewport + " Resume Game did not receive initial focus");
+        assert(resume.classList.contains("remote-focused"), viewport + " Resume Game does not use shared animated focus");
+        assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " game menu opened with multiple focus visuals");
 
         for (let step = 0; step < 5; step += 1) {
           await dispatchKey("Tab");
           assert(gameMenuPanel.contains(doc.activeElement), viewport + " Tab escaped PartyBeam game menu");
+          assert(doc.activeElement.classList.contains("remote-focused"), viewport + " Tab focus does not use shared animated focus");
+          assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " Tab left multiple focus visuals");
         }
 
         await dispatchKey("ArrowDown");
         assert(gameMenuPanel.contains(doc.activeElement), viewport + " D-pad escaped PartyBeam game menu");
+        assert(doc.activeElement.classList.contains("remote-focused"), viewport + " D-pad focus does not use shared animated focus");
+        assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " D-pad left multiple focus visuals");
 
         await dispatchKey("Escape");
         await waitFrames(2);
@@ -757,33 +777,20 @@
         remoteBack.click();
         await waitFrames(2);
         gameMenuPanel = doc.getElementById("pbGameMenuPanel");
-        exitGame = gameMenuPanel?.querySelector('[data-flow-action="request-exit-game"]');
+        exitGame = gameMenuPanel?.querySelector('[data-flow-action="exit-game"]');
         exitGame.focus();
-        exitGame.click();
-        await waitFrames(2);
-
-        let exitConfirm = simpleFlow.querySelector(".pb-game-exit-confirm");
-        assert(Boolean(exitConfirm), viewport + " Exit to PartyBeam did not require confirmation");
-        assert(gameMenuPanel.inert === true, viewport + " game menu stayed interactive behind exit confirmation");
-        assert(exitConfirm.contains(doc.activeElement), viewport + " exit confirmation did not receive focus");
-
-        await dispatchKey("Escape");
-        await waitFrames(2);
-        assert(!simpleFlow.querySelector(".pb-game-exit-confirm"), viewport + " Escape did not close only exit confirmation");
-        assert(Boolean(doc.getElementById("pbGameMenu")), viewport + " Escape from exit confirmation also closed game menu");
-        assert(doc.activeElement === exitGame, viewport + " exit confirmation did not restore focus to Exit action");
+        await waitFrames(1);
+        assert(exitGame.classList.contains("remote-focused"), viewport + " Exit to PartyBeam does not use shared animated focus");
+        assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " Exit action left multiple focus visuals");
 
         exitGame.click();
-        await waitFrames(2);
-        exitConfirm = simpleFlow.querySelector(".pb-game-exit-confirm");
-        const confirmExit = exitConfirm?.querySelector('[data-flow-action="confirm-exit-game"]');
-        assert(Boolean(confirmExit), viewport + " exit confirmation destructive action missing");
-        confirmExit.click();
         await waitFrames(3);
 
-        assert(simpleFlow.hidden, viewport + " confirmed Exit to PartyBeam did not leave the game");
-        assert(!simpleFlow.querySelector(".pb-game-exit-confirm"), viewport + " exit confirmation remained after leaving game");
+        assert(simpleFlow.hidden, viewport + " Exit to PartyBeam did not leave the game on click");
+        assert(!doc.getElementById("pbGameMenu"), viewport + " game menu remained after Exit to PartyBeam");
         assert(doc.activeElement === cover, viewport + " Exit to PartyBeam did not restore game-card focus");
+        assert(cover.classList.contains("remote-focused"), viewport + " Exit to PartyBeam did not restore shared animated game-card focus");
+        assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " Exit to PartyBeam restored multiple focus visuals");
       }
 
 

@@ -109,11 +109,8 @@
   background: rgba(150, 39, 47, .36);
 }
 
-.pb-simple-flow button:focus-visible,
-.pb-simple-flow button.remote-focused {
-  outline: 4px solid #fff;
-  outline-offset: 5px;
-  box-shadow: 0 0 0 9px rgba(69, 213, 255, .32), 0 18px 44px rgba(0,0,0,.4);
+.pb-simple-flow button {
+  --remote-focus-radius: 18px;
 }
 
 .pb-flow-actions {
@@ -392,6 +389,7 @@
 }
 
 .pb-game-menu-action {
+  --remote-focus-radius: 20px;
   min-height: 150px;
   display: flex;
   flex-direction: column;
@@ -849,6 +847,7 @@
 }
 
 .pb-manage-game__actions button {
+  --remote-focus-radius: 12px;
   border-color: rgba(216, 221, 249, 0.18);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.035);
@@ -859,13 +858,6 @@
   border-color: rgba(177, 158, 255, 0.38);
   background: rgba(111, 80, 223, 0.16);
   color: #fff;
-}
-
-.pb-simple-flow[data-view="manage-games"] button:focus-visible {
-  outline-color: var(--focus);
-  box-shadow:
-    0 0 0 8px rgba(111, 80, 223, 0.30),
-    0 18px 44px rgba(0, 0, 0, 0.4);
 }
 
 .preview-canvas[data-device="tv"] .pb-manage-game,

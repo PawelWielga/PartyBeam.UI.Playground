@@ -81,12 +81,10 @@ for (const gameRuntimeBehavior of [
   'id="pbGameRuntime"',
   "function openGameMenu()",
   "function closeGameMenu()",
-  "function renderGameExitConfirmation(origin)",
   'data-flow-action="resume-game"',
   'data-flow-action="game-settings"',
   'data-flow-action="restart-game"',
-  'data-flow-action="request-exit-game"',
-  'data-flow-action="confirm-exit-game"',
+  'data-flow-action="exit-game"',
   'flow.view === "game" && flow.gameMenuOpen',
   'flow.view === "game"',
   'runtime.inert = true',
@@ -316,8 +314,31 @@ if (animatedFocusTargetBlock.includes("browserFocusInsideScreen")) {
 const focusVisualStart = app.indexOf("function renderRemoteFocusVisual()");
 const focusVisualEnd = app.indexOf("function updateCatalogScrollEdgeFade()", focusVisualStart);
 const focusVisualBlock = app.slice(focusVisualStart, focusVisualEnd);
-if (!focusVisualBlock.includes('if (remoteFocusTarget)') || focusVisualBlock.includes("!browserFocusInsideScreen")) {
+if (
+  !focusVisualBlock.includes("const visualTarget = getRemoteFocusVisualTarget();")
+  || !focusVisualBlock.includes("if (visualTarget)")
+  || focusVisualBlock.includes("!browserFocusInsideScreen")
+) {
   fail("PartyBeam browser focus and remote focus must share the same remote-focused visual.");
+}
+
+for (const flowFocusToken of [
+  "function getSimplifiedFlowFocusTarget()",
+  "function getRemoteFocusVisualTarget()",
+  "function syncFlowFocusVisual(target)",
+  'target.classList.add("remote-focused")',
+  'simplifiedFlow && !simplifiedFlow.hidden && simplifiedFlow.contains(event.target)'
+]) {
+  if (!app.includes(flowFocusToken) && !simplifiedFlow.includes(flowFocusToken)) {
+    fail("Simplified flow must use the shared animated focus visual: " + flowFocusToken);
+  }
+}
+
+if (
+  simplifiedStyles.includes(".pb-simple-flow button:focus-visible")
+  || simplifiedStyles.includes('.pb-simple-flow[data-view="manage-games"] button:focus-visible')
+) {
+  fail("Simplified flow must not define a separate static focus style.");
 }
 
 if (styles.includes(".settings-slider.remote-focused")) {
