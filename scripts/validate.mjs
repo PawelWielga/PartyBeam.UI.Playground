@@ -2,6 +2,7 @@ import { access, readFile } from "node:fs/promises";
 
 const html = await readFile("index.html", "utf8");
 const app = await readFile("app.js", "utf8");
+const spatialNavigation = await readFile("spatial-navigation.js", "utf8");
 const styles = await readFile("styles.css", "utf8");
 const simplifiedFlow = await readFile("simplified-flow.js", "utf8");
 const simplifiedStyles = await readFile("simplified-flow.css", "utf8");
@@ -21,6 +22,113 @@ if (html.includes("\\n")) {
 const mainCount = (html.match(/<main\b/gi) || []).length;
 if (mainCount !== 1) {
   fail("index.html must contain exactly one <main> landmark; found " + mainCount + ".");
+}
+
+
+if (/<main\b/i.test(simplifiedFlow)) {
+  fail("simplified-flow.js must not render additional <main> landmarks.");
+}
+
+const spatialScriptIndex = html.indexOf('src="spatial-navigation.js');
+const appScriptIndex = html.indexOf('src="app.js');
+const simplifiedScriptIndex = html.indexOf('src="simplified-flow.js');
+if (
+  spatialScriptIndex < 0
+  || appScriptIndex < 0
+  || simplifiedScriptIndex < 0
+  || spatialScriptIndex > appScriptIndex
+  || spatialScriptIndex > simplifiedScriptIndex
+) {
+  fail("Shared spatial navigation must load before app.js and simplified-flow.js.");
+}
+
+for (const spatialToken of [
+  "function findDirectionalTarget(origin, direction, elements)",
+  "score: primary + secondary * 2.25",
+  "window.PartyBeamSpatialNavigation = Object.freeze"
+]) {
+  if (!spatialNavigation.includes(spatialToken)) {
+    fail("Shared spatial-navigation regression guard missing: " + spatialToken);
+  }
+}
+
+for (const consumer of [app, simplifiedFlow]) {
+  if (!consumer.includes("PartyBeamSpatialNavigation?.findDirectionalTarget")) {
+    fail("A PartyBeam focus surface stopped using shared spatial navigation.");
+  }
+}
+
+for (const modalFocusToken of [
+  "function getActiveFocusRoot()",
+  'return overlay.querySelector(".pb-confirm") || overlay',
+  "target.scrollIntoView({ block: \"nearest\", inline: \"nearest\" })",
+  "managePanel.inert = true",
+  'managePanel.setAttribute("aria-hidden", "true")',
+  "flow.confirmationOrigin = origin || document.activeElement",
+  "function closeConfirmation({ restoreFocus = true } = {})",
+  "function focusManageAfterRemoval(gameId)"
+]) {
+  if (!simplifiedFlow.includes(modalFocusToken)) {
+    fail("Simplified-flow modal focus regression guard missing: " + modalFocusToken);
+  }
+}
+
+for (const textGlyph of ["♥", "↓", "✓", "⚠", "★"]) {
+  if (html.includes(textGlyph) || app.includes(textGlyph) || simplifiedFlow.includes(textGlyph)) {
+    fail("UI text-symbol icon reintroduced: " + textGlyph);
+  }
+}
+
+for (const iconToken of [
+  'class="catalog-filter__icon"',
+  'class="game-cover-compatibility__icon"',
+  'class="pb-results-icon"',
+  'class="pb-message-symbol"'
+]) {
+  if (!(html + app + simplifiedFlow).includes(iconToken)) {
+    fail("SVG icon regression guard missing: " + iconToken);
+  }
+}
+
+for (const designToken of [
+  "--overlay-scrim:",
+  "--system-panel-surface:",
+  "--text-secondary:",
+  "--border-subtle:",
+  "--border-strong:",
+  "--warning:",
+  "--shadow-system:",
+  "--motion-base:",
+  "--motion-ease:"
+]) {
+  if (!styles.includes(designToken)) {
+    fail("Semantic visual token missing: " + designToken);
+  }
+}
+
+for (const systemTokenUse of [
+  "background: var(--overlay-scrim);",
+  "border: var(--border-major) solid var(--border-strong);",
+  "background: var(--system-panel-surface);",
+  "box-shadow: var(--shadow-system);",
+  "color: var(--text-secondary);"
+]) {
+  if (!styles.includes(systemTokenUse)) {
+    fail("Shared system shell stopped using semantic token: " + systemTokenUse);
+  }
+}
+
+for (const tv720ReadableToken of [
+  '.preview-canvas[data-device="tv720"] .catalog-search__input,',
+  '.preview-canvas[data-device="tv720"] .catalog-filter {',
+  "min-height: 36px;",
+  "font-size: 13px;",
+  '.preview-canvas[data-device="tv720"] .game-details-meta-card span',
+  '.preview-canvas[data-device="tv720"] .catalog-game-code > span'
+]) {
+  if (!styles.includes(tv720ReadableToken)) {
+    fail("TV720 readability regression guard missing: " + tv720ReadableToken);
+  }
 }
 
 for (const match of html.matchAll(/\bid=["']([^"']+)["']/gi)) {
@@ -124,7 +232,7 @@ for (const fullPreviewStyle of [
   }
 }
 
-for (const path of ["styles.css", "app.js"]) {
+for (const path of ["styles.css", "app.js", "spatial-navigation.js", "simplified-flow.js", "simplified-flow.css"]) {
   try {
     await access(path);
   } catch {
