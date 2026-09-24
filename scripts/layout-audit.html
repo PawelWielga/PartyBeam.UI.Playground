@@ -678,34 +678,112 @@
         }
 
         action.click();
-        await waitFrames(3);
+        await waitFrames(2);
 
         const simpleFlow = doc.getElementById("pbSimpleFlow");
-        const simpleRect = simpleFlow.getBoundingClientRect();
         assert(detailsOverlay.hidden, viewport + " PLAY did not close Game Details");
         assert(!simpleFlow.hidden, viewport + " PLAY did not enter simplified lifecycle");
-        assert(simpleFlow.getAttribute("aria-hidden") === "false", viewport + " simplified lifecycle aria-hidden did not update");
-        assert(rectInside(simpleRect, screenRect), viewport + " simplified lifecycle leaves PartyBeam screen");
+        assert(simpleFlow.dataset.view === "preparing", viewport + " PLAY skipped the existing preparing/loading state");
+
+        const lifecycle = doc.getElementById("pbLifecycleState");
+        lifecycle.value = "game";
+        lifecycle.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
+        await waitFrames(3);
+
+        const runtime = doc.getElementById("pbGameRuntime");
+        const runtimeRect = runtime?.getBoundingClientRect();
+        const simpleRect = simpleFlow.getBoundingClientRect();
+
+        assert(simpleFlow.dataset.view === "game", viewport + " lifecycle did not enter active game");
+        assert(Boolean(runtime), viewport + " fullscreen game runtime missing");
+        assert(rectInside(simpleRect, screenRect), viewport + " game lifecycle leaves PartyBeam screen");
+        assert(rectInside(runtimeRect, screenRect, 1), viewport + " game runtime leaves PartyBeam viewport");
+        assert(Math.abs(runtimeRect.width - screenRect.width) <= 1, viewport + " game runtime does not own full viewport width");
+        assert(Math.abs(runtimeRect.height - screenRect.height) <= 1, viewport + " game runtime does not own full viewport height");
+        assert(!runtime.querySelector(".pb-flow-header"), viewport + " game runtime still renders PartyBeam flow header");
+        assert(!runtime.querySelector(".pb-flow-actions"), viewport + " game runtime still renders PartyBeam flow footer");
+        assert(!runtime.querySelector("button"), viewport + " game runtime exposes a permanently visible PartyBeam button");
+        assert(doc.activeElement === runtime, viewport + " active game did not keep focus inside fullscreen runtime");
 
         await dispatchKey("Escape");
         await waitFrames(2);
-        assert(simpleFlow.hidden, viewport + " Escape did not leave simplified lifecycle");
-        assert(doc.activeElement === cover, viewport + " simplified lifecycle did not restore game-card focus");
 
-        cover.click();
+        let gameMenu = doc.getElementById("pbGameMenu");
+        let gameMenuPanel = doc.getElementById("pbGameMenuPanel");
+        let resume = gameMenuPanel?.querySelector('[data-flow-action="resume-game"]');
+        let gameSettings = gameMenuPanel?.querySelector('[data-flow-action="game-settings"]');
+        let restart = gameMenuPanel?.querySelector('[data-flow-action="restart-game"]');
+        let exitGame = gameMenuPanel?.querySelector('[data-flow-action="request-exit-game"]');
+
+        assert(Boolean(gameMenu), viewport + " Escape during gameplay did not open PartyBeam menu");
+        assert(gameMenuPanel?.classList.contains("partybeam-system-panel"), viewport + " game menu does not reuse shared system panel");
+        assert(runtime.inert === true, viewport + " game runtime is not paused/inert while menu is open");
+        assert(runtime.classList.contains("is-paused"), viewport + " game runtime did not enter paused visual state");
+        assert(Boolean(resume) && Boolean(gameSettings) && Boolean(restart) && Boolean(exitGame), viewport + " game menu is missing required actions");
+        assert(gameSettings.disabled, viewport + " mock Game Settings action should be visibly unavailable");
+        assert(doc.activeElement === resume, viewport + " Resume Game did not receive initial focus");
+
+        for (let step = 0; step < 5; step += 1) {
+          await dispatchKey("Tab");
+          assert(gameMenuPanel.contains(doc.activeElement), viewport + " Tab escaped PartyBeam game menu");
+        }
+
+        await dispatchKey("ArrowDown");
+        assert(gameMenuPanel.contains(doc.activeElement), viewport + " D-pad escaped PartyBeam game menu");
+
+        await dispatchKey("Escape");
         await waitFrames(2);
-        action.click();
-        await waitFrames(2);
-        assert(!simpleFlow.hidden, viewport + " second PLAY did not enter simplified lifecycle");
+        assert(!doc.getElementById("pbGameMenu"), viewport + " Escape did not resume from game menu");
+        assert(!runtime.inert, viewport + " game runtime stayed inert after resume");
+        assert(!runtime.classList.contains("is-paused"), viewport + " game runtime stayed visually paused after resume");
+        assert(doc.activeElement === runtime, viewport + " resume did not return focus to game runtime");
 
         const remoteBack = doc.querySelector('[data-remote-key="back"]');
         remoteBack.click();
         await waitFrames(2);
-        assert(simpleFlow.hidden, viewport + " Remote Back did not leave simplified lifecycle");
-        assert(doc.activeElement === cover, viewport + " Remote Back did not restore game-card focus");
+        gameMenuPanel = doc.getElementById("pbGameMenuPanel");
+        restart = gameMenuPanel?.querySelector('[data-flow-action="restart-game"]');
+        assert(Boolean(gameMenuPanel), viewport + " Remote Back did not open PartyBeam game menu");
 
-        await dispatchKey("Backspace");
-        await waitFrames(1);
+        restart.click();
+        await waitFrames(2);
+        assert(simpleFlow.dataset.view === "preparing", viewport + " Restart Game did not return to loading/preparing flow");
+
+        lifecycle.value = "game";
+        lifecycle.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
+        await waitFrames(2);
+        assert(simpleFlow.dataset.view === "game", viewport + " restarted game did not return to fullscreen runtime");
+
+        remoteBack.click();
+        await waitFrames(2);
+        gameMenuPanel = doc.getElementById("pbGameMenuPanel");
+        exitGame = gameMenuPanel?.querySelector('[data-flow-action="request-exit-game"]');
+        exitGame.focus();
+        exitGame.click();
+        await waitFrames(2);
+
+        let exitConfirm = simpleFlow.querySelector(".pb-game-exit-confirm");
+        assert(Boolean(exitConfirm), viewport + " Exit to PartyBeam did not require confirmation");
+        assert(gameMenuPanel.inert === true, viewport + " game menu stayed interactive behind exit confirmation");
+        assert(exitConfirm.contains(doc.activeElement), viewport + " exit confirmation did not receive focus");
+
+        await dispatchKey("Escape");
+        await waitFrames(2);
+        assert(!simpleFlow.querySelector(".pb-game-exit-confirm"), viewport + " Escape did not close only exit confirmation");
+        assert(Boolean(doc.getElementById("pbGameMenu")), viewport + " Escape from exit confirmation also closed game menu");
+        assert(doc.activeElement === exitGame, viewport + " exit confirmation did not restore focus to Exit action");
+
+        exitGame.click();
+        await waitFrames(2);
+        exitConfirm = simpleFlow.querySelector(".pb-game-exit-confirm");
+        const confirmExit = exitConfirm?.querySelector('[data-flow-action="confirm-exit-game"]');
+        assert(Boolean(confirmExit), viewport + " exit confirmation destructive action missing");
+        confirmExit.click();
+        await waitFrames(3);
+
+        assert(simpleFlow.hidden, viewport + " confirmed Exit to PartyBeam did not leave the game");
+        assert(!simpleFlow.querySelector(".pb-game-exit-confirm"), viewport + " exit confirmation remained after leaving game");
+        assert(doc.activeElement === cover, viewport + " Exit to PartyBeam did not restore game-card focus");
       }
 
 
