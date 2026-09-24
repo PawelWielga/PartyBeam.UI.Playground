@@ -551,11 +551,25 @@
         if (directionalCase) {
           directionalCase.origin.focus();
           await waitFrames(1);
+          assert(directionalCase.origin.classList.contains("remote-focused"), viewport + " Manage Games origin does not use shared animated focus");
+          assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " Manage Games origin left multiple focus visuals");
+
+          const liveFocusables = Array.from(
+            overlay.querySelectorAll('button:not([disabled]):not([hidden]), [tabindex="0"]')
+          ).filter((element) => element.offsetParent !== null && !element.closest("[inert]"));
+          const expectedAfterFocus = spatial.findDirectionalTarget(
+            directionalCase.origin,
+            directionalCase.direction,
+            liveFocusables
+          );
+
           await dispatchKey(keyByDirection[directionalCase.direction]);
           assert(
-            doc.activeElement === directionalCase.expected,
+            doc.activeElement === expectedAfterFocus,
             viewport + " Manage Games D-pad did not select the spatial target for " + directionalCase.direction
           );
+          assert(doc.activeElement.classList.contains("remote-focused"), viewport + " Manage Games D-pad target does not use shared animated focus");
+          assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " Manage Games D-pad left multiple focus visuals");
           assert(
             rectInside(doc.activeElement.getBoundingClientRect(), panel.getBoundingClientRect(), 1),
             viewport + " Manage Games spatial focus moved outside the visible panel"
