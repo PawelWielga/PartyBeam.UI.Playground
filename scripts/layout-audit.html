@@ -102,6 +102,13 @@
         return parseFloat(frame.contentWindow.getComputedStyle(element)[property]) || 0;
       }
 
+      function previewScale() {
+        const canvas = frame.contentDocument.getElementById("previewCanvas");
+        const logicalWidth = parseFloat(canvas?.style.width) || canvas?.offsetWidth || 1;
+        const renderedWidth = canvas?.getBoundingClientRect().width || logicalWidth;
+        return renderedWidth / Math.max(logicalWidth, 1);
+      }
+
       function validateCompactReadability(viewport) {
         const doc = frame.contentDocument;
 
@@ -212,7 +219,7 @@
 
           const rect = target.getBoundingClientRect();
           assert(
-            rectInside(rect, screenRect, 13),
+            rectInside(rect, screenRect, 13 * previewScale()),
             label + " remote focus clipped",
             target.id || target.className
           );
@@ -908,7 +915,7 @@
           String(pxValue(scroll, "paddingBottom"))
         );
         assert(
-          Math.abs((screenRect.bottom - playersRect.bottom) - expectedCatalogBottomPadding) <= 2,
+          Math.abs((screenRect.bottom - playersRect.bottom) - expectedCatalogBottomPadding * previewScale()) <= 2,
           viewport + " Players panel bottom spacing does not match the catalog",
           String(screenRect.bottom - playersRect.bottom)
         );
