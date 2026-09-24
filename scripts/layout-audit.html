@@ -724,59 +724,61 @@
           assert(panelRatio >= 0.225 && panelRatio <= 0.25, viewport + " player panel is not about 24%", String(panelRatio));
         }
 
-        if (covers.length >= 6) {
-          const firstRect = covers[0].getBoundingClientRect();
-          const fifthRect = covers[4].getBoundingClientRect();
-          const sixthRect = covers[5].getBoundingClientRect();
+        const visibleCovers = covers.filter((cover) => !cover.hidden);
+
+        if (visibleCovers.length >= 6) {
+          const firstRect = visibleCovers[0].getBoundingClientRect();
+          const fifthRect = visibleCovers[4].getBoundingClientRect();
+          const sixthRect = visibleCovers[5].getBoundingClientRect();
           const ratio = firstRect.height / Math.max(firstRect.width, 1);
 
           assert(Math.abs(ratio - 1.5) <= 0.04, viewport + " game cover is not 2:3", String(ratio));
 
           if (viewport === "tv1080" || viewport === "tv720" || viewport === "full") {
-            assert(Math.abs(firstRect.top - fifthRect.top) <= 1, viewport + " first row is not five covers");
-            assert(sixthRect.top > firstRect.top + 1, viewport + " sixth cover did not start a new row");
+            assert(Math.abs(firstRect.top - fifthRect.top) <= 1, viewport + " first visible row is not five covers");
+            assert(sixthRect.top > firstRect.top + 1, viewport + " sixth visible cover did not start a new row");
           }
         }
 
         const focused = doc.querySelector(".game-cover.remote-focused");
-        assert(focused === covers[0], viewport + " first cover did not receive visible initial remote focus");
+        assert(focused === visibleCovers[0], viewport + " first visible cover did not receive initial remote focus");
         assert(
-          doc.activeElement !== covers[0],
-          viewport + " catalog entry kept DOM focus on the first cover and suppressed TV focus"
+          doc.activeElement !== visibleCovers[0],
+          viewport + " catalog entry kept DOM focus on the first visible cover and suppressed TV focus"
         );
 
-        if (covers.length >= 7 && (viewport === "tv1080" || viewport === "tv720" || viewport === "full")) {
+        if (visibleCovers.length >= 7 && (viewport === "tv1080" || viewport === "tv720" || viewport === "full")) {
           await dispatchKey("ArrowDown");
           await waitFrames(2);
 
           const secondRowScrollTop = scroll.scrollTop;
           assert(
-            doc.querySelector(".game-cover.remote-focused") === covers[5],
-            viewport + " sixth cover did not receive focus before horizontal scroll stability check"
+            doc.querySelector(".game-cover.remote-focused") === visibleCovers[5],
+            viewport + " sixth visible cover did not receive focus before horizontal scroll stability check"
           );
 
           await dispatchKey("ArrowRight");
           await waitFrames(2);
           assert(
-            doc.querySelector(".game-cover.remote-focused") === covers[6],
-            viewport + " seventh cover did not receive focus"
+            doc.querySelector(".game-cover.remote-focused") === visibleCovers[6],
+            viewport + " seventh visible cover did not receive focus"
           );
           assert(
             Math.abs(scroll.scrollTop - secondRowScrollTop) <= 1,
             viewport + " horizontal navigation changed catalog scroll position",
-            "6->7 delta=" + (scroll.scrollTop - secondRowScrollTop)
+            "visible 6->7 delta=" + (scroll.scrollTop - secondRowScrollTop)
           );
 
           await dispatchKey("ArrowLeft");
           await waitFrames(2);
           assert(
-            doc.querySelector(".game-cover.remote-focused") === covers[5],
-            viewport + " sixth cover did not regain focus"
+            doc.querySelector(".game-cover.remote-focused") === visibleCovers[5],
+            viewport + " sixth visible cover did not regain focus"
           );
           assert(
             Math.abs(scroll.scrollTop - secondRowScrollTop) <= 1,
             viewport + " reverse horizontal navigation changed catalog scroll position",
-            "7->6 delta=" + (scroll.scrollTop - secondRowScrollTop)
+            "visible 7->6 delta=" + (scroll.scrollTop - secondRowScrollTop)
           );
 
           await dispatchKey("ArrowUp");
