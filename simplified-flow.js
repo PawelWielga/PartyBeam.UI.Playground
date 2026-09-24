@@ -20,7 +20,6 @@
     confirmationOrigin: null,
     confirmationGameId: null,
     gameMenuOpen: false,
-    gameExitOrigin: null,
     timers: new Set(),
     compatibilityScenario: "normal",
     storageScenario: "normal",
@@ -87,12 +86,31 @@
     ).filter((element) => element.offsetParent !== null && !element.closest("[inert]"));
   }
 
+  function isFlowFocusVisualTarget(target) {
+    return Boolean(
+      target
+      && overlay.contains(target)
+      && target.matches('button:not([disabled]), input:not([disabled]), select:not([disabled]), [role="button"]:not([aria-disabled="true"])')
+    );
+  }
+
+  function syncFlowFocusVisual(target) {
+    document.querySelectorAll(".remote-focused").forEach((focused) => {
+      focused.classList.remove("remote-focused");
+    });
+
+    if (isFlowFocusVisualTarget(target)) {
+      target.classList.add("remote-focused");
+    }
+  }
+
   function focusElement(target) {
     if (!target || typeof target.focus !== "function") {
       return;
     }
 
     target.focus({ preventScroll: true });
+    syncFlowFocusVisual(document.activeElement === target ? target : null);
     target.scrollIntoView({ block: "nearest", inline: "nearest" });
   }
 
@@ -153,7 +171,7 @@
     clearTimers();
     flow.view = null;
     flow.gameMenuOpen = false;
-    flow.gameExitOrigin = null;
+    syncFlowFocusVisual(null);
     delete overlay.dataset.view;
     overlay.hidden = true;
     overlay.setAttribute("aria-hidden", "true");
@@ -236,7 +254,6 @@
     openOverlay("game");
     flow.title = title || flow.title;
     flow.gameMenuOpen = false;
-    flow.gameExitOrigin = null;
 
     surface.innerHTML = `
       <section
@@ -309,7 +326,7 @@
             <strong>RESTART GAME</strong>
             <span>Run the loading flow again and restart the mock session.</span>
           </button>
-          <button class="pb-game-menu-action pb-game-menu-action--danger" type="button" data-flow-action="request-exit-game">
+          <button class="pb-game-menu-action pb-game-menu-action--danger" type="button" data-flow-action="exit-game">
             <strong>EXIT TO PARTYBEAM</strong>
             <span>Leave the running game and return to the game library.</span>
           </button>
@@ -337,7 +354,6 @@
     }
 
     flow.gameMenuOpen = false;
-    flow.gameExitOrigin = null;
 
     if (runtime) {
       runtime.inert = false;
@@ -345,67 +361,6 @@
       runtime.removeAttribute("aria-hidden");
       runtime.classList.remove("is-paused");
       focusElement(runtime);
-    }
-  }
-
-  function renderGameExitConfirmation(origin) {
-    if (!flow.gameMenuOpen || overlay.querySelector(".pb-game-exit-confirm")) {
-      return;
-    }
-
-    const panel = surface.querySelector("#pbGameMenuPanel");
-    if (!panel) {
-      return;
-    }
-
-    flow.gameExitOrigin = origin || document.activeElement;
-    panel.inert = true;
-    panel.setAttribute("aria-hidden", "true");
-
-    const dialog = document.createElement("div");
-    dialog.className = "pb-confirm-backdrop pb-game-exit-backdrop";
-    dialog.innerHTML = `
-      <section
-        class="pb-confirm pb-game-exit-confirm"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="pbGameExitTitle"
-        aria-describedby="pbGameExitDescription">
-        <span class="pb-flow-kicker">EXIT GAME</span>
-        <h2 id="pbGameExitTitle">Exit ${flow.title}?</h2>
-        <p id="pbGameExitDescription">Your current mock game session will end and PartyBeam will return to the game library.</p>
-        <div class="pb-confirm-actions">
-          <button type="button" data-flow-action="cancel-exit-game">STAY IN GAME</button>
-          <button class="pb-flow-danger" type="button" data-flow-action="confirm-exit-game">EXIT TO PARTYBEAM</button>
-        </div>
-      </section>
-    `;
-
-    overlay.appendChild(dialog);
-    focusElement(dialog.querySelector('[data-flow-action="cancel-exit-game"]'));
-  }
-
-  function closeGameExitConfirmation() {
-    const dialog = overlay.querySelector(".pb-game-exit-backdrop");
-    const panel = surface.querySelector("#pbGameMenuPanel");
-    const origin = flow.gameExitOrigin;
-
-    if (dialog) {
-      dialog.remove();
-    }
-
-    if (panel) {
-      panel.inert = false;
-      panel.removeAttribute("inert");
-      panel.removeAttribute("aria-hidden");
-    }
-
-    flow.gameExitOrigin = null;
-
-    if (origin && document.contains(origin) && !origin.disabled) {
-      focusElement(origin);
-    } else {
-      focusElement(panel?.querySelector('[data-flow-action="resume-game"]'));
     }
   }
 
@@ -948,7 +903,10 @@
     const activeRoot = getActiveFocusRoot();
     if (activeRoot !== overlay && !activeRoot.contains(event.target)) {
       focusElement(getFocusable()[0]);
+      return;
     }
+
+    syncFlowFocusVisual(event.target);
   });
 
   overlay.addEventListener("click", (event) => {
@@ -1023,13 +981,7 @@
         break;
       case "game-settings":
         break;
-      case "request-exit-game":
-        renderGameExitConfirmation(actionButton);
-        break;
-      case "cancel-exit-game":
-        closeGameExitConfirmation();
-        break;
-      case "confirm-exit-game":
+      case "exit-game":
         closeOverlay();
         break;
       case "play-again":
@@ -1068,9 +1020,7 @@
     }
 
     if (command === "back") {
-      if (overlay.querySelector(".pb-game-exit-confirm")) {
-        closeGameExitConfirmation();
-      } else if (overlay.querySelector(".pb-confirm-backdrop")) {
+      if (overlay.querySelector(".pb-confirm-backdrop")) {
         closeConfirmation();
       } else if (flow.view === "game" && flow.gameMenuOpen) {
         closeGameMenu();
