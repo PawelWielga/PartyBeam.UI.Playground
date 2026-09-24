@@ -281,10 +281,12 @@ for (const resolutionIndependentTvBehavior of [
 
 for (const fullPreviewBehavior of [
   "if (preset.full) {",
-  "logicalWidth = Math.max(280, Math.floor(available.width));",
-  "logicalHeight = Math.max(320, Math.floor(available.height));",
-  "scale = 1;",
-  '? logicalWidth + " × " + logicalHeight + " · live"'
+  "physicalWidth = Math.max(280, Math.floor(available.width));",
+  "physicalHeight = Math.max(320, Math.floor(available.height));",
+  "logicalWidth = physicalWidth;",
+  "logicalHeight = physicalHeight;",
+  "previewScale = 1;",
+  '? physicalWidth + " × " + physicalHeight + " · live"'
 ]) {
   if (!app.includes(fullPreviewBehavior)) {
     fail("Full preview must fill the live browser viewport: " + fullPreviewBehavior);
