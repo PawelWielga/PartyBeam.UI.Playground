@@ -131,7 +131,7 @@
 .pb-dev-only-copy {
   margin-right: auto;
   color: rgba(255,255,255,.46);
-  font-size: clamp(12px, 1vw, 16px);
+  font-size: clamp(13px, 1vw, 16px);
   font-weight: 800;
   letter-spacing: .12em;
 }
@@ -233,7 +233,7 @@
 
 .pb-party-chip small {
   color: rgba(255,255,255,.54);
-  font-size: clamp(10px, .85vw, 14px);
+  font-size: clamp(13px, .85vw, 14px);
   font-weight: 900;
   letter-spacing: .09em;
 }
@@ -252,8 +252,18 @@
   border: 3px solid rgba(114, 231, 255, .6);
   border-radius: 50%;
   background: rgba(55, 196, 230, .12);
-  font-size: clamp(36px, 3vw, 54px);
-  font-weight: 900;
+  color: #72e7ff;
+}
+
+.pb-results-icon svg,
+.pb-message-symbol svg {
+  width: 52%;
+  height: 52%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .pb-results-card > strong,
@@ -309,7 +319,7 @@
 
 .pb-player-choice small {
   color: rgba(255,255,255,.54);
-  font-size: clamp(11px, .9vw, 15px);
+  font-size: clamp(13px, .9vw, 15px);
   font-weight: 900;
   letter-spacing: .08em;
 }
@@ -365,10 +375,10 @@
   gap: 10px 18px;
   align-items: baseline;
   padding: 16px 20px;
-  border: 2px solid rgba(255, 180, 79, .55);
+  border: 2px solid var(--warning-border);
   border-radius: 18px;
-  background: rgba(116, 64, 8, .28);
-  transition: transform .18s ease, box-shadow .18s ease;
+  background: var(--warning-surface);
+  transition: transform var(--motion-base) var(--motion-ease), box-shadow var(--motion-base) var(--motion-ease);
 }
 
 .pb-space-warning strong {
@@ -376,7 +386,7 @@
 }
 
 .pb-space-warning span {
-  color: #ffd088;
+  color: var(--warning);
   font-weight: 800;
 }
 
@@ -588,13 +598,13 @@
 }
 
 .pb-storage-summary {
-  border: 2px solid rgba(218, 223, 251, 0.13);
+  border: 2px solid var(--border-subtle);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.028);
 }
 
 .pb-manage-list {
-  border-top: 1px solid rgba(225, 230, 255, 0.10);
+  border-top: 1px solid var(--border-subtle);
   padding: 0 8px 16px 0;
 }
 
@@ -602,7 +612,7 @@
   min-height: 92px;
   padding: 14px 4px;
   border: 0;
-  border-bottom: 1px solid rgba(225, 230, 255, 0.10);
+  border-bottom: 1px solid var(--border-subtle);
   border-radius: 0;
   background: transparent;
 }
