@@ -550,7 +550,14 @@
       compatibility.hidden = true;
 
       const warning = document.createElement("strong");
-      warning.textContent = "⚠ NOT EVERYONE CAN PLAY";
+      warning.innerHTML = `
+        <svg class="game-cover-compatibility__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 3 22 20H2L12 3Z"></path>
+          <path d="M12 9v5"></path>
+          <path d="M12 17.5h.01"></path>
+        </svg>
+        <span>NOT EVERYONE CAN PLAY</span>
+      `;
 
       const detail = document.createElement("span");
       detail.textContent = "Supports up to " + maximumPlayers + " players";
@@ -808,61 +815,13 @@
     setRemoteFocus(preferred);
   }
 
-  function getCenter(element) {
-    const rect = element.getBoundingClientRect();
-    return {
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2
-    };
-  }
-
   function getDirectionalTarget(origin, direction) {
     const focusables = getTvFocusableElements();
-
-    if (!origin || !focusables.includes(origin)) {
-      return null;
-    }
-
-    const current = getCenter(origin);
-    const candidates = focusables
-      .filter((element) => element !== origin)
-      .map((element) => {
-        const center = getCenter(element);
-        const dx = center.x - current.x;
-        const dy = center.y - current.y;
-
-        let primary;
-        let secondary;
-        let valid = false;
-
-        if (direction === "up") {
-          valid = dy < -1;
-          primary = -dy;
-          secondary = Math.abs(dx);
-        } else if (direction === "down") {
-          valid = dy > 1;
-          primary = dy;
-          secondary = Math.abs(dx);
-        } else if (direction === "left") {
-          valid = dx < -1;
-          primary = -dx;
-          secondary = Math.abs(dy);
-        } else {
-          valid = dx > 1;
-          primary = dx;
-          secondary = Math.abs(dy);
-        }
-
-        return {
-          element,
-          valid,
-          score: primary + secondary * 2.25
-        };
-      })
-      .filter((candidate) => candidate.valid)
-      .sort((a, b) => a.score - b.score);
-
-    return candidates.length > 0 ? candidates[0].element : null;
+    return window.PartyBeamSpatialNavigation?.findDirectionalTarget(
+      origin,
+      direction,
+      focusables
+    ) || null;
   }
 
   function moveRemoteFocus(direction) {
