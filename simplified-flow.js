@@ -159,6 +159,7 @@
     overlay.setAttribute("aria-hidden", "true");
     shell.classList.remove("pb-simple-flow-active");
     setBackgroundInert(false);
+    overlay.querySelectorAll(".pb-confirm-backdrop").forEach((dialog) => dialog.remove());
     surface.replaceChildren();
 
     const fallback = flow.previousFocus && document.contains(flow.previousFocus)
