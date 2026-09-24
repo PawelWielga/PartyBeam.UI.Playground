@@ -41,13 +41,13 @@ The playground also works from a local `file://` URL because it does not fetch m
 
 The toolbar above the preview can switch between:
 
-- **TV 3840×2160 (4K)**
+- **TV 4K** (3840×2160)
 - **TV 1920×1080**
 - **TV 1280×720**
 - **Phone** (390×844)
 - **Full screen**
 
-TV presets are rendered at their logical resolution and scaled proportionally when the browser is smaller than the target viewport.
+TV presets are rendered at their logical resolution and scaled proportionally when the browser is smaller than the target viewport. **Full screen** switches to a live viewport that fills the available browser area 1:1.
 
 ## Dev controls
 
