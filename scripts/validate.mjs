@@ -256,6 +256,14 @@ for (const manageSystemStyle of [
   }
 }
 
+if (!app.includes('tv4k: { width: 3840, height: 2160, label: "TV 3840×2160" }')) {
+  fail("Missing 4K TV viewport preset.");
+}
+
+if (!html.includes('data-viewport="tv4k"')) {
+  fail("Missing 4K TV viewport control.");
+}
+
 for (const fullPreviewBehavior of [
   "const logicalPreset = preset.full",
   "viewportPresets[state.previousViewport] || viewportPresets.tv1080",
