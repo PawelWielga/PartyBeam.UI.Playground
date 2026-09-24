@@ -60,7 +60,8 @@ for (const consumer of [app, simplifiedFlow]) {
 
 for (const modalFocusToken of [
   "function getActiveFocusRoot()",
-  'return overlay.querySelector(".pb-confirm") || overlay',
+  'overlay.querySelector(".pb-confirm")',
+  'overlay.querySelector(".pb-game-menu-panel")',
   "target.scrollIntoView({ block: \"nearest\", inline: \"nearest\" })",
   "managePanel.inert = true",
   'managePanel.setAttribute("aria-hidden", "true")',
@@ -70,6 +71,43 @@ for (const modalFocusToken of [
 ]) {
   if (!simplifiedFlow.includes(modalFocusToken)) {
     fail("Simplified-flow modal focus regression guard missing: " + modalFocusToken);
+  }
+}
+
+
+for (const gameRuntimeBehavior of [
+  'openOverlay("game")',
+  'class="pb-game-runtime"',
+  'id="pbGameRuntime"',
+  "function openGameMenu()",
+  "function closeGameMenu()",
+  "function renderGameExitConfirmation(origin)",
+  'data-flow-action="resume-game"',
+  'data-flow-action="game-settings"',
+  'data-flow-action="restart-game"',
+  'data-flow-action="request-exit-game"',
+  'data-flow-action="confirm-exit-game"',
+  'flow.view === "game" && flow.gameMenuOpen',
+  'flow.view === "game"',
+  'runtime.inert = true',
+  'runtime.classList.add("is-paused")'
+]) {
+  if (!simplifiedFlow.includes(gameRuntimeBehavior)) {
+    fail("Fullscreen game/menu behavior regression guard missing: " + gameRuntimeBehavior);
+  }
+}
+
+for (const gameRuntimeStyle of [
+  ".pb-game-runtime {",
+  ".pb-game-menu-overlay {",
+  ".pb-game-menu-panel {",
+  ".pb-game-menu-action {",
+  ".pb-game-runtime.is-paused .pb-game-runtime__ambient span",
+  ".partybeam-screen.settings-reduced-motion .pb-game-runtime__ambient span",
+  "@media (prefers-reduced-motion: reduce)"
+]) {
+  if (!simplifiedStyles.includes(gameRuntimeStyle)) {
+    fail("Fullscreen game/menu style regression guard missing: " + gameRuntimeStyle);
   }
 }
 

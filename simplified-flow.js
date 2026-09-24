@@ -19,6 +19,8 @@
     previousFocus: null,
     confirmationOrigin: null,
     confirmationGameId: null,
+    gameMenuOpen: false,
+    gameExitOrigin: null,
     timers: new Set(),
     compatibilityScenario: "normal",
     storageScenario: "normal",
@@ -73,7 +75,9 @@
   }
 
   function getActiveFocusRoot() {
-    return overlay.querySelector(".pb-confirm") || overlay;
+    return overlay.querySelector(".pb-confirm")
+      || overlay.querySelector(".pb-game-menu-panel")
+      || overlay;
   }
 
   function getFocusable() {
@@ -148,11 +152,14 @@
   function closeOverlay() {
     clearTimers();
     flow.view = null;
+    flow.gameMenuOpen = false;
+    flow.gameExitOrigin = null;
     delete overlay.dataset.view;
     overlay.hidden = true;
     overlay.setAttribute("aria-hidden", "true");
     shell.classList.remove("pb-simple-flow-active");
     setBackgroundInert(false);
+    overlay.querySelectorAll(".pb-confirm-backdrop").forEach((dialog) => dialog.remove());
     surface.replaceChildren();
 
     const fallback = flow.previousFocus && document.contains(flow.previousFocus)
@@ -228,28 +235,178 @@
   function renderGameSession(title) {
     openOverlay("game");
     flow.title = title || flow.title;
-    const selected = flow.selectedPlayers.length > 0 ? flow.selectedPlayers : null;
+    flow.gameMenuOpen = false;
+    flow.gameExitOrigin = null;
 
     surface.innerHTML = `
-      <div class="pb-flow-screen pb-flow-screen--game">
-        ${renderHeader("GAME SESSION", flow.title, "The downloaded game is running inside PartyBeam.", "EXIT GAME")}
-        <section class="pb-game-placeholder" aria-label="Running game">
-          <div class="pb-game-placeholder__mark">
-            <span>GAME RUNNING</span>
-            <strong>${flow.title}</strong>
-          </div>
-          <p>This surface stands in for the game itself. PartyBeam keeps the party session around it.</p>
-          <div class="pb-party-chips" aria-label="Party session players">
-            ${renderPartyChips(selected)}
-          </div>
-        </section>
-        <footer class="pb-flow-actions">
-          <span class="pb-dev-only-copy">PLAYGROUND ONLY</span>
-          <button class="pb-flow-primary" type="button" data-flow-action="finish-game">SIMULATE GAME FINISH</button>
-        </footer>
-      </div>
+      <section
+        class="pb-game-runtime"
+        id="pbGameRuntime"
+        tabindex="-1"
+        aria-label="${flow.title} is running">
+        <div class="pb-game-runtime__ambient" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="pb-game-runtime__content">
+          <span class="pb-game-runtime__eyebrow">MOCK GAME</span>
+          <h1>${flow.title}</h1>
+          <p>Gameplay owns the entire screen. PartyBeam stays hidden until the system menu is opened.</p>
+        </div>
+        <span class="sr-only">Press Back or Escape to open the PartyBeam menu.</span>
+      </section>
     `;
-    focusFirst();
+
+    const runtime = surface.querySelector("#pbGameRuntime");
+    focusElement(runtime);
+  }
+
+  function openGameMenu() {
+    if (flow.view !== "game" || flow.gameMenuOpen) {
+      return;
+    }
+
+    const runtime = surface.querySelector("#pbGameRuntime");
+    if (!runtime) {
+      return;
+    }
+
+    flow.gameMenuOpen = true;
+    runtime.classList.add("is-paused");
+    runtime.inert = true;
+    runtime.setAttribute("aria-hidden", "true");
+
+    const menu = document.createElement("div");
+    menu.className = "partybeam-system-overlay pb-game-menu-overlay";
+    menu.id = "pbGameMenu";
+    menu.innerHTML = `
+      <section
+        class="partybeam-system-panel pb-game-menu-panel"
+        id="pbGameMenuPanel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pbGameMenuTitle"
+        aria-describedby="pbGameMenuSubtitle">
+        <header class="partybeam-system-header">
+          <div class="partybeam-system-heading">
+            <span class="partybeam-system-kicker">PARTYBEAM</span>
+            <h2 id="pbGameMenuTitle">GAME PAUSED</h2>
+            <p id="pbGameMenuSubtitle">${flow.title} is paused while this menu is open.</p>
+          </div>
+        </header>
+
+        <div class="pb-game-menu-main">
+          <button class="pb-game-menu-action pb-game-menu-action--primary" type="button" data-flow-action="resume-game">
+            <strong>RESUME GAME</strong>
+            <span>Return exactly where you left off.</span>
+          </button>
+          <button class="pb-game-menu-action" type="button" data-flow-action="game-settings" disabled aria-disabled="true">
+            <strong>GAME SETTINGS</strong>
+            <span>No game-specific settings are exposed by this mock.</span>
+          </button>
+          <button class="pb-game-menu-action" type="button" data-flow-action="restart-game">
+            <strong>RESTART GAME</strong>
+            <span>Run the loading flow again and restart the mock session.</span>
+          </button>
+          <button class="pb-game-menu-action pb-game-menu-action--danger" type="button" data-flow-action="request-exit-game">
+            <strong>EXIT TO PARTYBEAM</strong>
+            <span>Leave the running game and return to the game library.</span>
+          </button>
+        </div>
+
+        <footer class="partybeam-system-footer">
+          <span>Back / Escape resumes the game</span>
+          <button class="screen-button screen-button--primary partybeam-system-done" type="button" data-flow-action="resume-game">
+            RESUME
+          </button>
+        </footer>
+      </section>
+    `;
+
+    surface.appendChild(menu);
+    focusElement(menu.querySelector('[data-flow-action="resume-game"]'));
+  }
+
+  function closeGameMenu() {
+    const menu = surface.querySelector("#pbGameMenu");
+    const runtime = surface.querySelector("#pbGameRuntime");
+
+    if (menu) {
+      menu.remove();
+    }
+
+    flow.gameMenuOpen = false;
+    flow.gameExitOrigin = null;
+
+    if (runtime) {
+      runtime.inert = false;
+      runtime.removeAttribute("inert");
+      runtime.removeAttribute("aria-hidden");
+      runtime.classList.remove("is-paused");
+      focusElement(runtime);
+    }
+  }
+
+  function renderGameExitConfirmation(origin) {
+    if (!flow.gameMenuOpen || overlay.querySelector(".pb-game-exit-confirm")) {
+      return;
+    }
+
+    const panel = surface.querySelector("#pbGameMenuPanel");
+    if (!panel) {
+      return;
+    }
+
+    flow.gameExitOrigin = origin || document.activeElement;
+    panel.inert = true;
+    panel.setAttribute("aria-hidden", "true");
+
+    const dialog = document.createElement("div");
+    dialog.className = "pb-confirm-backdrop pb-game-exit-backdrop";
+    dialog.innerHTML = `
+      <section
+        class="pb-confirm pb-game-exit-confirm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pbGameExitTitle"
+        aria-describedby="pbGameExitDescription">
+        <span class="pb-flow-kicker">EXIT GAME</span>
+        <h2 id="pbGameExitTitle">Exit ${flow.title}?</h2>
+        <p id="pbGameExitDescription">Your current mock game session will end and PartyBeam will return to the game library.</p>
+        <div class="pb-confirm-actions">
+          <button type="button" data-flow-action="cancel-exit-game">STAY IN GAME</button>
+          <button class="pb-flow-danger" type="button" data-flow-action="confirm-exit-game">EXIT TO PARTYBEAM</button>
+        </div>
+      </section>
+    `;
+
+    overlay.appendChild(dialog);
+    focusElement(dialog.querySelector('[data-flow-action="cancel-exit-game"]'));
+  }
+
+  function closeGameExitConfirmation() {
+    const dialog = overlay.querySelector(".pb-game-exit-backdrop");
+    const panel = surface.querySelector("#pbGameMenuPanel");
+    const origin = flow.gameExitOrigin;
+
+    if (dialog) {
+      dialog.remove();
+    }
+
+    if (panel) {
+      panel.inert = false;
+      panel.removeAttribute("inert");
+      panel.removeAttribute("aria-hidden");
+    }
+
+    flow.gameExitOrigin = null;
+
+    if (origin && document.contains(origin) && !origin.disabled) {
+      focusElement(origin);
+    } else {
+      focusElement(panel?.querySelector('[data-flow-action="resume-game"]'));
+    }
   }
 
   function renderResults(title) {
@@ -788,8 +945,8 @@
   }, true);
 
   overlay.addEventListener("focusin", (event) => {
-    const confirmation = overlay.querySelector(".pb-confirm");
-    if (confirmation && !confirmation.contains(event.target)) {
+    const activeRoot = getActiveFocusRoot();
+    if (activeRoot !== overlay && !activeRoot.contains(event.target)) {
       focusElement(getFocusable()[0]);
     }
   });
@@ -858,6 +1015,23 @@
       case "finish-game":
         renderResults(flow.title);
         break;
+      case "resume-game":
+        closeGameMenu();
+        break;
+      case "restart-game":
+        renderPreparing(flow.title);
+        break;
+      case "game-settings":
+        break;
+      case "request-exit-game":
+        renderGameExitConfirmation(actionButton);
+        break;
+      case "cancel-exit-game":
+        closeGameExitConfirmation();
+        break;
+      case "confirm-exit-game":
+        closeOverlay();
+        break;
       case "play-again":
         flow.selectedPlayers = getPlayerNames();
         renderPreparing(flow.title);
@@ -894,8 +1068,14 @@
     }
 
     if (command === "back") {
-      if (overlay.querySelector(".pb-confirm-backdrop")) {
+      if (overlay.querySelector(".pb-game-exit-confirm")) {
+        closeGameExitConfirmation();
+      } else if (overlay.querySelector(".pb-confirm-backdrop")) {
         closeConfirmation();
+      } else if (flow.view === "game" && flow.gameMenuOpen) {
+        closeGameMenu();
+      } else if (flow.view === "game") {
+        openGameMenu();
       } else {
         closeOverlay();
       }
@@ -903,7 +1083,11 @@
     }
 
     if (command === "home") {
-      closeOverlay();
+      if (flow.view === "game") {
+        openGameMenu();
+      } else {
+        closeOverlay();
+      }
       return true;
     }
 
