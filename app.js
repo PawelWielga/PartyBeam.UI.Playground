@@ -125,6 +125,7 @@
   let remoteFocusAnimationLastFrameAt = null;
   let remoteFocusAnimationFrame = null;
   let remoteFocusGeometry = null;
+  let remoteFocusAnimationTarget = null;
   let settingsOpenedWithBrowserFocus = false;
   let gameDetailsOpenedWithBrowserFocus = false;
   let gameDetailsOrigin = null;
@@ -189,6 +190,28 @@
       + (verticalMultiplier - horizontalMultiplier) * verticalBlend;
   }
 
+  function getSimplifiedFlowFocusTarget() {
+    const flowOverlay = document.getElementById("pbSimpleFlow");
+    const activeElement = document.activeElement;
+
+    if (
+      !flowOverlay
+      || flowOverlay.hidden
+      || flowOverlay.getAttribute("aria-hidden") === "true"
+      || !activeElement
+      || !flowOverlay.contains(activeElement)
+      || !activeElement.matches('button:not([disabled]), input:not([disabled]), select:not([disabled]), [role="button"]:not([aria-disabled="true"])')
+    ) {
+      return null;
+    }
+
+    return activeElement;
+  }
+
+  function getRemoteFocusVisualTarget() {
+    return getSimplifiedFlowFocusTarget() || remoteFocusTarget;
+  }
+
   function getAnimatedRemoteFocusTarget() {
     if (
       reducedMotionQuery.matches
@@ -197,11 +220,12 @@
       return null;
     }
 
-    if (!remoteFocusTarget || !remoteFocusTarget.classList.contains("remote-focused")) {
+    const visualTarget = getRemoteFocusVisualTarget();
+    if (!visualTarget || !visualTarget.classList.contains("remote-focused")) {
       return null;
     }
 
-    return remoteFocusTarget;
+    return visualTarget;
   }
 
   function stopRemoteFocusAnimation() {
@@ -209,6 +233,10 @@
       window.cancelAnimationFrame(remoteFocusAnimationFrame);
       remoteFocusAnimationFrame = null;
     }
+    if (remoteFocusAnimationTarget) {
+      remoteFocusAnimationTarget.style.removeProperty("--remote-focus-angle");
+    }
+    remoteFocusAnimationTarget = null;
     remoteFocusAnimationAngleDeg = 0;
     remoteFocusAnimationLastFrameAt = null;
     remoteFocusGeometry = null;
@@ -221,6 +249,14 @@
     if (!activeTarget) {
       remoteFocusAnimationLastFrameAt = null;
       return;
+    }
+
+    if (remoteFocusAnimationTarget !== activeTarget) {
+      if (remoteFocusAnimationTarget) {
+        remoteFocusAnimationTarget.style.removeProperty("--remote-focus-angle");
+      }
+      remoteFocusAnimationTarget = activeTarget;
+      invalidateRemoteFocusGeometry();
     }
 
     const { width, height } = remoteFocusGeometry
@@ -722,15 +758,17 @@
   }
 
   function renderRemoteFocusVisual() {
+    const visualTarget = getRemoteFocusVisualTarget();
+
     document.querySelectorAll(".remote-focused").forEach((focused) => {
       focused.classList.remove("remote-focused");
     });
 
-    if (remoteFocusTarget) {
-      remoteFocusTarget.classList.add("remote-focused");
+    if (visualTarget) {
+      visualTarget.classList.add("remote-focused");
     }
 
-    elements.remoteFocusLabel.textContent = getRemoteLabel(remoteFocusTarget);
+    elements.remoteFocusLabel.textContent = getRemoteLabel(visualTarget);
     syncRemoteFocusAnimation();
   }
 
@@ -1586,6 +1624,13 @@
   });
 
   elements.partybeamScreen.addEventListener("focusin", (event) => {
+    const simplifiedFlow = document.getElementById("pbSimpleFlow");
+    if (simplifiedFlow && !simplifiedFlow.hidden && simplifiedFlow.contains(event.target)) {
+      browserFocusInsideScreen = true;
+      renderRemoteFocusVisual();
+      return;
+    }
+
     const focusables = getTvFocusableElements();
 
     if (!focusables.includes(event.target)) {
