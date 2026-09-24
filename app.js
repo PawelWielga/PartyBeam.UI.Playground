@@ -2,6 +2,7 @@
   "use strict";
 
   const viewportPresets = {
+    tv4k: { width: 3840, height: 2160, label: "TV 3840×2160" },
     tv1080: { width: 1920, height: 1080, label: "TV 1920×1080" },
     tv720: { width: 1280, height: 720, label: "TV 1280×720" },
     phone: { width: 390, height: 844, label: "Phone" },
