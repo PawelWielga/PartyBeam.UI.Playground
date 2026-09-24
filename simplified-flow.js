@@ -439,7 +439,7 @@
     return game.offline ? "Available offline" : "Not available offline";
   }
 
-  function renderManageGames() {
+  function renderManageGames(options = {}) {
     openOverlay("manage-games");
     const storage = storageSummary();
     const lowSpace = flow.storageScenario === "low";
@@ -527,17 +527,51 @@
         </section>
       </div>
     `;
-    focusFirst();
+    if (options.focusAfterGameId) {
+      focusManageAfterRemoval(options.focusAfterGameId);
+    } else {
+      focusFirst();
+    }
   }
 
-  function renderRemoveConfirmation(game) {
+  function focusManageAfterRemoval(gameId) {
+    window.requestAnimationFrame(() => {
+      const cards = Array.from(surface.querySelectorAll(".pb-manage-game"));
+      const removedIndex = Math.max(
+        0,
+        flow.games.findIndex((game) => game.id === gameId)
+      );
+      const orderedCards = [
+        ...cards.slice(removedIndex + 1),
+        ...cards.slice(0, removedIndex).reverse()
+      ];
+      const target = orderedCards
+        .map((card) => card.querySelector("button:not([disabled]):not([hidden])"))
+        .find(Boolean)
+        || surface.querySelector(".partybeam-system-done")
+        || surface.querySelector(".partybeam-system-close");
+
+      focusElement(target);
+    });
+  }
+
+  function renderRemoveConfirmation(game, origin) {
+    flow.confirmationOrigin = origin || document.activeElement;
+    flow.confirmationGameId = game.id;
+
+    const managePanel = surface.querySelector("#pbManagePanel");
+    if (managePanel) {
+      managePanel.inert = true;
+      managePanel.setAttribute("aria-hidden", "true");
+    }
+
     const dialog = document.createElement("div");
     dialog.className = "pb-confirm-backdrop";
     dialog.innerHTML = `
-      <section class="pb-confirm" role="dialog" aria-modal="true" aria-labelledby="pbConfirmTitle">
+      <section class="pb-confirm" role="dialog" aria-modal="true" aria-labelledby="pbConfirmTitle" aria-describedby="pbConfirmDescription">
         <span class="pb-flow-kicker">REMOVE GAME</span>
         <h2 id="pbConfirmTitle">Remove ${game.title}?</h2>
-        <p>This frees about ${game.size} MB. You can download the game again later.</p>
+        <p id="pbConfirmDescription">This frees about ${game.size} MB. You can download the game again later.</p>
         <div class="pb-confirm-actions">
           <button type="button" data-confirm-action="keep">KEEP</button>
           <button class="pb-flow-danger" type="button" data-confirm-action="remove" data-game-id="${game.id}">REMOVE</button>
@@ -545,13 +579,33 @@
       </section>
     `;
     overlay.appendChild(dialog);
-    window.requestAnimationFrame(() => dialog.querySelector("button")?.focus({ preventScroll: true }));
+    window.requestAnimationFrame(() => focusElement(dialog.querySelector("button")));
   }
 
-  function closeConfirmation() {
+  function closeConfirmation({ restoreFocus = true } = {}) {
     const dialog = overlay.querySelector(".pb-confirm-backdrop");
+    const managePanel = surface.querySelector("#pbManagePanel");
+    const origin = flow.confirmationOrigin;
+
     if (dialog) {
       dialog.remove();
+    }
+
+    if (managePanel) {
+      managePanel.inert = false;
+      managePanel.removeAttribute("aria-hidden");
+    }
+
+    flow.confirmationOrigin = null;
+    flow.confirmationGameId = null;
+
+    if (!restoreFocus) {
+      return;
+    }
+
+    if (origin && document.contains(origin) && !origin.disabled) {
+      focusElement(origin);
+    } else {
       focusFirst();
     }
   }
@@ -718,6 +772,13 @@
     }
   }, true);
 
+  overlay.addEventListener("focusin", (event) => {
+    const confirmation = overlay.querySelector(".pb-confirm");
+    if (confirmation && !confirmation.contains(event.target)) {
+      focusElement(getFocusable()[0]);
+    }
+  });
+
   overlay.addEventListener("click", (event) => {
     const playerChoice = event.target.closest(".pb-player-choice");
     if (playerChoice) {
@@ -744,7 +805,7 @@
       }
 
       if (action === "remove") {
-        renderRemoveConfirmation(game);
+        renderRemoveConfirmation(game, gameButton);
       } else {
         simulateManageProgress(gameId, action);
       }
@@ -758,14 +819,15 @@
         return;
       }
 
-      const game = flow.games.find((item) => item.id === confirmButton.dataset.gameId);
+      const gameId = confirmButton.dataset.gameId;
+      const game = flow.games.find((item) => item.id === gameId);
       if (game) {
         game.installed = false;
         game.offline = false;
         game.update = false;
       }
-      closeConfirmation();
-      renderManageGames();
+      closeConfirmation({ restoreFocus: false });
+      renderManageGames({ focusAfterGameId: gameId });
       return;
     }
 
