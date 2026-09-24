@@ -735,6 +735,23 @@
         assert(runtime.classList.contains("is-paused"), viewport + " game runtime did not enter paused visual state");
         assert(Boolean(resume) && Boolean(gameSettings) && Boolean(restart) && Boolean(exitGame), viewport + " game menu is missing required actions");
         assert(gameSettings.disabled, viewport + " mock Game Settings action should be visibly unavailable");
+
+        const gameMenuActions = [resume, gameSettings, restart, exitGame];
+        const gameMenuActionRects = gameMenuActions.map((action) => action.getBoundingClientRect());
+        gameMenuActionRects.forEach((rect, index) => {
+          assert(
+            Math.abs(rect.left - gameMenuActionRects[0].left) <= 1
+              && Math.abs(rect.right - gameMenuActionRects[0].right) <= 1,
+            viewport + " game menu action " + index + " is not aligned in the single column"
+          );
+          if (index > 0) {
+            assert(
+              rect.top > gameMenuActionRects[index - 1].bottom,
+              viewport + " game menu actions are not stacked vertically"
+            );
+          }
+        });
+
         assert(doc.activeElement === resume, viewport + " Resume Game did not receive initial focus");
         assert(resume.classList.contains("remote-focused"), viewport + " Resume Game does not use shared animated focus");
         assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " game menu opened with multiple focus visuals");

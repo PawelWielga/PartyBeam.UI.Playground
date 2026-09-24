@@ -374,23 +374,23 @@
 }
 
 .pb-game-menu-panel {
-  width: min(1180px, calc(100% - 64px));
-  height: min(760px, calc(100% - 64px));
+  width: min(780px, calc(100% - 64px));
+  height: min(820px, calc(100% - 64px));
 }
 
 .pb-game-menu-main {
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   align-content: center;
-  gap: 18px;
-  padding: 28px 38px;
+  gap: 12px;
+  padding: 20px 38px;
   overflow: auto;
 }
 
 .pb-game-menu-action {
   --remote-focus-radius: 20px;
-  min-height: 150px;
+  min-height: 104px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -458,18 +458,18 @@
 }
 
 .preview-canvas[data-device="tv720"] .pb-game-menu-panel {
-  width: min(1040px, calc(100% - 40px));
-  height: min(630px, calc(100% - 40px));
+  width: min(700px, calc(100% - 40px));
+  height: min(650px, calc(100% - 40px));
 }
 
 .preview-canvas[data-device="tv720"] .pb-game-menu-main {
-  gap: 12px;
-  padding: 18px 26px;
+  gap: 9px;
+  padding: 14px 26px;
 }
 
 .preview-canvas[data-device="tv720"] .pb-game-menu-action {
-  min-height: 118px;
-  padding: 17px 20px;
+  min-height: 82px;
+  padding: 13px 20px;
 }
 
 .preview-canvas[data-device="tv720"] .pb-game-menu-action strong {
@@ -486,7 +486,6 @@
 }
 
 .preview-canvas[data-device="phone"] .pb-game-menu-main {
-  grid-template-columns: 1fr;
   align-content: start;
   padding: 16px;
 }

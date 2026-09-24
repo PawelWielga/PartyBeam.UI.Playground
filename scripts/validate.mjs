@@ -109,6 +109,14 @@ for (const gameRuntimeStyle of [
   }
 }
 
+const gameMenuMainStart = simplifiedStyles.indexOf(".pb-game-menu-main {");
+const gameMenuMainEnd = simplifiedStyles.indexOf(".pb-game-menu-action {", gameMenuMainStart);
+const gameMenuMainBlock = simplifiedStyles.slice(gameMenuMainStart, gameMenuMainEnd);
+if (!gameMenuMainBlock.includes("grid-template-columns: 1fr;")
+  || gameMenuMainBlock.includes("repeat(2")) {
+  fail("In-game PartyBeam menu actions must stay in a single column.");
+}
+
 for (const textGlyph of ["♥", "↓", "✓", "⚠", "★"]) {
   if (html.includes(textGlyph) || app.includes(textGlyph) || simplifiedFlow.includes(textGlyph)) {
     fail("UI text-symbol icon reintroduced: " + textGlyph);
