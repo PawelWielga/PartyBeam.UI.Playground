@@ -1,10 +1,13 @@
 (() => {
   "use strict";
 
+  const TV_DESIGN_WIDTH = 1920;
+  const TV_DESIGN_HEIGHT = 1080;
+
   const viewportPresets = {
-    tv4k: { width: 3840, height: 2160, label: "TV 3840×2160" },
-    tv1080: { width: 1920, height: 1080, label: "TV 1920×1080" },
-    tv720: { width: 1280, height: 720, label: "TV 1280×720" },
+    tv4k: { width: 3840, height: 2160, label: "TV 3840×2160", tv: true },
+    tv1080: { width: 1920, height: 1080, label: "TV 1920×1080", tv: true },
+    tv720: { width: 1280, height: 720, label: "TV 1280×720", tv: true },
     phone: { width: 390, height: 844, label: "Phone" },
     full: { full: true, label: "Full screen" }
   };
@@ -324,16 +327,16 @@
     };
   }
 
-  function resolveDevice(logicalWidth) {
+  function getTvUiScale(width, height) {
+    return Math.min(width / TV_DESIGN_WIDTH, height / TV_DESIGN_HEIGHT);
+  }
+
+  function resolveDevice(logicalWidth, preset) {
     if (state.viewport === "phone") {
       return "phone";
     }
 
-    if (state.viewport === "tv720") {
-      return "tv720";
-    }
-
-    if (state.viewport === "tv1080") {
+    if (preset.tv) {
       return "tv";
     }
 
@@ -349,36 +352,60 @@
     elements.playgroundShell.classList.toggle("is-full-preview", Boolean(preset.full));
     const available = getStageSpace();
 
+    let physicalWidth;
+    let physicalHeight;
     let logicalWidth;
     let logicalHeight;
-    let scale;
+    let uiScale = 1;
+    let previewScale;
 
     if (preset.full) {
-      logicalWidth = Math.max(280, Math.floor(available.width));
-      logicalHeight = Math.max(320, Math.floor(available.height));
-      scale = 1;
+      physicalWidth = Math.max(280, Math.floor(available.width));
+      physicalHeight = Math.max(320, Math.floor(available.height));
+      logicalWidth = physicalWidth;
+      logicalHeight = physicalHeight;
+      previewScale = 1;
+    } else if (preset.tv) {
+      physicalWidth = preset.width;
+      physicalHeight = preset.height;
+      uiScale = getTvUiScale(physicalWidth, physicalHeight);
+      logicalWidth = physicalWidth / uiScale;
+      logicalHeight = physicalHeight / uiScale;
+      previewScale = Math.min(1, available.width / physicalWidth, available.height / physicalHeight);
     } else {
-      logicalWidth = preset.width;
-      logicalHeight = preset.height;
-      scale = Math.min(1, available.width / logicalWidth, available.height / logicalHeight);
+      physicalWidth = preset.width;
+      physicalHeight = preset.height;
+      logicalWidth = physicalWidth;
+      logicalHeight = physicalHeight;
+      previewScale = Math.min(1, available.width / physicalWidth, available.height / physicalHeight);
     }
 
-    const displayWidth = Math.max(1, Math.floor(logicalWidth * scale));
-    const displayHeight = Math.max(1, Math.floor(logicalHeight * scale));
+    const displayWidth = Math.max(1, Math.floor(physicalWidth * previewScale));
+    const displayHeight = Math.max(1, Math.floor(physicalHeight * previewScale));
 
-    elements.previewCanvas.style.width = logicalWidth + "px";
-    elements.previewCanvas.style.height = logicalHeight + "px";
-    elements.previewCanvas.style.transform = "scale(" + scale + ")";
-    elements.previewCanvas.dataset.device = resolveDevice(logicalWidth);
+    elements.previewCanvas.style.width = physicalWidth + "px";
+    elements.previewCanvas.style.height = physicalHeight + "px";
+    elements.previewCanvas.style.transform = "scale(" + previewScale + ")";
+    elements.previewCanvas.dataset.device = resolveDevice(logicalWidth, preset);
+    elements.previewCanvas.dataset.uiScale = uiScale.toFixed(4);
+
+    elements.partybeamScreen.style.width = logicalWidth + "px";
+    elements.partybeamScreen.style.height = logicalHeight + "px";
+    elements.partybeamScreen.style.transformOrigin = "top left";
+    elements.partybeamScreen.style.transform = "scale(" + uiScale + ")";
+
     updatePlayerGridColumns();
 
     elements.previewViewport.style.width = displayWidth + "px";
     elements.previewViewport.style.height = displayHeight + "px";
 
-    const percentage = Math.round(scale * 100);
+    const previewPercentage = Math.round(previewScale * 100);
+    const uiPercentage = Math.round(uiScale * 100);
     elements.viewportMeta.textContent = preset.full
-      ? logicalWidth + " × " + logicalHeight + " · live"
-      : logicalWidth + " × " + logicalHeight + " · " + percentage + "%";
+      ? physicalWidth + " × " + physicalHeight + " · live"
+      : preset.tv
+        ? physicalWidth + " × " + physicalHeight + " · UI " + uiPercentage + "% · preview " + previewPercentage + "%"
+        : physicalWidth + " × " + physicalHeight + " · " + previewPercentage + "%";
 
     document.querySelectorAll("[data-viewport]").forEach((button) => {
       const active = button.dataset.viewport === state.viewport;
