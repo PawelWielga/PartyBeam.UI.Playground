@@ -17,6 +17,8 @@
     title: "Grimcellar",
     selectedPlayers: [],
     previousFocus: null,
+    confirmationOrigin: null,
+    confirmationGameId: null,
     timers: new Set(),
     compatibilityScenario: "normal",
     storageScenario: "normal",
@@ -70,18 +72,29 @@
       : ["Paweł", "Ewelinka", "Czarek", "Marta", "Kuba", "Ola"];
   }
 
+  function getActiveFocusRoot() {
+    return overlay.querySelector(".pb-confirm") || overlay;
+  }
+
   function getFocusable() {
+    const root = getActiveFocusRoot();
     return Array.from(
-      overlay.querySelectorAll('button:not([disabled]):not([hidden]), [tabindex="0"]')
-    ).filter((element) => element.offsetParent !== null);
+      root.querySelectorAll('button:not([disabled]):not([hidden]), [tabindex="0"]')
+    ).filter((element) => element.offsetParent !== null && !element.closest("[inert]"));
+  }
+
+  function focusElement(target) {
+    if (!target || typeof target.focus !== "function") {
+      return;
+    }
+
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block: "nearest", inline: "nearest" });
   }
 
   function focusFirst() {
     window.requestAnimationFrame(() => {
-      const target = getFocusable()[0];
-      if (target) {
-        target.focus({ preventScroll: true });
-      }
+      focusElement(getFocusable()[0]);
     });
   }
 
@@ -91,12 +104,24 @@
       return;
     }
 
-    const currentIndex = focusables.indexOf(document.activeElement);
-    const delta = direction === "left" || direction === "up" ? -1 : 1;
-    const nextIndex = currentIndex < 0
-      ? 0
-      : (currentIndex + delta + focusables.length) % focusables.length;
-    focusables[nextIndex].focus({ preventScroll: true });
+    const current = focusables.includes(document.activeElement)
+      ? document.activeElement
+      : focusables[0];
+
+    if (current !== document.activeElement) {
+      focusElement(current);
+      return;
+    }
+
+    const target = window.PartyBeamSpatialNavigation?.findDirectionalTarget(
+      current,
+      direction,
+      focusables
+    );
+
+    if (target) {
+      focusElement(target);
+    }
   }
 
   function setBackgroundInert(inert) {
@@ -110,7 +135,9 @@
   function openOverlay(view) {
     clearTimers();
     flow.view = view;
-    flow.previousFocus = document.activeElement;
+    if (overlay.hidden) {
+      flow.previousFocus = document.activeElement;
+    }
     overlay.dataset.view = view;
     overlay.hidden = false;
     overlay.setAttribute("aria-hidden", "false");
@@ -206,7 +233,7 @@
     surface.innerHTML = `
       <div class="pb-flow-screen pb-flow-screen--game">
         ${renderHeader("GAME SESSION", flow.title, "The downloaded game is running inside PartyBeam.", "EXIT GAME")}
-        <main class="pb-game-placeholder">
+        <section class="pb-game-placeholder" aria-label="Running game">
           <div class="pb-game-placeholder__mark">
             <span>GAME RUNNING</span>
             <strong>${flow.title}</strong>
@@ -215,7 +242,7 @@
           <div class="pb-party-chips" aria-label="Party session players">
             ${renderPartyChips(selected)}
           </div>
-        </main>
+        </section>
         <footer class="pb-flow-actions">
           <span class="pb-dev-only-copy">PLAYGROUND ONLY</span>
           <button class="pb-flow-primary" type="button" data-flow-action="finish-game">SIMULATE GAME FINISH</button>
@@ -232,14 +259,18 @@
     surface.innerHTML = `
       <div class="pb-flow-screen pb-flow-screen--results">
         ${renderHeader("GAME OVER", "Nice game!", flow.title + " has finished.", "CLOSE")}
-        <main class="pb-results-card">
-          <span class="pb-results-icon" aria-hidden="true">★</span>
-          <strong>SESSION COMPLETE</strong>
+        <section class="pb-results-card" aria-labelledby="pbResultsTitle">
+          <span class="pb-results-icon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" focusable="false">
+    <path d="M12 3 14.8 8.7 21 9.6 16.5 14 17.6 20.2 12 17.3 6.4 20.2 7.5 14 3 9.6 9.2 8.7 12 3Z"></path>
+  </svg>
+</span>
+          <strong id="pbResultsTitle">SESSION COMPLETE</strong>
           <p>Your PartySession stays connected, so the next game is one decision away.</p>
           <div class="pb-party-chips">
             ${renderPartyChips()}
           </div>
-        </main>
+        </section>
         <footer class="pb-flow-actions pb-flow-actions--split">
           <button class="pb-flow-secondary" type="button" data-flow-action="choose-game">CHOOSE ANOTHER GAME</button>
           <button class="pb-flow-primary" type="button" data-flow-action="play-again">PLAY AGAIN</button>
@@ -254,12 +285,18 @@
     surface.innerHTML = `
       <div class="pb-flow-screen pb-flow-screen--message">
         ${renderHeader("CAN'T START YET", reason, detail, "BACK")}
-        <main class="pb-message-card">
-          <span class="pb-message-symbol" aria-hidden="true">!</span>
-          <h2>${reason}</h2>
+        <section class="pb-message-card" aria-labelledby="pbMessageTitle">
+          <span class="pb-message-symbol" aria-hidden="true">
+  <svg viewBox="0 0 24 24" focusable="false">
+    <path d="M12 3 22 20H2L12 3Z"></path>
+    <path d="M12 9v5"></path>
+    <path d="M12 17.5h.01"></path>
+  </svg>
+</span>
+          <h2 id="pbMessageTitle">${reason}</h2>
           <p>${detail}</p>
           <button class="pb-flow-primary" type="button" data-flow-action="close">CHOOSE ANOTHER GAME</button>
-        </main>
+        </section>
       </div>
     `;
     focusFirst();
@@ -274,12 +311,18 @@
     surface.innerHTML = `
       <div class="pb-flow-screen pb-flow-screen--message">
         ${renderHeader("PLAYER CHECK", "One player can't join this game", "You can still start with the other connected players.", "BACK")}
-        <main class="pb-message-card">
-          <span class="pb-message-symbol" aria-hidden="true">i</span>
-          <h2>${incompatible} can't join this game.</h2>
+        <section class="pb-message-card" aria-labelledby="pbMessageTitle">
+          <span class="pb-message-symbol" aria-hidden="true">
+  <svg viewBox="0 0 24 24" focusable="false">
+    <circle cx="12" cy="12" r="9"></circle>
+    <path d="M12 10v6"></path>
+    <path d="M12 7.5h.01"></path>
+  </svg>
+</span>
+          <h2 id="pbMessageTitle">${incompatible} can't join this game.</h2>
           <p>This game requires the PartyBeam app. ${incompatible} stays connected to the PartySession.</p>
           <button class="pb-flow-primary" type="button" data-flow-action="continue-after-notice">CONTINUE</button>
-        </main>
+        </section>
       </div>
     `;
     focusFirst();
@@ -298,7 +341,7 @@
     surface.innerHTML = `
       <div class="pb-flow-screen pb-flow-screen--selection">
         ${renderHeader("WHO'S PLAYING?", flow.title + " supports up to " + maxPlayers + " players.", "Choose exactly " + maxPlayers + " players for this game. Everyone else stays in the PartySession.", "BACK")}
-        <main class="pb-player-selection" data-max-players="${maxPlayers}">
+        <section class="pb-player-selection" data-max-players="${maxPlayers}" aria-label="Players available for this game">
           ${players.map((name, index) => `
             <button class="pb-player-choice ${index < maxPlayers ? "is-selected" : ""}" type="button" data-player-name="${name}" aria-pressed="${index < maxPlayers}">
               <span class="pb-player-choice__dot"></span>
@@ -306,7 +349,7 @@
               <small>${index < maxPlayers ? "PLAYING" : "IN SESSION"}</small>
             </button>
           `).join("")}
-        </main>
+        </section>
         <footer class="pb-flow-actions">
           <span id="pbSelectionCount">${maxPlayers} / ${maxPlayers} selected</span>
           <button class="pb-flow-primary" id="pbSelectionStart" type="button" data-flow-action="confirm-selection">START</button>
@@ -396,7 +439,7 @@
     return game.offline ? "Available offline" : "Not available offline";
   }
 
-  function renderManageGames() {
+  function renderManageGames(options = {}) {
     openOverlay("manage-games");
     const storage = storageSummary();
     const lowSpace = flow.storageScenario === "low";
@@ -448,7 +491,7 @@
               </aside>
             ` : ""}
 
-            <main class="pb-manage-list">
+            <section class="pb-manage-list" aria-label="Installed games">
               ${flow.games.map((game) => `
                 <article class="pb-manage-game" data-game-id="${game.id}">
                   <div class="pb-manage-game__copy">
@@ -469,7 +512,7 @@
                   </div>
                 </article>
               `).join("")}
-            </main>
+            </section>
           </div>
 
           <footer class="partybeam-system-footer">
@@ -484,17 +527,54 @@
         </section>
       </div>
     `;
-    focusFirst();
+    if (options.focusAfterGameId) {
+      focusManageAfterRemoval(options.focusAfterGameId);
+    } else {
+      focusFirst();
+    }
   }
 
-  function renderRemoveConfirmation(game) {
+  function focusManageAfterRemoval(gameId) {
+    const cards = Array.from(surface.querySelectorAll(".pb-manage-game"));
+    const removedIndex = Math.max(
+      0,
+      flow.games.findIndex((game) => game.id === gameId)
+    );
+    const orderedCards = [
+      ...cards.slice(removedIndex + 1),
+      ...cards.slice(0, removedIndex).reverse()
+    ];
+    const target = orderedCards
+      .map((card) => card.querySelector("button:not([disabled]):not([hidden])"))
+      .find(Boolean)
+      || surface.querySelector(".partybeam-system-done")
+      || surface.querySelector(".partybeam-system-close");
+
+    focusElement(target);
+    window.requestAnimationFrame(() => {
+      if (target && document.contains(target) && document.activeElement !== target) {
+        focusElement(target);
+      }
+    });
+  }
+
+  function renderRemoveConfirmation(game, origin) {
+    flow.confirmationOrigin = origin || document.activeElement;
+    flow.confirmationGameId = game.id;
+
+    const managePanel = surface.querySelector("#pbManagePanel");
+    if (managePanel) {
+      managePanel.inert = true;
+      managePanel.setAttribute("aria-hidden", "true");
+    }
+
     const dialog = document.createElement("div");
     dialog.className = "pb-confirm-backdrop";
     dialog.innerHTML = `
-      <section class="pb-confirm" role="dialog" aria-modal="true" aria-labelledby="pbConfirmTitle">
+      <section class="pb-confirm" role="dialog" aria-modal="true" aria-labelledby="pbConfirmTitle" aria-describedby="pbConfirmDescription">
         <span class="pb-flow-kicker">REMOVE GAME</span>
         <h2 id="pbConfirmTitle">Remove ${game.title}?</h2>
-        <p>This frees about ${game.size} MB. You can download the game again later.</p>
+        <p id="pbConfirmDescription">This frees about ${game.size} MB. You can download the game again later.</p>
         <div class="pb-confirm-actions">
           <button type="button" data-confirm-action="keep">KEEP</button>
           <button class="pb-flow-danger" type="button" data-confirm-action="remove" data-game-id="${game.id}">REMOVE</button>
@@ -502,13 +582,45 @@
       </section>
     `;
     overlay.appendChild(dialog);
-    window.requestAnimationFrame(() => dialog.querySelector("button")?.focus({ preventScroll: true }));
+    const firstButton = dialog.querySelector("button");
+    focusElement(firstButton);
+    window.requestAnimationFrame(() => {
+      if (dialog.isConnected && !dialog.contains(document.activeElement)) {
+        focusElement(firstButton);
+      }
+    });
   }
 
-  function closeConfirmation() {
+  function closeConfirmation({ restoreFocus = true } = {}) {
     const dialog = overlay.querySelector(".pb-confirm-backdrop");
+    const managePanel = surface.querySelector("#pbManagePanel");
+    const origin = flow.confirmationOrigin;
+
     if (dialog) {
       dialog.remove();
+    }
+
+    if (managePanel) {
+      managePanel.inert = false;
+      managePanel.removeAttribute("inert");
+      managePanel.removeAttribute("aria-hidden");
+    }
+
+    flow.confirmationOrigin = null;
+    flow.confirmationGameId = null;
+
+    if (!restoreFocus) {
+      return;
+    }
+
+    if (origin && document.contains(origin) && !origin.disabled) {
+      focusElement(origin);
+      window.requestAnimationFrame(() => {
+        if (document.contains(origin) && document.activeElement !== origin) {
+          focusElement(origin);
+        }
+      });
+    } else {
       focusFirst();
     }
   }
@@ -675,6 +787,13 @@
     }
   }, true);
 
+  overlay.addEventListener("focusin", (event) => {
+    const confirmation = overlay.querySelector(".pb-confirm");
+    if (confirmation && !confirmation.contains(event.target)) {
+      focusElement(getFocusable()[0]);
+    }
+  });
+
   overlay.addEventListener("click", (event) => {
     const playerChoice = event.target.closest(".pb-player-choice");
     if (playerChoice) {
@@ -701,7 +820,7 @@
       }
 
       if (action === "remove") {
-        renderRemoveConfirmation(game);
+        renderRemoveConfirmation(game, gameButton);
       } else {
         simulateManageProgress(gameId, action);
       }
@@ -715,14 +834,15 @@
         return;
       }
 
-      const game = flow.games.find((item) => item.id === confirmButton.dataset.gameId);
+      const gameId = confirmButton.dataset.gameId;
+      const game = flow.games.find((item) => item.id === gameId);
       if (game) {
         game.installed = false;
         game.offline = false;
         game.update = false;
       }
-      closeConfirmation();
-      renderManageGames();
+      closeConfirmation({ restoreFocus: false });
+      renderManageGames({ focusAfterGameId: gameId });
       return;
     }
 
@@ -815,7 +935,7 @@
           const current = focusables.indexOf(document.activeElement);
           const delta = event.shiftKey ? -1 : 1;
           const next = current < 0 ? 0 : (current + delta + focusables.length) % focusables.length;
-          focusables[next].focus({ preventScroll: true });
+          focusElement(focusables[next]);
         }
       }
       return;

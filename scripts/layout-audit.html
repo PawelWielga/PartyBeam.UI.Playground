@@ -523,10 +523,107 @@
         assert(closeButton.classList.contains("partybeam-system-close"), viewport + " Manage Games does not use shared close shell");
         assert(rectInside(panel.getBoundingClientRect(), screenRect, 1), viewport + " Manage Games panel leaves PartyBeam screen");
         assert(noHorizontalOverflow(panel), viewport + " Manage Games panel horizontal overflow");
+        assert(doc.querySelectorAll("main").length === 1, viewport + " simplified flow introduced an extra main landmark");
 
-        closeButton.click();
+        const spatial = frame.contentWindow.PartyBeamSpatialNavigation;
+        const focusables = Array.from(
+          overlay.querySelectorAll('button:not([disabled]):not([hidden]), [tabindex="0"]')
+        ).filter((element) => element.offsetParent !== null && !element.closest("[inert]"));
+        assert(Boolean(spatial?.findDirectionalTarget), viewport + " shared spatial navigation helper missing");
+
+        const directions = ["up", "down", "left", "right"];
+        const keyByDirection = { up: "ArrowUp", down: "ArrowDown", left: "ArrowLeft", right: "ArrowRight" };
+        let directionalCase = null;
+
+        for (let index = 0; index < focusables.length && !directionalCase; index += 1) {
+          for (const direction of directions) {
+            const expected = spatial.findDirectionalTarget(focusables[index], direction, focusables);
+            const delta = direction === "left" || direction === "up" ? -1 : 1;
+            const linear = focusables[(index + delta + focusables.length) % focusables.length];
+            if (expected && expected !== linear) {
+              directionalCase = { origin: focusables[index], direction, expected };
+              break;
+            }
+          }
+        }
+
+        assert(Boolean(directionalCase), viewport + " Manage Games has no regression case that distinguishes spatial from linear navigation");
+        if (directionalCase) {
+          directionalCase.origin.focus();
+          await waitFrames(1);
+          await dispatchKey(keyByDirection[directionalCase.direction]);
+          assert(
+            doc.activeElement === directionalCase.expected,
+            viewport + " Manage Games D-pad did not select the spatial target for " + directionalCase.direction
+          );
+          assert(
+            rectInside(doc.activeElement.getBoundingClientRect(), panel.getBoundingClientRect(), 1),
+            viewport + " Manage Games spatial focus moved outside the visible panel"
+          );
+        }
+
+        const removeOrigin = panel.querySelector('[data-game-action="remove"]');
+        assert(Boolean(removeOrigin), viewport + " Manage Games remove action missing");
+        if (removeOrigin) {
+          removeOrigin.focus();
+          removeOrigin.click();
+          await waitFrames(2);
+
+          const confirmation = overlay.querySelector(".pb-confirm");
+          assert(Boolean(confirmation), viewport + " Remove Game confirmation did not open");
+          assert(panel.inert === true, viewport + " Manage Games panel is not inert behind confirmation");
+          assert(panel.getAttribute("aria-hidden") === "true", viewport + " Manage Games panel is not hidden from assistive tech behind confirmation");
+          assert(confirmation.contains(doc.activeElement), viewport + " Remove Game confirmation did not receive focus");
+
+          for (let step = 0; step < 4; step += 1) {
+            await dispatchKey("Tab");
+            assert(confirmation.contains(doc.activeElement), viewport + " Tab escaped Remove Game confirmation");
+          }
+
+          for (const key of ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]) {
+            await dispatchKey(key);
+            assert(confirmation.contains(doc.activeElement), viewport + " D-pad escaped Remove Game confirmation on " + key);
+          }
+
+          const underlyingButton = panel.querySelector("button");
+          underlyingButton?.focus();
+          await waitFrames(1);
+          assert(confirmation.contains(doc.activeElement), viewport + " focus reached inert Manage Games controls behind confirmation");
+
+          await dispatchKey("Escape");
+          await waitFrames(2);
+          assert(!overlay.querySelector(".pb-confirm"), viewport + " Escape did not close only the top-most confirmation");
+          assert(!overlay.hidden, viewport + " Escape closed Manage Games together with confirmation");
+          assert(doc.activeElement === removeOrigin, viewport + " confirmation did not restore focus to invoking Remove button");
+          assert(panel.inert === false, viewport + " Manage Games panel stayed inert after confirmation closed");
+
+          removeOrigin.click();
+          await waitFrames(2);
+          const confirmRemove = overlay.querySelector('[data-confirm-action="remove"]');
+          assert(Boolean(confirmRemove), viewport + " destructive Remove confirmation action missing");
+          confirmRemove?.focus();
+          confirmRemove?.click();
+          await waitFrames(3);
+
+          const refreshedPanel = doc.getElementById("pbManagePanel");
+          assert(!overlay.hidden, viewport + " removing a game unexpectedly closed Manage Games");
+          assert(!overlay.querySelector(".pb-confirm"), viewport + " confirmation remained after removing a game");
+          assert(refreshedPanel.contains(doc.activeElement), viewport + " focus was not restored to a surviving Manage Games control");
+          assert(doc.activeElement.offsetParent !== null, viewport + " focus was restored to a hidden Manage Games control");
+          assert(
+            rectInside(doc.activeElement.getBoundingClientRect(), refreshedPanel.getBoundingClientRect(), 1),
+            viewport + " restored Manage Games focus is outside the visible panel"
+          );
+          assert(doc.querySelectorAll("main").length === 1, viewport + " removing a game introduced an extra main landmark");
+
+          doc.getElementById("pbManageCloseButton").click();
+        } else {
+          closeButton.click();
+        }
+
         await waitFrames(2);
         assert(overlay.hidden, viewport + " Manage Games close did not return to PartyBeam");
+        assert(doc.activeElement === manageButton, viewport + " Manage Games close did not restore invoking focus");
       }
 
 

@@ -17,6 +17,18 @@
   --border-major: 4px;
   --border-control: 2px;
   --shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+  --overlay-scrim: rgba(3, 5, 13, 0.58);
+  --system-panel-surface: linear-gradient(160deg, rgba(23, 26, 47, 0.975), rgba(10, 13, 29, 0.97));
+  --text-secondary: rgba(229, 233, 248, 0.7);
+  --border-subtle: rgba(222, 226, 255, 0.12);
+  --border-strong: rgba(174, 158, 255, 0.34);
+  --warning: #ffd088;
+  --warning-border: rgba(255, 180, 79, 0.55);
+  --warning-surface: rgba(116, 64, 8, 0.28);
+  --shadow-system: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.03), 0 34px 86px rgba(0, 0, 0, 0.52), 0 0 44px rgba(102, 75, 218, 0.10);
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-ease: ease;
   color: var(--text);
   background: var(--bg);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -2259,8 +2271,14 @@ button:disabled {
 }
 
 .catalog-filter__icon {
-  font-size: 15px;
-  line-height: 1;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   opacity: 0.78;
 }
 
@@ -2573,7 +2591,7 @@ button:disabled {
   place-items: center;
   padding: 40px 48px;
   overflow: hidden;
-  background: rgba(3, 5, 13, 0.58);
+  background: var(--overlay-scrim);
   backdrop-filter: blur(13px) saturate(82%);
   -webkit-backdrop-filter: blur(13px) saturate(82%);
 }
@@ -2587,15 +2605,10 @@ button:disabled {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   overflow: hidden;
-  border: var(--border-major) solid rgba(174, 158, 255, 0.34);
+  border: var(--border-major) solid var(--border-strong);
   border-radius: 30px;
-  background:
-    linear-gradient(160deg, rgba(23, 26, 47, 0.975), rgba(10, 13, 29, 0.97));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.03),
-    0 34px 86px rgba(0, 0, 0, 0.52),
-    0 0 44px rgba(102, 75, 218, 0.10);
+  background: var(--system-panel-surface);
+  box-shadow: var(--shadow-system);
 }
 
 .partybeam-system-panel::before {
@@ -2616,7 +2629,7 @@ button:disabled {
   justify-content: space-between;
   gap: 32px;
   padding: 28px 34px 24px 38px;
-  border-bottom: 1px solid rgba(222, 226, 255, 0.12);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .partybeam-system-heading {
@@ -2642,7 +2655,7 @@ button:disabled {
 
 .partybeam-system-heading p {
   margin: 8px 0 0;
-  color: rgba(229, 233, 248, 0.7);
+  color: var(--text-secondary);
   font-size: 17px;
   line-height: 1.35;
 }
@@ -2692,7 +2705,7 @@ button:disabled {
   justify-content: space-between;
   gap: 24px;
   padding: 16px 34px 18px 38px;
-  border-top: 1px solid rgba(222, 226, 255, 0.12);
+  border-top: 1px solid var(--border-subtle);
   background: rgba(4, 6, 16, 0.24);
 }
 
@@ -2986,12 +2999,31 @@ button:disabled {
 }
 
 .game-cover-compatibility strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   color: #ffd3a0;
   font-size: 13px;
   line-height: 1.15;
 }
 
-.game-cover-compatibility span {
+.game-cover-compatibility strong span {
+  color: inherit;
+  font: inherit;
+}
+
+.game-cover-compatibility__icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.game-cover-compatibility > span {
   color: rgba(255, 237, 218, 0.76);
   font-size: 11px;
   font-weight: 700;
@@ -3321,7 +3353,7 @@ button:disabled {
   justify-content: space-between;
   gap: 32px;
   padding: 28px 34px 24px 38px;
-  border-bottom: 1px solid rgba(222, 226, 255, 0.12);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .settings-heading {
@@ -3666,7 +3698,7 @@ button:disabled {
   justify-content: space-between;
   gap: 24px;
   padding: 16px 34px 18px 38px;
-  border-top: 1px solid rgba(222, 226, 255, 0.12);
+  border-top: 1px solid var(--border-subtle);
   background: rgba(4, 6, 16, 0.24);
 }
 
@@ -4161,7 +4193,7 @@ button:disabled {
   justify-content: space-between;
   gap: 32px;
   padding: 28px 34px 24px 38px;
-  border-bottom: 1px solid rgba(222, 226, 255, 0.12);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .game-details-kicker {
@@ -4381,7 +4413,7 @@ button:disabled {
   align-items: center;
   gap: 26px;
   padding: 20px 34px 22px 38px;
-  border-top: 1px solid rgba(222, 226, 255, 0.12);
+  border-top: 1px solid var(--border-subtle);
   background: rgba(4, 6, 16, 0.24);
 }
 
@@ -4736,4 +4768,46 @@ button:disabled {
   margin-right: 13px;
   transform: scale(1.3);
   transform-origin: left center;
+}
+
+
+/* TV 720p couch-readable typography overrides. Decorative kickers/taglines stay intentionally smaller. */
+.preview-canvas[data-device="tv720"] .home-card-description,
+.preview-canvas[data-device="tv720"] .game-code-label,
+.preview-canvas[data-device="tv720"] .game-code-hint,
+.preview-canvas[data-device="tv720"] .qr-caption,
+.preview-canvas[data-device="tv720"] .players-summary,
+.preview-canvas[data-device="tv720"] .player-name,
+.preview-canvas[data-device="tv720"] .app-version,
+.preview-canvas[data-device="tv720"] .partybeam-footer .screen-button--link,
+.preview-canvas[data-device="tv720"] .catalog-players-heading span,
+.preview-canvas[data-device="tv720"] .catalog-game-code > span,
+.preview-canvas[data-device="tv720"] .game-cover-compatibility strong,
+.preview-canvas[data-device="tv720"] .game-cover-compatibility > span,
+.preview-canvas[data-device="tv720"] .settings-section-heading p,
+.preview-canvas[data-device="tv720"] .settings-row-copy span,
+.preview-canvas[data-device="tv720"] .settings-choice-group button,
+.preview-canvas[data-device="tv720"] .game-details-meta-card span,
+.preview-canvas[data-device="tv720"] .game-download-size,
+.preview-canvas[data-device="tv720"] .game-download-error span {
+  font-size: 13px;
+}
+
+.preview-canvas[data-device="tv720"] .catalog-search {
+  height: 36px;
+}
+
+.preview-canvas[data-device="tv720"] .catalog-search__input,
+.preview-canvas[data-device="tv720"] .catalog-filter {
+  min-height: 36px;
+  font-size: 13px;
+}
+
+.preview-canvas[data-device="tv720"] .catalog-filter__icon {
+  width: 15px;
+  height: 15px;
+}
+
+.preview-canvas[data-device="tv720"] .game-cover-prerelease {
+  font-size: 11px;
 }

@@ -6,8 +6,8 @@
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
   <link rel="icon" type="image/png" href="assets/icon.png">
-  <link rel="stylesheet" href="styles.css?v=37">
-  <link rel="stylesheet" href="simplified-flow.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=38">
+  <link rel="stylesheet" href="simplified-flow.css?v=3">
 </head>
 <body>
   <div class="playground-shell">
@@ -147,15 +147,24 @@
                   <div class="catalog-library-toolbar">
                     <div class="catalog-filters" aria-label="Game filters">
                       <button class="catalog-filter" type="button" data-catalog-filter="favorites" aria-pressed="false">
-                        <span class="catalog-filter__icon" aria-hidden="true">♥</span>
+                        <svg class="catalog-filter__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 1 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"></path>
+</svg>
                         <span>FAVORITES</span>
                       </button>
                       <button class="catalog-filter" type="button" data-catalog-filter="downloaded" aria-pressed="false">
-                        <span class="catalog-filter__icon" aria-hidden="true">↓</span>
+                        <svg class="catalog-filter__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M12 3v12"></path>
+  <path d="m7 10 5 5 5-5"></path>
+  <path d="M5 21h14"></path>
+</svg>
                         <span>DOWNLOADED</span>
                       </button>
                       <button class="catalog-filter" type="button" data-catalog-filter="compatible" aria-pressed="false">
-                        <span class="catalog-filter__icon" aria-hidden="true">✓</span>
+                        <svg class="catalog-filter__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <circle cx="12" cy="12" r="9"></circle>
+  <path d="m8 12 2.5 2.5L16 9"></path>
+</svg>
                         <span>ALL CAN PLAY</span>
                       </button>
                       <label class="catalog-search" for="catalogSearchInput">
@@ -584,7 +593,8 @@
     <div class="playground-toast" id="playgroundToast" role="status" aria-live="polite" hidden></div>
   </div>
 
-  <script src="app.js?v=25"></script>
-  <script src="simplified-flow.js?v=2"></script>
+  <script src="spatial-navigation.js?v=1"></script>
+  <script src="app.js?v=26"></script>
+  <script src="simplified-flow.js?v=3"></script>
 </body>
 </html>

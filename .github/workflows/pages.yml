@@ -27,6 +27,7 @@ jobs:
 
       - name: Check JavaScript syntax
         run: |
+          node --check spatial-navigation.js
           node --check app.js
           node --check simplified-flow.js
 
@@ -92,7 +93,7 @@ jobs:
       - name: Prepare site artifact
         run: |
           mkdir -p _site
-          cp index.html styles.css app.js simplified-flow.css simplified-flow.js _site/
+          cp index.html styles.css app.js spatial-navigation.js simplified-flow.css simplified-flow.js _site/
           cp -R assets _site/assets
 
       - name: Upload Pages artifact
