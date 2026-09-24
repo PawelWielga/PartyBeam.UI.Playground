@@ -41,6 +41,7 @@ The playground also works from a local `file://` URL because it does not fetch m
 
 The toolbar above the preview can switch between:
 
+- **TV 3840×2160 (4K)**
 - **TV 1920×1080**
 - **TV 1280×720**
 - **Phone** (390×844)
