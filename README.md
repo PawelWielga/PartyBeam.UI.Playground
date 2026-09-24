@@ -47,7 +47,7 @@ The toolbar above the preview can switch between:
 - **Phone** (390×844)
 - **Full screen**
 
-TV presets are rendered at their logical resolution and scaled proportionally when the browser is smaller than the target viewport. **Full screen** switches to a live viewport that fills the available browser area 1:1.
+TV presets use a resolution-independent **1920×1080 logical design space**. The playground treats 1280×720, 1920×1080 and 3840×2160 as physical outputs and automatically derives the UI scale from the physical resolution. That gives 720p about 66.7% UI scale, Full HD 100%, and 4K 200%, while preserving the same relative layout and visual proportions. Adding a future 8K or 16K preset therefore does not require redesigning individual fonts, paddings, icons or panels. **Full screen** remains a live viewport that fills the available browser area 1:1.
 
 ## Dev controls
 

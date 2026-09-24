@@ -104,9 +104,18 @@
 
       function previewScale() {
         const canvas = frame.contentDocument.getElementById("previewCanvas");
-        const logicalWidth = parseFloat(canvas?.style.width) || canvas?.offsetWidth || 1;
-        const renderedWidth = canvas?.getBoundingClientRect().width || logicalWidth;
-        return renderedWidth / Math.max(logicalWidth, 1);
+        const physicalWidth = parseFloat(canvas?.style.width) || canvas?.offsetWidth || 1;
+        const renderedWidth = canvas?.getBoundingClientRect().width || physicalWidth;
+        return renderedWidth / Math.max(physicalWidth, 1);
+      }
+
+      function uiScale() {
+        const canvas = frame.contentDocument.getElementById("previewCanvas");
+        return parseFloat(canvas?.dataset.uiScale) || 1;
+      }
+
+      function renderedUiScale() {
+        return previewScale() * uiScale();
       }
 
       function validateCompactReadability(viewport) {
@@ -219,7 +228,7 @@
 
           const rect = target.getBoundingClientRect();
           assert(
-            rectInside(rect, screenRect, 13 * previewScale()),
+            rectInside(rect, screenRect, 13 * renderedUiScale()),
             label + " remote focus clipped",
             target.id || target.className
           );
@@ -915,7 +924,7 @@
           String(pxValue(scroll, "paddingBottom"))
         );
         assert(
-          Math.abs((screenRect.bottom - playersRect.bottom) - expectedCatalogBottomPadding * previewScale()) <= 2,
+          Math.abs((screenRect.bottom - playersRect.bottom) - expectedCatalogBottomPadding * renderedUiScale()) <= 2,
           viewport + " Players panel bottom spacing does not match the catalog",
           String(screenRect.bottom - playersRect.bottom)
         );
@@ -1240,6 +1249,68 @@
         });
       }
 
+      async function validateResolutionIndependentTvScaling() {
+        const doc = frame.contentDocument;
+        const expectedUiScale = {
+          tv720: 1280 / 1920,
+          tv1080: 1,
+          tv4k: 2
+        };
+        let baselineRatios = null;
+
+        for (const viewportName of ["tv720", "tv1080", "tv4k"]) {
+          await setViewport(viewportName);
+          await waitFrames(2);
+
+          const canvas = doc.getElementById("previewCanvas");
+          const screen = doc.getElementById("partybeamScreen");
+          const homeCard = doc.querySelector(".home-card");
+          const continueButton = doc.getElementById("continueButton");
+          const physicalWidth = parseFloat(canvas.style.width);
+          const physicalHeight = parseFloat(canvas.style.height);
+          const logicalWidth = parseFloat(screen.style.width);
+          const logicalHeight = parseFloat(screen.style.height);
+          const actualUiScale = parseFloat(canvas.dataset.uiScale);
+          const screenRect = screen.getBoundingClientRect();
+          const cardRect = homeCard.getBoundingClientRect();
+          const buttonRect = continueButton.getBoundingClientRect();
+
+          cases += 1;
+
+          assert(Math.abs(logicalWidth - 1920) <= 0.01, viewportName + " logical TV width is not 1920", String(logicalWidth));
+          assert(Math.abs(logicalHeight - 1080) <= 0.01, viewportName + " logical TV height is not 1080", String(logicalHeight));
+          assert(
+            Math.abs(actualUiScale - expectedUiScale[viewportName]) <= 0.001,
+            viewportName + " UI scale is incorrect",
+            String(actualUiScale)
+          );
+          assert(canvas.dataset.device === "tv", viewportName + " does not use the shared TV layout", canvas.dataset.device);
+          assert(
+            Math.abs(screenRect.width / screenRect.height - physicalWidth / physicalHeight) <= 0.001,
+            viewportName + " scaled UI no longer matches the physical screen aspect ratio"
+          );
+
+          const ratios = {
+            cardWidth: cardRect.width / screenRect.width,
+            cardHeight: cardRect.height / screenRect.height,
+            buttonWidth: buttonRect.width / screenRect.width,
+            buttonHeight: buttonRect.height / screenRect.height
+          };
+
+          if (!baselineRatios) {
+            baselineRatios = ratios;
+          } else {
+            for (const [name, value] of Object.entries(ratios)) {
+              assert(
+                Math.abs(value - baselineRatios[name]) <= 0.002,
+                viewportName + " changed relative UI geometry for " + name,
+                value + " vs " + baselineRatios[name]
+              );
+            }
+          }
+        }
+      }
+
       async function validateFullPreviewFillsStage() {
         const doc = frame.contentDocument;
 
@@ -1272,6 +1343,7 @@
         await waitFrames(5);
         await waitForControl("continueButton");
 
+        await validateResolutionIndependentTvScaling();
         await validateFullPreviewFillsStage();
 
         const viewports = ["tv4k", "tv1080", "tv720", "full"];
