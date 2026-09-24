@@ -48,6 +48,7 @@
       compatible: false
     },
     catalogSearch: "",
+    catalogSearchEditing: false,
     showPrereleaseGames: false
   };
 
@@ -208,8 +209,17 @@
     return activeElement;
   }
 
-  function getRemoteFocusVisualTarget() {
+  function getRemoteFocusLogicalTarget() {
     return getSimplifiedFlowFocusTarget() || remoteFocusTarget;
+  }
+
+  function getRemoteFocusVisualTarget() {
+    const logicalTarget = getRemoteFocusLogicalTarget();
+    if (logicalTarget === elements.catalogSearchInput) {
+      return logicalTarget.closest(".catalog-search") || logicalTarget;
+    }
+
+    return logicalTarget;
   }
 
   function getAnimatedRemoteFocusTarget() {
@@ -758,6 +768,7 @@
   }
 
   function renderRemoteFocusVisual() {
+    const logicalTarget = getRemoteFocusLogicalTarget();
     const visualTarget = getRemoteFocusVisualTarget();
 
     document.querySelectorAll(".remote-focused").forEach((focused) => {
@@ -768,7 +779,7 @@
       visualTarget.classList.add("remote-focused");
     }
 
-    elements.remoteFocusLabel.textContent = getRemoteLabel(visualTarget);
+    elements.remoteFocusLabel.textContent = getRemoteLabel(logicalTarget);
     syncRemoteFocusAnimation();
   }
 
@@ -899,12 +910,35 @@
     ensureCatalogTargetVisible(target);
   }
 
+  function setCatalogSearchEditing(editing, options = {}) {
+    const active = Boolean(editing);
+    const shouldFocus = options.focus !== false;
+    const input = elements.catalogSearchInput;
+    const container = input.closest(".catalog-search");
+
+    state.catalogSearchEditing = active;
+    input.readOnly = !active;
+    input.setAttribute("aria-readonly", String(!active));
+    input.classList.toggle("is-editing", active);
+    container?.classList.toggle("is-editing", active);
+
+    if (shouldFocus) {
+      setRemoteFocus(input);
+      input.focus({ preventScroll: true });
+    }
+
+    if (active) {
+      const caret = input.value.length;
+      input.setSelectionRange?.(caret, caret);
+    }
+  }
+
   function activateRemoteFocus() {
     ensureRemoteFocus();
 
     if (remoteFocusTarget && !remoteFocusTarget.disabled) {
       if (remoteFocusTarget === elements.catalogSearchInput) {
-        remoteFocusTarget.focus({ preventScroll: true });
+        setCatalogSearchEditing(true);
         return;
       }
 
@@ -914,6 +948,15 @@
 
   function handleRemoteCommand(command) {
     if (state.screen === "game-loading") {
+      return;
+    }
+
+    if (state.catalogSearchEditing) {
+      if (command === "back") {
+        setCatalogSearchEditing(false);
+      } else if (command === "ok") {
+        elements.catalogSearchInput.focus({ preventScroll: true });
+      }
       return;
     }
 
@@ -1320,6 +1363,7 @@
 
   function showCatalog() {
     hideGameLaunchScreen();
+    setCatalogSearchEditing(false, { focus: false });
     releaseBrowserFocusForScreenTransition();
 
     state.screen = "catalog";
@@ -1337,6 +1381,7 @@
 
   function showLobby() {
     hideGameLaunchScreen();
+    setCatalogSearchEditing(false, { focus: false });
     releaseBrowserFocusForScreenTransition();
 
     state.screen = "lobby";
@@ -1649,8 +1694,20 @@
   });
 
   document.addEventListener("keydown", (event) => {
-    const tagName = document.activeElement && document.activeElement.tagName;
-    const typing = tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA";
+    const activeElement = document.activeElement;
+    const tagName = activeElement && activeElement.tagName;
+    const searchHasFocus = activeElement === elements.catalogSearchInput;
+    const searchIsEditing = searchHasFocus && state.catalogSearchEditing;
+    const typing = (tagName === "INPUT" || tagName === "SELECT" || tagName === "TEXTAREA")
+      && (!searchHasFocus || state.catalogSearchEditing);
+
+    if (searchIsEditing) {
+      if (event.key === "Escape" || event.key === "Enter") {
+        event.preventDefault();
+        setCatalogSearchEditing(false);
+      }
+      return;
+    }
 
     if (event.key === "Escape") {
       if (state.gameDetailsOpen) {
@@ -1719,7 +1776,6 @@
       return;
     }
 
-    const activeElement = document.activeElement;
     const screenHasFocus = activeElement && elements.partybeamScreen.contains(activeElement);
     const neutralFocus = !activeElement || activeElement === document.body;
 
@@ -1739,6 +1795,12 @@
     }
 
     if (screenHasFocus) {
+      if (command === "ok" && activeElement === elements.catalogSearchInput) {
+        event.preventDefault();
+        setCatalogSearchEditing(true);
+        return;
+      }
+
       if (["up", "down", "left", "right"].includes(command)) {
         event.preventDefault();
         moveBrowserFocus(command);

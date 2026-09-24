@@ -406,6 +406,8 @@ for (const catalogTitleToken of [
 for (const catalogSearchToken of [
   'id="catalogSearchInput"',
   'class="catalog-search__input"',
+  'readonly',
+  'aria-readonly="true"',
   'id="catalogEmptyState"'
 ]) {
   if (!html.includes(catalogSearchToken)) {
@@ -415,6 +417,11 @@ for (const catalogSearchToken of [
 
 for (const catalogSearchBehavior of [
   "catalogSearch: \"\"",
+  "catalogSearchEditing: false",
+  "function setCatalogSearchEditing(editing, options = {})",
+  "input.readOnly = !active",
+  "setCatalogSearchEditing(true)",
+  "setCatalogSearchEditing(false)",
   "elements.catalogSearchInput.addEventListener(\"input\"",
   "gameTitle.includes(searchQuery)",
   "elements.catalogEmptyState.hidden = visibleCovers.length > 0"
@@ -426,13 +433,27 @@ for (const catalogSearchBehavior of [
 
 for (const catalogSearchStyle of [
   ".catalog-search {",
+  "--remote-focus-radius: 999px;",
   ".catalog-search__input {",
+  ".catalog-search.remote-focused .catalog-search__input",
+  ".catalog-search__input:focus-visible {",
+  ".catalog-search__input[readonly] {",
+  ".catalog-search__input.is-editing {",
   ".catalog-search__icon {",
   ".catalog-empty-state {"
 ]) {
   if (!styles.includes(catalogSearchStyle)) {
     fail("Catalog search visual regression guard missing: " + catalogSearchStyle);
   }
+}
+
+if (styles.includes(".partybeam-screen .catalog-search__input.remote-focused")) {
+  fail("Catalog search must not reintroduce its old static remote-focus box shadow.");
+}
+
+if (!app.includes('logicalTarget === elements.catalogSearchInput')
+  || !app.includes('logicalTarget.closest(".catalog-search")')) {
+  fail("Catalog search remote focus must render on the non-input wrapper.");
 }
 
 for (const catalogFilter of ["favorites", "downloaded", "compatible"]) {

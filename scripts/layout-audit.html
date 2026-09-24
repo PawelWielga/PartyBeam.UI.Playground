@@ -1020,8 +1020,26 @@
         }
 
         const searchInput = doc.getElementById("catalogSearchInput");
+        const searchControl = searchInput?.closest(".catalog-search");
         const emptyState = doc.getElementById("catalogEmptyState");
         assert(Boolean(searchInput), viewport + " catalog search input is missing");
+        assert(Boolean(searchControl), viewport + " catalog search wrapper is missing");
+        assert(searchInput.readOnly, viewport + " catalog search is editable before activation");
+
+        searchInput.focus();
+        await waitFrames(1);
+        assert(doc.activeElement === searchInput, viewport + " catalog search did not receive navigation focus");
+        assert(searchInput.readOnly, viewport + " focusing catalog search enabled typing without OK");
+        assert(searchControl.classList.contains("remote-focused"), viewport + " catalog search does not use shared animated focus wrapper");
+        assert(!searchInput.classList.contains("remote-focused"), viewport + " catalog search input kept its old separate focus visual");
+        assert(doc.querySelectorAll(".remote-focused").length === 1, viewport + " catalog search created multiple focus visuals");
+
+        await dispatchKey("Enter");
+        await waitFrames(1);
+        assert(!searchInput.readOnly, viewport + " Enter did not activate catalog search editing");
+        assert(searchInput.classList.contains("is-editing"), viewport + " catalog search editing state marker missing");
+        assert(doc.activeElement === searchInput, viewport + " activating catalog search lost input focus");
+        assert(searchControl.classList.contains("remote-focused"), viewport + " catalog search lost shared focus while editing");
 
         searchInput.value = "Reflex";
         searchInput.dispatchEvent(new frame.contentWindow.Event("input", { bubbles: true }));
@@ -1034,6 +1052,22 @@
           viewport + " game search returned the wrong title"
         );
         assert(emptyState.hidden, viewport + " empty state appeared while search had a result");
+
+        await dispatchKey("Enter");
+        await waitFrames(1);
+        assert(searchInput.readOnly, viewport + " Enter did not finish catalog search editing");
+        assert(!searchInput.classList.contains("is-editing"), viewport + " catalog search stayed in editing state after Enter");
+        assert(doc.activeElement === searchInput, viewport + " finishing catalog search did not keep navigation focus");
+        assert(searchControl.classList.contains("remote-focused"), viewport + " catalog search lost shared focus after editing");
+
+        await dispatchKey("Enter");
+        await waitFrames(1);
+        assert(!searchInput.readOnly, viewport + " catalog search could not re-enter editing mode");
+        await dispatchKey("Escape");
+        await waitFrames(1);
+        assert(searchInput.readOnly, viewport + " Escape did not leave catalog search editing");
+        assert(!catalog.hidden, viewport + " Escape from catalog search unexpectedly left catalog");
+        assert(doc.activeElement === searchInput, viewport + " Escape from catalog search lost navigation focus");
 
         searchInput.value = "Definitely Missing Game";
         searchInput.dispatchEvent(new frame.contentWindow.Event("input", { bubbles: true }));
