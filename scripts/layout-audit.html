@@ -382,6 +382,37 @@
           viewport + " Settings toggle did not change immediately"
         );
 
+        const prereleaseToggle = doc.querySelector('[data-setting-toggle="show-prerelease-games"]');
+        const prereleaseCovers = Array.from(doc.querySelectorAll('.game-cover[data-prerelease="true"]'));
+        assert(Boolean(prereleaseToggle), viewport + " prerelease games setting is missing");
+        assert(prereleaseCovers.length === 2, viewport + " prerelease game fixtures changed");
+        assert(
+          prereleaseCovers.every((cover) => cover.hidden),
+          viewport + " prerelease games are visible while setting is off"
+        );
+
+        prereleaseToggle.click();
+        await waitFrames(2);
+        assert(
+          prereleaseToggle.getAttribute("aria-checked") === "true",
+          viewport + " prerelease games setting did not turn on"
+        );
+        assert(
+          prereleaseCovers.every((cover) => !cover.hidden),
+          viewport + " prerelease games did not become visible"
+        );
+
+        prereleaseToggle.click();
+        await waitFrames(2);
+        assert(
+          prereleaseToggle.getAttribute("aria-checked") === "false",
+          viewport + " prerelease games setting did not turn back off"
+        );
+        assert(
+          prereleaseCovers.every((cover) => cover.hidden),
+          viewport + " prerelease games stayed visible after disabling setting"
+        );
+
         const displayCategory = doc.querySelector('[data-settings-category="display"]');
         displayCategory.click();
         await waitFrames(1);
@@ -812,7 +843,10 @@
         searchInput.value = "";
         searchInput.dispatchEvent(new frame.contentWindow.Event("input", { bubbles: true }));
         await waitFrames(2);
-        assert(covers.every((cover) => !cover.hidden), viewport + " clearing game search did not restore catalog");
+        assert(
+          covers.every((cover) => cover.dataset.prerelease === "true" ? cover.hidden : !cover.hidden),
+          viewport + " clearing game search did not restore catalog prerelease visibility"
+        );
         assert(emptyState.hidden, viewport + " clearing game search left empty state visible");
 
         await setPlayers(8);
