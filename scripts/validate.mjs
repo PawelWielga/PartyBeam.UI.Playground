@@ -260,17 +260,19 @@ if (!app.includes('tv4k: { width: 3840, height: 2160, label: "TV 3840×2160" }')
   fail("Missing 4K TV viewport preset.");
 }
 
-if (!html.includes('data-viewport="tv4k"')) {
-  fail("Missing 4K TV viewport control.");
+if (!html.includes('data-viewport="tv4k"') || !html.includes('>TV 4K</button>')) {
+  fail("Missing visible 4K TV viewport control.");
 }
 
 for (const fullPreviewBehavior of [
-  "const logicalPreset = preset.full",
-  "viewportPresets[state.previousViewport] || viewportPresets.tv1080",
-  "scale = Math.min(1, available.width / logicalWidth, available.height / logicalHeight)"
+  "if (preset.full) {",
+  "logicalWidth = Math.max(280, Math.floor(available.width));",
+  "logicalHeight = Math.max(320, Math.floor(available.height));",
+  "scale = 1;",
+  '? logicalWidth + " × " + logicalHeight + " · live"'
 ]) {
   if (!app.includes(fullPreviewBehavior)) {
-    fail("Full preview must preserve a TV logical viewport and scale it to fit: " + fullPreviewBehavior);
+    fail("Full preview must fill the live browser viewport: " + fullPreviewBehavior);
   }
 }
 

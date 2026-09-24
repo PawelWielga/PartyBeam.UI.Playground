@@ -102,6 +102,13 @@
         return parseFloat(frame.contentWindow.getComputedStyle(element)[property]) || 0;
       }
 
+      function previewScale() {
+        const canvas = frame.contentDocument.getElementById("previewCanvas");
+        const logicalWidth = parseFloat(canvas?.style.width) || canvas?.offsetWidth || 1;
+        const renderedWidth = canvas?.getBoundingClientRect().width || logicalWidth;
+        return renderedWidth / Math.max(logicalWidth, 1);
+      }
+
       function validateCompactReadability(viewport) {
         const doc = frame.contentDocument;
 
@@ -212,7 +219,7 @@
 
           const rect = target.getBoundingClientRect();
           assert(
-            rectInside(rect, screenRect, 13),
+            rectInside(rect, screenRect, 13 * previewScale()),
             label + " remote focus clipped",
             target.id || target.className
           );
@@ -908,7 +915,7 @@
           String(pxValue(scroll, "paddingBottom"))
         );
         assert(
-          Math.abs((screenRect.bottom - playersRect.bottom) - expectedCatalogBottomPadding) <= 2,
+          Math.abs((screenRect.bottom - playersRect.bottom) - expectedCatalogBottomPadding * previewScale()) <= 2,
           viewport + " Players panel bottom spacing does not match the catalog",
           String(screenRect.bottom - playersRect.bottom)
         );
@@ -919,7 +926,7 @@
         );
 
         const panelRatio = playersRect.width / catalogRect.width;
-        if (viewport === "tv1080" || viewport === "tv720" || viewport === "full") {
+        if (viewport === "tv4k" || viewport === "tv1080" || viewport === "tv720" || viewport === "full") {
           assert(panelRatio >= 0.225 && panelRatio <= 0.25, viewport + " player panel is not about 24%", String(panelRatio));
         }
 
@@ -933,7 +940,7 @@
 
           assert(Math.abs(ratio - 1.5) <= 0.04, viewport + " game cover is not 2:3", String(ratio));
 
-          if (viewport === "tv1080" || viewport === "tv720" || viewport === "full") {
+          if (viewport === "tv4k" || viewport === "tv1080" || viewport === "tv720" || viewport === "full") {
             assert(Math.abs(firstRect.top - fifthRect.top) <= 1, viewport + " first visible row is not five covers");
             assert(sixthRect.top > firstRect.top + 1, viewport + " sixth visible cover did not start a new row");
           }
@@ -946,7 +953,7 @@
           viewport + " catalog entry kept DOM focus on the first visible cover and suppressed TV focus"
         );
 
-        if (visibleCovers.length >= 7 && (viewport === "tv1080" || viewport === "tv720" || viewport === "full")) {
+        if (visibleCovers.length >= 7 && (viewport === "tv4k" || viewport === "tv1080" || viewport === "tv720" || viewport === "full")) {
           await dispatchKey("ArrowDown");
           await waitFrames(2);
 
@@ -1233,32 +1240,31 @@
         });
       }
 
-      async function validateFullPreviewPreservesTvViewport() {
+      async function validateFullPreviewFillsStage() {
         const doc = frame.contentDocument;
 
         await setViewport("tv1080");
+        await waitFrames(2);
+        await setViewport("full");
         await waitFrames(2);
 
         const canvas = doc.getElementById("previewCanvas");
         const stage = doc.getElementById("previewStage");
         const viewport = doc.getElementById("previewViewport");
-
-        await setViewport("full");
-        await waitFrames(2);
-
-        const logicalWidth = parseFloat(canvas.style.width);
-        const logicalHeight = parseFloat(canvas.style.height);
         const stageRect = stage.getBoundingClientRect();
         const viewportRect = viewport.getBoundingClientRect();
+        const logicalWidth = parseFloat(canvas.style.width);
+        const logicalHeight = parseFloat(canvas.style.height);
 
         cases += 1;
 
-        assert(logicalWidth === 1920, "full preview changed TV logical width", String(logicalWidth));
-        assert(logicalHeight === 1080, "full preview changed TV logical height", String(logicalHeight));
-        assert(canvas.dataset.device === "tv", "full preview switched to phone layout", canvas.dataset.device);
+        assert(Math.abs(logicalWidth - stage.clientWidth) <= 1, "full preview does not use live stage width", String(logicalWidth));
+        assert(Math.abs(logicalHeight - stage.clientHeight) <= 1, "full preview does not use live stage height", String(logicalHeight));
+        assert(canvas.style.transform === "scale(1)", "full preview is not rendered 1:1", canvas.style.transform);
+        assert(canvas.dataset.device === "tv", "full preview switched away from TV layout", canvas.dataset.device);
         assert(
-          viewportRect.width <= stageRect.width + 1 && viewportRect.height <= stageRect.height + 1,
-          "full preview does not fit inside available stage"
+          Math.abs(viewportRect.width - stageRect.width) <= 1 && Math.abs(viewportRect.height - stageRect.height) <= 1,
+          "full preview does not fill the available stage"
         );
       }
 
@@ -1266,9 +1272,9 @@
         await waitFrames(5);
         await waitForControl("continueButton");
 
-        await validateFullPreviewPreservesTvViewport();
+        await validateFullPreviewFillsStage();
 
-        const viewports = ["tv1080", "tv720", "full"];
+        const viewports = ["tv4k", "tv1080", "tv720", "full"];
         const playerCounts = [0, 1, 2, 4, 6, 8];
 
         for (const viewport of viewports) {
