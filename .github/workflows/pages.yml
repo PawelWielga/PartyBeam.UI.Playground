@@ -62,7 +62,7 @@ jobs:
             --disable-gpu \
             --disable-dev-shm-usage \
             --window-size=2400,1600 \
-            --virtual-time-budget=15000 \
+            --virtual-time-budget=25000 \
             --dump-dom \
             http://127.0.0.1:4173/scripts/layout-audit.html \
             > /tmp/layout-audit-dom.html
