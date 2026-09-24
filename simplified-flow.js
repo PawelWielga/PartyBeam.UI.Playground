@@ -535,23 +535,26 @@
   }
 
   function focusManageAfterRemoval(gameId) {
-    window.requestAnimationFrame(() => {
-      const cards = Array.from(surface.querySelectorAll(".pb-manage-game"));
-      const removedIndex = Math.max(
-        0,
-        flow.games.findIndex((game) => game.id === gameId)
-      );
-      const orderedCards = [
-        ...cards.slice(removedIndex + 1),
-        ...cards.slice(0, removedIndex).reverse()
-      ];
-      const target = orderedCards
-        .map((card) => card.querySelector("button:not([disabled]):not([hidden])"))
-        .find(Boolean)
-        || surface.querySelector(".partybeam-system-done")
-        || surface.querySelector(".partybeam-system-close");
+    const cards = Array.from(surface.querySelectorAll(".pb-manage-game"));
+    const removedIndex = Math.max(
+      0,
+      flow.games.findIndex((game) => game.id === gameId)
+    );
+    const orderedCards = [
+      ...cards.slice(removedIndex + 1),
+      ...cards.slice(0, removedIndex).reverse()
+    ];
+    const target = orderedCards
+      .map((card) => card.querySelector("button:not([disabled]):not([hidden])"))
+      .find(Boolean)
+      || surface.querySelector(".partybeam-system-done")
+      || surface.querySelector(".partybeam-system-close");
 
-      focusElement(target);
+    focusElement(target);
+    window.requestAnimationFrame(() => {
+      if (target && document.contains(target) && document.activeElement !== target) {
+        focusElement(target);
+      }
     });
   }
 
@@ -579,7 +582,13 @@
       </section>
     `;
     overlay.appendChild(dialog);
-    window.requestAnimationFrame(() => focusElement(dialog.querySelector("button")));
+    const firstButton = dialog.querySelector("button");
+    focusElement(firstButton);
+    window.requestAnimationFrame(() => {
+      if (dialog.isConnected && !dialog.contains(document.activeElement)) {
+        focusElement(firstButton);
+      }
+    });
   }
 
   function closeConfirmation({ restoreFocus = true } = {}) {
