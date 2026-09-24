@@ -602,6 +602,7 @@
 
     if (managePanel) {
       managePanel.inert = false;
+      managePanel.removeAttribute("inert");
       managePanel.removeAttribute("aria-hidden");
     }
 
@@ -614,6 +615,11 @@
 
     if (origin && document.contains(origin) && !origin.disabled) {
       focusElement(origin);
+      window.requestAnimationFrame(() => {
+        if (document.contains(origin) && document.activeElement !== origin) {
+          focusElement(origin);
+        }
+      });
     } else {
       focusFirst();
     }
