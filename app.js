@@ -209,8 +209,17 @@
     return activeElement;
   }
 
-  function getRemoteFocusVisualTarget() {
+  function getRemoteFocusLogicalTarget() {
     return getSimplifiedFlowFocusTarget() || remoteFocusTarget;
+  }
+
+  function getRemoteFocusVisualTarget() {
+    const logicalTarget = getRemoteFocusLogicalTarget();
+    if (logicalTarget === elements.catalogSearchInput) {
+      return logicalTarget.closest(".catalog-search") || logicalTarget;
+    }
+
+    return logicalTarget;
   }
 
   function getAnimatedRemoteFocusTarget() {
@@ -759,6 +768,7 @@
   }
 
   function renderRemoteFocusVisual() {
+    const logicalTarget = getRemoteFocusLogicalTarget();
     const visualTarget = getRemoteFocusVisualTarget();
 
     document.querySelectorAll(".remote-focused").forEach((focused) => {
@@ -769,7 +779,7 @@
       visualTarget.classList.add("remote-focused");
     }
 
-    elements.remoteFocusLabel.textContent = getRemoteLabel(visualTarget);
+    elements.remoteFocusLabel.textContent = getRemoteLabel(logicalTarget);
     syncRemoteFocusAnimation();
   }
 
