@@ -372,6 +372,33 @@ for (const gameLaunchStyle of [
   }
 }
 
+
+for (const prereleaseMarkup of [
+  "Show prerelease games",
+  'data-setting-toggle="show-prerelease-games"'
+]) {
+  if (!html.includes(prereleaseMarkup)) {
+    fail("Prerelease games setting markup regression: " + prereleaseMarkup);
+  }
+}
+
+for (const prereleaseBehavior of [
+  'const prereleaseGameNumbers = new Set(["06", "07"])',
+  "showPrereleaseGames: false",
+  'cover.dataset.prerelease = String(prereleaseGameNumbers.has(gameNumber))',
+  'cover.dataset.prerelease === "true" && !state.showPrereleaseGames',
+  'button.dataset.settingToggle === "show-prerelease-games"',
+  'prereleaseBadge.className = "game-cover-prerelease"'
+]) {
+  if (!app.includes(prereleaseBehavior)) {
+    fail("Prerelease games setting behavior regression: " + prereleaseBehavior);
+  }
+}
+
+if (!styles.includes(".game-cover-prerelease {")) {
+  fail("Prerelease badge style regression.");
+}
+
 for (const gameDetailsId of [
   "gameDetailsOverlay",
   "gameDetailsPanel",

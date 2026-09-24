@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="dark">
   <title>PartyBeam UI Playground</title>
   <link rel="icon" type="image/png" href="assets/icon.png">
-  <link rel="stylesheet" href="styles.css?v=36">
+  <link rel="stylesheet" href="styles.css?v=37">
   <link rel="stylesheet" href="simplified-flow.css?v=2">
 </head>
 <body>
@@ -261,6 +261,16 @@
                             <button class="settings-toggle is-on" type="button" role="switch" aria-checked="true" data-setting-toggle="remember-last-game">
                               <span class="settings-toggle-track" aria-hidden="true"><span></span></span>
                               <span class="settings-toggle-state">On</span>
+                            </button>
+                          </div>
+                          <div class="settings-row">
+                            <div class="settings-row-copy">
+                              <strong>Show prerelease games</strong>
+                              <span>Include test and prerelease builds in the game catalog.</span>
+                            </div>
+                            <button class="settings-toggle" type="button" role="switch" aria-checked="false" data-setting-toggle="show-prerelease-games">
+                              <span class="settings-toggle-track" aria-hidden="true"><span></span></span>
+                              <span class="settings-toggle-state">Off</span>
                             </button>
                           </div>
                         </div>
@@ -574,7 +584,7 @@
     <div class="playground-toast" id="playgroundToast" role="status" aria-live="polite" hidden></div>
   </div>
 
-  <script src="app.js?v=24"></script>
+  <script src="app.js?v=25"></script>
   <script src="simplified-flow.js?v=2"></script>
 </body>
 </html>
