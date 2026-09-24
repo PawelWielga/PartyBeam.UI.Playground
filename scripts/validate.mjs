@@ -256,12 +256,27 @@ for (const manageSystemStyle of [
   }
 }
 
-if (!app.includes('tv4k: { width: 3840, height: 2160, label: "TV 3840×2160" }')) {
+if (!app.includes('tv4k: { width: 3840, height: 2160, label: "TV 3840×2160", tv: true }')) {
   fail("Missing 4K TV viewport preset.");
 }
 
 if (!html.includes('data-viewport="tv4k"') || !html.includes('>TV 4K</button>')) {
   fail("Missing visible 4K TV viewport control.");
+}
+
+for (const resolutionIndependentTvBehavior of [
+  "const TV_DESIGN_WIDTH = 1920;",
+  "const TV_DESIGN_HEIGHT = 1080;",
+  "function getTvUiScale(width, height)",
+  "return Math.min(width / TV_DESIGN_WIDTH, height / TV_DESIGN_HEIGHT);",
+  "logicalWidth = physicalWidth / uiScale;",
+  "logicalHeight = physicalHeight / uiScale;",
+  'elements.partybeamScreen.style.transform = "scale(" + uiScale + ")";',
+  "elements.previewCanvas.dataset.uiScale = uiScale.toFixed(4);"
+]) {
+  if (!app.includes(resolutionIndependentTvBehavior)) {
+    fail("Resolution-independent TV scaling regression: " + resolutionIndependentTvBehavior);
+  }
 }
 
 for (const fullPreviewBehavior of [
