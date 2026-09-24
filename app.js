@@ -28,6 +28,7 @@
   ];
   const favoriteGameNumbers = new Set(["01", "03", "06", "08", "12", "17", "23"]);
   const downloadedGameNumbers = new Set(["01", "02", "04", "07", "10", "14", "18", "21", "25"]);
+  const prereleaseGameNumbers = new Set(["06", "07"]);
 
   const state = {
     viewport: "tv1080",
@@ -46,7 +47,8 @@
       downloaded: false,
       compatible: false
     },
-    catalogSearch: ""
+    catalogSearch: "",
+    showPrereleaseGames: false
   };
 
   const elements = {
@@ -398,6 +400,10 @@
       return false;
     }
 
+    if (cover.dataset.prerelease === "true" && !state.showPrereleaseGames) {
+      return false;
+    }
+
     if (state.catalogFilters.favorites && cover.dataset.favorite !== "true") {
       return false;
     }
@@ -483,11 +489,12 @@
 
       const number = cover.dataset.gameNumber;
       const title = cover.dataset.gameTitle || ("Placeholder Game " + number);
+      const prereleaseLabel = cover.dataset.prerelease === "true" ? " Pre-release build." : "";
       cover.setAttribute(
         "aria-label",
         incompatible
-          ? title + ". Not everyone can play. Supports up to " + maximumPlayers + " players."
-          : title + ". Compatible with the current party."
+          ? title + "." + prereleaseLabel + " Not everyone can play. Supports up to " + maximumPlayers + " players."
+          : title + "." + prereleaseLabel + " Compatible with the current party."
       );
     });
 
@@ -506,6 +513,7 @@
       cover.dataset.gameNumber = gameNumber;
       cover.dataset.favorite = String(favoriteGameNumbers.has(gameNumber));
       cover.dataset.downloaded = String(downloadedGameNumbers.has(gameNumber));
+      cover.dataset.prerelease = String(prereleaseGameNumbers.has(gameNumber));
 
       const realGame = realGameCovers[index] || null;
       cover.dataset.gameTitle = realGame ? realGame.title : "Placeholder Game " + gameNumber;
@@ -548,7 +556,16 @@
       detail.textContent = "Supports up to " + maximumPlayers + " players";
 
       compatibility.append(warning, detail);
-      cover.append(art, compatibility);
+
+      if (cover.dataset.prerelease === "true") {
+        const prereleaseBadge = document.createElement("span");
+        prereleaseBadge.className = "game-cover-prerelease";
+        prereleaseBadge.textContent = "PRE-RELEASE";
+        prereleaseBadge.setAttribute("aria-hidden", "true");
+        cover.append(art, prereleaseBadge, compatibility);
+      } else {
+        cover.append(art, compatibility);
+      }
       cover.addEventListener("click", () => {
         openGameDetails(cover);
       });
@@ -1289,6 +1306,11 @@
       elements.partybeamScreen.classList.toggle("settings-reduced-motion", enabled);
       invalidateRemoteFocusGeometry();
       renderRemoteFocusVisual();
+    }
+
+    if (button.dataset.settingToggle === "show-prerelease-games") {
+      state.showPrereleaseGames = enabled;
+      applyCatalogFilters();
     }
   }
 
