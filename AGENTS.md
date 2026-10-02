@@ -6,6 +6,15 @@
 
 Use this repository to prototype, test, compare, and refine visual design, interaction patterns, focus behavior, layouts, responsive behavior, and other UI ideas before they are adopted by production PartyBeam applications. Experimental changes are expected here, provided the repository remains runnable and validated.
 
+## Production architecture boundary
+
+- The production PartyBeam frontend lives in shared Razor component libraries inside `PartyBeam.Platform`, not in this repository.
+- Target production split: `UI.Shared`, `UI.Tv`, `UI.Controller`.
+- MAUI and browser hosts reuse those same components.
+- During migration, preserve accepted Playground behavior 1:1 unless a documented product decision changes it.
+- Do not add runtime/application/backend responsibilities here.
+- After production parity is complete, treat this repository as a design/prototyping reference rather than a second implementation that must evolve lockstep with every internal code refactor.
+
 ## Working and merge policy
 
 Work through focused branches and pull requests rather than treating `main` as a scratch branch.
