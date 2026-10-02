@@ -4,6 +4,18 @@ Lightweight visual playground for designing and reviewing the PartyBeam ecosyste
 
 This repository is intentionally **not** a production frontend. It contains only static HTML, CSS and vanilla JavaScript. There is no .NET, Blazor, Android project, backend, package manager or frontend framework.
 
+## Relationship to the production frontend
+
+The accepted production target is **one shared Razor implementation per PartyBeam product surface**:
+
+- `PartyBeam.UI.Shared` for common primitives/tokens/localization/focus foundations;
+- `PartyBeam.UI.Tv` for Lobby, Catalog, Game Details, Settings, Manage Games and shared-screen system UI;
+- `PartyBeam.UI.Controller` for controller product UI.
+
+MAUI Android TV, MAUI Android phone, MAUI Windows and browser hosts consume those shared components.
+
+This playground remains the 1:1 visual/interaction reference during migration. It is not a source-code library to copy wholesale and it must not become a second production frontend. After parity/cutover, production shared Razor/CSS becomes the implementation source of truth while this repository remains a design/prototyping reference.
+
 ## Purpose
 
 Use this repository to iterate quickly on screens and states such as:
